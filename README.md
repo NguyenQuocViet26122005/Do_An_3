@@ -1,51 +1,69 @@
-🏢 Website Quản Lý Ký Túc Xá Sinh Viên
-📌 Giới thiệu
+#  Website Quản Lý Ký Túc Xá Sinh Viên
 
-Trong bối cảnh số lượng sinh viên ngày càng tăng, nhu cầu lưu trú tại ký túc xá trở nên phổ biến. Tuy nhiên, việc quản lý thủ công gây nhiều khó khăn trong việc theo dõi phòng ở, hợp đồng và chi phí.
+# Giới thiệu
+Hệ thống quản lý ký túc xá sinh viên được xây dựng nhằm hỗ trợ quản lý thông tin phòng ở, sinh viên, hợp đồng và các khoản phí một cách hiệu quả.
 
-Dự án này xây dựng một hệ thống quản lý ký túc xá trên nền tảng web, giúp tự động hóa quy trình quản lý, nâng cao hiệu quả và giảm sai sót.
+Thay vì quản lý thủ công, hệ thống giúp tự động hóa toàn bộ quy trình, giảm sai sót và tiết kiệm thời gian cho cả sinh viên và cán bộ quản lý.
 
-Hệ thống hỗ trợ:
+---
 
-Sinh viên đăng ký phòng online
-Quản lý hợp đồng, hóa đơn
-Theo dõi tình trạng phòng và giường
-Thống kê và báo cáo
-🎯 Mục tiêu
-Tin học hóa việc quản lý ký túc xá
-Hỗ trợ sinh viên đăng ký và theo dõi thông tin dễ dàng
-Giúp cán bộ quản lý kiểm soát hệ thống hiệu quả
-Cung cấp báo cáo cho quản trị viên
-👥 Đối tượng sử dụng
-👨‍🎓 Sinh viên
-🧑‍💼 Cán bộ quản lý KTX
-🛠️ Quản trị viên
-⚙️ Chức năng chính
-👨‍🎓 Sinh viên
-Đăng ký / đăng nhập
-Xem phòng và giường trống
-Đăng ký phòng online
-Theo dõi trạng thái đăng ký
-Xem hợp đồng
-Xem & thanh toán hóa đơn
-Nhận thông báo vi phạm
-🧑‍💼 Cán bộ quản lý
-Duyệt / từ chối đăng ký phòng
-Quản lý phòng & giường
-Quản lý sinh viên
-Quản lý hợp đồng
-Quản lý hóa đơn
-Ghi nhận vi phạm
-🛠️ Quản trị viên
-Quản lý tài khoản
-Phân quyền hệ thống
-Thống kê & báo cáo:
-Tỷ lệ phòng đầy
-Doanh thu
-Số sinh viên cư trú
-🧩 Yêu cầu hệ thống
-Giao diện thân thiện
-Responsive (PC, Mobile, Tablet)
-Bảo mật dữ liệu
-Hoạt động ổn định
-Dễ mở rộng
+# Mục tiêu
+- Quản lý toàn bộ hoạt động ký túc xá trên nền tảng web  
+- Hỗ trợ sinh viên đăng ký phòng và theo dõi thông tin  
+- Giúp cán bộ quản lý kiểm soát phòng, giường và hợp đồng  
+- Cung cấp công cụ thống kê và báo cáo  
+
+---
+
+# Đối tượng sử dụng
+- Sinh viên  
+- Cán bộ quản lý ký túc xá  
+- Quản trị viên  
+
+---
+
+# Chức năng chính
+
+# Sinh viên
+- Đăng ký, đăng nhập hệ thống  
+- Xem danh sách phòng và giường trống  
+- Đăng ký phòng online  
+- Theo dõi trạng thái đăng ký  
+- Xem thông tin hợp đồng  
+- Xem và thanh toán hóa đơn  
+- Nhận thông báo vi phạm  
+
+# Cán bộ quản lý
+- Duyệt / từ chối yêu cầu đăng ký  
+- Quản lý phòng và giường  
+- Quản lý sinh viên  
+- Tạo và quản lý hợp đồng  
+- Quản lý hóa đơn  
+- Ghi nhận vi phạm  
+
+# Quản trị viên
+- Quản lý tài khoản người dùng  
+- Phân quyền hệ thống  
+- Thống kê và báo cáo:
+  - Tỷ lệ phòng đầy  
+  - Doanh thu  
+  - Số lượng sinh viên cư trú  
+
+---
+
+# Yêu cầu phi chức năng
+- Giao diện thân thiện, dễ sử dụng  
+- Responsive (PC, Mobile, Tablet)  
+- Bảo mật thông tin người dùng  
+- Hệ thống hoạt động ổn định  
+- Dễ dàng mở rộng  
+
+---
+
+# Công nghệ sử dụng
+- Frontend: ReactJS  
+- Backend: C# (.NET)  
+- Database: SQL Server / MySQL  
+
+---
+
