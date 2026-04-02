@@ -27,40 +27,6 @@ Hệ thống phục vụ 3 nhóm đối tượng chính:
 
 **Quản trị viên**: Quản lý tài khoản, phân quyền, quản lý tòa nhà, cấu hình hệ thống, xem báo cáo tổng hợp
 
-## Phân tích hệ thống
-
-### Kiến trúc hệ thống
-
-Hệ thống được xây dựng theo mô hình 3 lớp (3-tier architecture):
-
-- **Presentation Layer**: Giao diện người dùng được xây dựng bằng ReactJS với Ant Design, hỗ trợ responsive trên mọi thiết bị
-- **Business Logic Layer**: API Gateway và các service được phát triển bằng .NET 8, xử lý logic nghiệp vụ và phân quyền
-- **Data Access Layer**: SQL Server lưu trữ dữ liệu với 20 bảng được thiết kế tối ưu
-
-### Cơ sở dữ liệu
-
-Database gồm 20 bảng được chia thành 10 nhóm chức năng chính:
-
-**Quản lý tài khoản**: VaiTro, TaiKhoan - Xác thực và phân quyền người dùng
-
-**Quản lý tòa nhà**: ToaNha, Tang, LoaiPhong, Phong, Giuong - Cấu trúc phân cấp 4 tầng quản lý cơ sở vật chất
-
-**Quản lý sinh viên**: SinhVien - Lưu trữ thông tin cá nhân, học tập và điểm ưu tiên
-
-**Quản lý đăng ký**: HocKy, DangKyPhong - Xử lý đăng ký phòng theo học kỳ với hỗ trợ tự động duyệt
-
-**Quản lý hợp đồng**: HopDong - Quản lý hợp đồng thuê phòng từ tạo đến chấm dứt
-
-**Quản lý hóa đơn**: HoaDon, ThanhToan, ChiSoDienNuoc - Tự động tạo hóa đơn và xử lý thanh toán
-
-**Quản lý vi phạm**: LoaiViPham, ViPham - Ghi nhận và xử lý vi phạm nội quy
-
-**Quản lý thông báo**: ThongBao, ThongBaoCaNhan - Hệ thống thông báo đa kênh
-
-**Quản lý bảo trì**: YeuCauBaoTri - Tiếp nhận và xử lý yêu cầu sửa chữa
-
-**Cấu hình**: CauHinh - Lưu trữ các tham số hệ thống
-
 ### Chức năng chính
 
 Hệ thống cung cấp hơn 50 chức năng được phân chia theo module:
