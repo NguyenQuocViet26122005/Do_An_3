@@ -1,35 +1,51 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Api_Gateway.Models;
-
-public partial class YeuCauBaoTri
+namespace Api_Gateway.Models
 {
-    public int MaYeuCau { get; set; }
+    [Table("YeuCauBaoTri")]
+    public class YeuCauBaoTri
+    {
+        [Key]
+        public int MaYeuCau { get; set; }
 
-    public int MaPhong { get; set; }
+        [Required]
+        public int MaPhong { get; set; }
 
-    public int MaSinhVien { get; set; }
+        [Required]
+        public int MaSinhVien { get; set; }
 
-    public string TieuDe { get; set; } = null!;
+        [Required]
+        [StringLength(255)]
+        public string TieuDe { get; set; } = string.Empty;
 
-    public string MoTa { get; set; } = null!;
+        [Required]
+        public string MoTa { get; set; } = string.Empty;
 
-    public string LoaiYeuCau { get; set; } = null!;
+        [Required]
+        [StringLength(50)]
+        public string LoaiYeuCau { get; set; } = string.Empty;
 
-    public string? TrangThai { get; set; }
+        [StringLength(20)]
+        public string TrangThai { get; set; } = "ChoDuyet";
 
-    public int? MaCanBoXuLy { get; set; }
+        public int? MaCanBoXuLy { get; set; }
 
-    public DateTime? NgayXuLy { get; set; }
+        public DateTime? NgayXuLy { get; set; }
 
-    public decimal? ChiPhi { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? ChiPhi { get; set; }
 
-    public DateTime? NgayTao { get; set; }
+        public DateTime NgayTao { get; set; } = DateTime.Now;
 
-    public virtual CanBoKtx? MaCanBoXuLyNavigation { get; set; }
+        // Navigation properties
+        [ForeignKey("MaPhong")]
+        public virtual Phong? Phong { get; set; }
 
-    public virtual Phong MaPhongNavigation { get; set; } = null!;
+        [ForeignKey("MaSinhVien")]
+        public virtual SinhVien? SinhVien { get; set; }
 
-    public virtual SinhVien MaSinhVienNavigation { get; set; } = null!;
+        [ForeignKey("MaCanBoXuLy")]
+        public virtual CanBoKTX? CanBoXuLy { get; set; }
+    }
 }

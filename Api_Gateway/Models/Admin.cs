@@ -1,25 +1,35 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Api_Gateway.Models;
-
-public partial class Admin
+namespace Api_Gateway.Models
 {
-    public int MaAdmin { get; set; }
+    [Table("Admin")]
+    public class Admin
+    {
+        [Key]
+        public int MaAdmin { get; set; }
 
-    public int MaNguoiDung { get; set; }
+        [Required]
+        public int MaNguoiDung { get; set; }
 
-    public string MaNv { get; set; } = null!;
+        [Required]
+        [StringLength(20)]
+        public string MaNV { get; set; } = string.Empty;
 
-    public string? ChucVu { get; set; }
+        [StringLength(100)]
+        public string? ChucVu { get; set; }
 
-    public string? PhongBan { get; set; }
+        [StringLength(100)]
+        public string? PhongBan { get; set; }
 
-    public DateOnly? NgayVaoLam { get; set; }
+        public DateTime? NgayVaoLam { get; set; }
 
-    public DateTime? NgayTao { get; set; }
+        public DateTime NgayTao { get; set; } = DateTime.Now;
 
-    public virtual ICollection<BaoCaoThongKe> BaoCaoThongKes { get; set; } = new List<BaoCaoThongKe>();
+        // Navigation properties
+        [ForeignKey("MaNguoiDung")]
+        public virtual NguoiDung? NguoiDung { get; set; }
 
-    public virtual NguoiDung MaNguoiDungNavigation { get; set; } = null!;
+        public virtual ICollection<BaoCaoThongKe> BaoCaoThongKe { get; set; } = new List<BaoCaoThongKe>();
+    }
 }

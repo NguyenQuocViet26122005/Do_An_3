@@ -1,61 +1,93 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Api_Gateway.Models;
-
-public partial class HoaDon
+namespace Api_Gateway.Models
 {
-    public int MaHoaDon { get; set; }
+    [Table("HoaDon")]
+    public class HoaDon
+    {
+        [Key]
+        public int MaHoaDon { get; set; }
 
-    public string SoHoaDon { get; set; } = null!;
+        [Required]
+        [StringLength(50)]
+        public string SoHoaDon { get; set; } = string.Empty;
 
-    public int MaHopDong { get; set; }
+        [Required]
+        public int MaHopDong { get; set; }
 
-    public int MaSinhVien { get; set; }
+        [Required]
+        public int MaSinhVien { get; set; }
 
-    public int Thang { get; set; }
+        [Required]
+        public int Thang { get; set; }
 
-    public int Nam { get; set; }
+        [Required]
+        public int Nam { get; set; }
 
-    public DateOnly? NgayPhatHanh { get; set; }
+        public DateTime NgayPhatHanh { get; set; } = DateTime.Now;
 
-    public DateOnly HanThanhToan { get; set; }
+        [Required]
+        public DateTime HanThanhToan { get; set; }
 
-    public decimal? TienPhong { get; set; }
+        // Các khoản phí
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal TienPhong { get; set; } = 0;
 
-    public decimal? TienDien { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal TienDien { get; set; } = 0;
 
-    public decimal? TienNuoc { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal TienNuoc { get; set; } = 0;
 
-    public decimal? PhiDichVu { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal PhiDichVu { get; set; } = 0;
 
-    public decimal? PhiPhat { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal PhiPhat { get; set; } = 0;
 
-    public decimal TongTien { get; set; }
+        [Required]
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal TongTien { get; set; }
 
-    public decimal? ChiSoDienCu { get; set; }
+        // Chỉ số điện nước
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal? ChiSoDienCu { get; set; }
 
-    public decimal? ChiSoDienMoi { get; set; }
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal? ChiSoDienMoi { get; set; }
 
-    public decimal? ChiSoNuocCu { get; set; }
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal? ChiSoNuocCu { get; set; }
 
-    public decimal? ChiSoNuocMoi { get; set; }
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal? ChiSoNuocMoi { get; set; }
 
-    public string? TrangThai { get; set; }
+        // Thanh toán
+        [StringLength(20)]
+        public string TrangThai { get; set; } = "ChuaThanhToan";
 
-    public DateTime? NgayThanhToan { get; set; }
+        public DateTime? NgayThanhToan { get; set; }
 
-    public string? PhuongThucThanhToan { get; set; }
+        [StringLength(50)]
+        public string? PhuongThucThanhToan { get; set; }
 
-    public string? MaGiaoDich { get; set; }
+        [StringLength(100)]
+        public string? MaGiaoDich { get; set; }
 
-    public int MaCanBoTao { get; set; }
+        [Required]
+        public int MaCanBoTao { get; set; }
 
-    public DateTime? NgayTao { get; set; }
+        public DateTime NgayTao { get; set; } = DateTime.Now;
 
-    public virtual CanBoKtx MaCanBoTaoNavigation { get; set; } = null!;
+        // Navigation properties
+        [ForeignKey("MaHopDong")]
+        public virtual HopDong? HopDong { get; set; }
 
-    public virtual HopDong MaHopDongNavigation { get; set; } = null!;
+        [ForeignKey("MaSinhVien")]
+        public virtual SinhVien? SinhVien { get; set; }
 
-    public virtual SinhVien MaSinhVienNavigation { get; set; } = null!;
+        [ForeignKey("MaCanBoTao")]
+        public virtual CanBoKTX? CanBoTao { get; set; }
+    }
 }

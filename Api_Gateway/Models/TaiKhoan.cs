@@ -1,21 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Api_Gateway.Models;
-
-public partial class TaiKhoan
+namespace Api_Gateway.Models
 {
-    public int MaTaiKhoan { get; set; }
+    [Table("TaiKhoan")]
+    public class TaiKhoan
+    {
+        [Key]
+        public int MaTaiKhoan { get; set; }
 
-    public string TenDangNhap { get; set; } = null!;
+        [Required]
+        [StringLength(50)]
+        public string TenDangNhap { get; set; } = string.Empty;
 
-    public string MatKhau { get; set; } = null!;
+        [Required]
+        [StringLength(255)]
+        public string MatKhau { get; set; } = string.Empty;
 
-    public string VaiTro { get; set; } = null!;
+        [Required]
+        [StringLength(20)]
+        public string VaiTro { get; set; } = string.Empty; // Admin, CanBo, SinhVien
 
-    public bool? TrangThai { get; set; }
+        public bool TrangThai { get; set; } = true;
 
-    public DateTime? NgayTao { get; set; }
+        public DateTime NgayTao { get; set; } = DateTime.Now;
 
-    public virtual NguoiDung? NguoiDung { get; set; }
+        // Navigation property
+        public virtual NguoiDung? NguoiDung { get; set; }
+    }
 }

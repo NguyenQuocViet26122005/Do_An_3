@@ -1,31 +1,45 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Api_Gateway.Models;
-
-public partial class ViPham
+namespace Api_Gateway.Models
 {
-    public int MaViPham { get; set; }
+    [Table("ViPham")]
+    public class ViPham
+    {
+        [Key]
+        public int MaViPham { get; set; }
 
-    public int MaSinhVien { get; set; }
+        [Required]
+        public int MaSinhVien { get; set; }
 
-    public string TenViPham { get; set; } = null!;
+        [Required]
+        [StringLength(100)]
+        public string TenViPham { get; set; } = string.Empty;
 
-    public string MucDo { get; set; } = null!;
+        [Required]
+        [StringLength(20)]
+        public string MucDo { get; set; } = string.Empty;
 
-    public string? MoTa { get; set; }
+        public string? MoTa { get; set; }
 
-    public decimal? MucPhat { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal MucPhat { get; set; } = 0;
 
-    public DateTime? NgayViPham { get; set; }
+        public DateTime NgayViPham { get; set; } = DateTime.Now;
 
-    public string? TrangThai { get; set; }
+        [StringLength(20)]
+        public string TrangThai { get; set; } = "ChoDuyet";
 
-    public int MaCanBoGhi { get; set; }
+        [Required]
+        public int MaCanBoGhi { get; set; }
 
-    public DateTime? NgayGhi { get; set; }
+        public DateTime NgayGhi { get; set; } = DateTime.Now;
 
-    public virtual CanBoKtx MaCanBoGhiNavigation { get; set; } = null!;
+        // Navigation properties
+        [ForeignKey("MaSinhVien")]
+        public virtual SinhVien? SinhVien { get; set; }
 
-    public virtual SinhVien MaSinhVienNavigation { get; set; } = null!;
+        [ForeignKey("MaCanBoGhi")]
+        public virtual CanBoKTX? CanBoGhi { get; set; }
+    }
 }

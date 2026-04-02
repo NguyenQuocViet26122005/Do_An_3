@@ -1,35 +1,50 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Api_Gateway.Models;
-
-public partial class ThongBao
+namespace Api_Gateway.Models
 {
-    public int MaThongBao { get; set; }
+    [Table("ThongBao")]
+    public class ThongBao
+    {
+        [Key]
+        public int MaThongBao { get; set; }
 
-    public string TieuDe { get; set; } = null!;
+        [Required]
+        [StringLength(255)]
+        public string TieuDe { get; set; } = string.Empty;
 
-    public string NoiDung { get; set; } = null!;
+        [Required]
+        public string NoiDung { get; set; } = string.Empty;
 
-    public string LoaiThongBao { get; set; } = null!;
+        [Required]
+        [StringLength(50)]
+        public string LoaiThongBao { get; set; } = string.Empty;
 
-    public string LoaiNguoiNhan { get; set; } = null!;
+        [Required]
+        [StringLength(20)]
+        public string LoaiNguoiNhan { get; set; } = string.Empty; // TatCa, SinhVien, CanBo
 
-    public int? MaSinhVienNhan { get; set; }
+        public int? MaSinhVienNhan { get; set; }
 
-    public int? MaCanBoNhan { get; set; }
+        public int? MaCanBoNhan { get; set; }
 
-    public bool? DaDoc { get; set; }
+        public bool DaDoc { get; set; } = false;
 
-    public DateTime? NgayDoc { get; set; }
+        public DateTime? NgayDoc { get; set; }
 
-    public int MaCanBoGui { get; set; }
+        [Required]
+        public int MaCanBoGui { get; set; }
 
-    public DateTime? NgayGui { get; set; }
+        public DateTime NgayGui { get; set; } = DateTime.Now;
 
-    public virtual CanBoKtx MaCanBoGuiNavigation { get; set; } = null!;
+        // Navigation properties
+        [ForeignKey("MaSinhVienNhan")]
+        public virtual SinhVien? SinhVienNhan { get; set; }
 
-    public virtual CanBoKtx? MaCanBoNhanNavigation { get; set; }
+        [ForeignKey("MaCanBoNhan")]
+        public virtual CanBoKTX? CanBoNhan { get; set; }
 
-    public virtual SinhVien? MaSinhVienNhanNavigation { get; set; }
+        [ForeignKey("MaCanBoGui")]
+        public virtual CanBoKTX? CanBoGui { get; set; }
+    }
 }

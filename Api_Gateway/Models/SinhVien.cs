@@ -1,41 +1,47 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Api_Gateway.Models;
-
-public partial class SinhVien
+namespace Api_Gateway.Models
 {
-    public int MaSinhVien { get; set; }
+    [Table("SinhVien")]
+    public class SinhVien
+    {
+        [Key]
+        public int MaSinhVien { get; set; }
 
-    public int MaNguoiDung { get; set; }
+        [Required]
+        public int MaNguoiDung { get; set; }
 
-    public string MaSv { get; set; } = null!;
+        [Required]
+        [StringLength(20)]
+        public string MaSV { get; set; } = string.Empty;
 
-    public string? Khoa { get; set; }
+        [StringLength(100)]
+        public string? Khoa { get; set; }
 
-    public string? Nganh { get; set; }
+        [StringLength(100)]
+        public string? Nganh { get; set; }
 
-    public string? Lop { get; set; }
+        [StringLength(50)]
+        public string? Lop { get; set; }
 
-    public int? NamHoc { get; set; }
+        public int? NamHoc { get; set; }
 
-    public decimal? DiemTb { get; set; }
+        [Column(TypeName = "decimal(3,2)")]
+        public decimal? DiemTB { get; set; }
 
-    public DateTime? NgayTao { get; set; }
+        public DateTime NgayTao { get; set; } = DateTime.Now;
 
-    public virtual ICollection<DangKyPhong> DangKyPhongs { get; set; } = new List<DangKyPhong>();
+        // Navigation properties
+        [ForeignKey("MaNguoiDung")]
+        public virtual NguoiDung? NguoiDung { get; set; }
 
-    public virtual ICollection<Giuong> Giuongs { get; set; } = new List<Giuong>();
-
-    public virtual ICollection<HoaDon> HoaDons { get; set; } = new List<HoaDon>();
-
-    public virtual ICollection<HopDong> HopDongs { get; set; } = new List<HopDong>();
-
-    public virtual NguoiDung MaNguoiDungNavigation { get; set; } = null!;
-
-    public virtual ICollection<ThongBao> ThongBaos { get; set; } = new List<ThongBao>();
-
-    public virtual ICollection<ViPham> ViPhams { get; set; } = new List<ViPham>();
-
-    public virtual ICollection<YeuCauBaoTri> YeuCauBaoTris { get; set; } = new List<YeuCauBaoTri>();
+        public virtual ICollection<Giuong> Giuong { get; set; } = new List<Giuong>();
+        public virtual ICollection<DangKyPhong> DangKyPhong { get; set; } = new List<DangKyPhong>();
+        public virtual ICollection<HopDong> HopDong { get; set; } = new List<HopDong>();
+        public virtual ICollection<HoaDon> HoaDon { get; set; } = new List<HoaDon>();
+        public virtual ICollection<ViPham> ViPham { get; set; } = new List<ViPham>();
+        public virtual ICollection<ThongBao> ThongBao { get; set; } = new List<ThongBao>();
+        public virtual ICollection<YeuCauBaoTri> YeuCauBaoTri { get; set; } = new List<YeuCauBaoTri>();
+    }
 }

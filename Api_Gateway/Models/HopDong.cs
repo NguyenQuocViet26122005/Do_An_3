@@ -1,41 +1,62 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Api_Gateway.Models;
-
-public partial class HopDong
+namespace Api_Gateway.Models
 {
-    public int MaHopDong { get; set; }
+    [Table("HopDong")]
+    public class HopDong
+    {
+        [Key]
+        public int MaHopDong { get; set; }
 
-    public string SoHopDong { get; set; } = null!;
+        [Required]
+        [StringLength(50)]
+        public string SoHopDong { get; set; } = string.Empty;
 
-    public int MaSinhVien { get; set; }
+        [Required]
+        public int MaSinhVien { get; set; }
 
-    public int MaPhong { get; set; }
+        [Required]
+        public int MaPhong { get; set; }
 
-    public int MaGiuong { get; set; }
+        [Required]
+        public int MaGiuong { get; set; }
 
-    public string HocKy { get; set; } = null!;
+        [Required]
+        [StringLength(20)]
+        public string HocKy { get; set; } = string.Empty;
 
-    public DateOnly NgayBatDau { get; set; }
+        [Required]
+        public DateTime NgayBatDau { get; set; }
 
-    public DateOnly NgayKetThuc { get; set; }
+        [Required]
+        public DateTime NgayKetThuc { get; set; }
 
-    public decimal GiaThue { get; set; }
+        [Required]
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal GiaThue { get; set; }
 
-    public string? TrangThai { get; set; }
+        [StringLength(20)]
+        public string TrangThai { get; set; } = "HieuLuc";
 
-    public int MaCanBoTao { get; set; }
+        [Required]
+        public int MaCanBoTao { get; set; }
 
-    public DateTime? NgayTao { get; set; }
+        public DateTime NgayTao { get; set; } = DateTime.Now;
 
-    public virtual ICollection<HoaDon> HoaDons { get; set; } = new List<HoaDon>();
+        // Navigation properties
+        [ForeignKey("MaSinhVien")]
+        public virtual SinhVien? SinhVien { get; set; }
 
-    public virtual CanBoKtx MaCanBoTaoNavigation { get; set; } = null!;
+        [ForeignKey("MaPhong")]
+        public virtual Phong? Phong { get; set; }
 
-    public virtual Giuong MaGiuongNavigation { get; set; } = null!;
+        [ForeignKey("MaGiuong")]
+        public virtual Giuong? Giuong { get; set; }
 
-    public virtual Phong MaPhongNavigation { get; set; } = null!;
+        [ForeignKey("MaCanBoTao")]
+        public virtual CanBoKTX? CanBoTao { get; set; }
 
-    public virtual SinhVien MaSinhVienNavigation { get; set; } = null!;
+        public virtual ICollection<HoaDon> HoaDon { get; set; } = new List<HoaDon>();
+    }
 }

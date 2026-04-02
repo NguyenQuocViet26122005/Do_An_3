@@ -1,35 +1,51 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Api_Gateway.Models;
-
-public partial class NguoiDung
+namespace Api_Gateway.Models
 {
-    public int MaNguoiDung { get; set; }
+    [Table("NguoiDung")]
+    public class NguoiDung
+    {
+        [Key]
+        public int MaNguoiDung { get; set; }
 
-    public int MaTaiKhoan { get; set; }
+        [Required]
+        public int MaTaiKhoan { get; set; }
 
-    public string HoTen { get; set; } = null!;
+        [Required]
+        [StringLength(100)]
+        public string HoTen { get; set; } = string.Empty;
 
-    public string GioiTinh { get; set; } = null!;
+        [Required]
+        [StringLength(10)]
+        public string GioiTinh { get; set; } = string.Empty;
 
-    public DateOnly NgaySinh { get; set; }
+        [Required]
+        public DateTime NgaySinh { get; set; }
 
-    public string SoDienThoai { get; set; } = null!;
+        [Required]
+        [StringLength(20)]
+        public string SoDienThoai { get; set; } = string.Empty;
 
-    public string Email { get; set; } = null!;
+        [Required]
+        [StringLength(100)]
+        public string Email { get; set; } = string.Empty;
 
-    public string Cccd { get; set; } = null!;
+        [Required]
+        [StringLength(20)]
+        public string CCCD { get; set; } = string.Empty;
 
-    public string? DiaChi { get; set; }
+        [StringLength(255)]
+        public string? DiaChi { get; set; }
 
-    public DateTime? NgayTao { get; set; }
+        public DateTime NgayTao { get; set; } = DateTime.Now;
 
-    public virtual Admin? Admin { get; set; }
+        // Navigation properties
+        [ForeignKey("MaTaiKhoan")]
+        public virtual TaiKhoan? TaiKhoan { get; set; }
 
-    public virtual CanBoKtx? CanBoKtx { get; set; }
-
-    public virtual TaiKhoan MaTaiKhoanNavigation { get; set; } = null!;
-
-    public virtual SinhVien? SinhVien { get; set; }
+        public virtual Admin? Admin { get; set; }
+        public virtual CanBoKTX? CanBoKTX { get; set; }
+        public virtual SinhVien? SinhVien { get; set; }
+    }
 }
