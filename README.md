@@ -112,86 +112,10 @@ Hệ thống cung cấp hơn 50 chức năng được phân chia theo module:
 
 **Quy trình thanh toán**:
 1. Sinh viên xem hóa đơn cần thanh toán
-2. Chọn phương thức thanh toán (online hoặc tại quầy)
+2. Chọn phương thức thanh toán (online hoặc trực tiếp với cán bộ)
 3. Nếu thanh toán online, chuyển sang cổng thanh toán và nhận kết quả callback
 4. Nếu thanh toán tại quầy, cán bộ xác nhận và tạo biên lai
 5. Cập nhật trạng thái hóa đơn thành đã thanh toán
 6. Gửi biên lai cho sinh viên
 
-## Công nghệ sử dụng
-
-**Frontend**: ReactJS 19, Vite, TypeScript, Ant Design, Axios, React Router
-
-**Backend**: .NET 8, ASP.NET Core Web API, Entity Framework Core, JWT Authentication
-
-**Database**: SQL Server với 20 bảng được thiết kế tối ưu, có indexes và foreign keys đầy đủ
-
-**Thanh toán**: Tích hợp VNPay, Momo, Banking API
-
-**Deployment**: Docker, Azure/AWS (planned)
-
-## Yêu cầu hệ thống
-
-**Development**:
-- Node.js 18+
-- .NET 8 SDK
-- SQL Server 2019+
-- Visual Studio 2022 hoặc VS Code
-
-**Production**:
-- Windows Server hoặc Linux
-- SQL Server 2019+
-- IIS hoặc Nginx
-- 4GB RAM minimum
-
-## Cài đặt và chạy
-
-**Cài đặt Database**:
-```bash
-# Chạy script tạo database
-sqlcmd -S localhost -i Database_Simple.sql
-```
-
-**Chạy Backend**:
-```bash
-cd Api_Gateway
-dotnet restore
-dotnet run
-```
-
-**Chạy Frontend**:
-```bash
-cd React_UI/do_an_3
-npm install
-npm run dev
-```
-
-## Cấu trúc thư mục
-
-```
-Do_An_3/
-├── Api_Gateway/              # Backend .NET API
-│   ├── Controllers/          # API Controllers
-│   ├── Models/              # Data Models
-│   ├── Services/            # Business Logic
-│   └── Program.cs           # Entry point
-├── React_UI/do_an_3/        # Frontend React
-│   ├── src/
-│   │   ├── components/      # React Components
-│   │   ├── pages/          # Pages
-│   │   ├── services/       # API Services
-│   │   └── App.tsx         # Main App
-│   └── package.json
-├── Database_Simple.sql      # Database Schema
-├── TaiLieu_CSDL.md         # Database Documentation
-└── README.md
-```
-
-## Tác giả
-
-Dự án được phát triển bởi nhóm sinh viên khoa Công nghệ Thông tin.
-
-## Giấy phép
-
-MIT License - Xem file LICENSE.txt để biết thêm chi tiết.
 
