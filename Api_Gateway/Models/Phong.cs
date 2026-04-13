@@ -1,49 +1,55 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
-namespace Api_Gateway.Models
+namespace Api_Gateway.Models;
+
+[Table("Phong")]
+[Index("MaToaNha", Name = "IX_Phong_MaToaNha")]
+[Index("MaToaNha", "SoPhong", Name = "UQ__Phong__AAEAE7AAADBF83FC", IsUnique = true)]
+public partial class Phong
 {
-    [Table("Phong")]
-    public class Phong
-    {
-        [Key]
-        public int MaPhong { get; set; }
+    [Key]
+    public int MaPhong { get; set; }
 
-        [Required]
-        public int MaToaNha { get; set; }
+    public int MaToaNha { get; set; }
 
-        [Required]
-        [StringLength(20)]
-        public string SoPhong { get; set; } = string.Empty;
+    [StringLength(20)]
+    public string SoPhong { get; set; } = null!;
 
-        [Required]
-        public int Tang { get; set; }
+    public int Tang { get; set; }
 
-        [Required]
-        [StringLength(50)]
-        public string LoaiPhong { get; set; } = string.Empty;
+    [StringLength(50)]
+    public string LoaiPhong { get; set; } = null!;
 
-        [Required]
-        public int SucChua { get; set; }
+    public int SucChua { get; set; }
 
-        public int SoNguoiHienTai { get; set; } = 0;
+    public int? SoNguoiHienTai { get; set; }
 
-        [Required]
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal GiaPhong { get; set; }
+    [Column(TypeName = "decimal(18, 2)")]
+    public decimal GiaPhong { get; set; }
 
-        [StringLength(20)]
-        public string TrangThai { get; set; } = "ConTrong";
+    [StringLength(20)]
+    public string? TrangThai { get; set; }
 
-        public DateTime NgayTao { get; set; } = DateTime.Now;
+    [Column(TypeName = "datetime")]
+    public DateTime? NgayTao { get; set; }
 
-        // Navigation properties
-        [ForeignKey("MaToaNha")]
-        public virtual ToaNha? ToaNha { get; set; }
+    [InverseProperty("MaPhongNavigation")]
+    public virtual ICollection<DangKyPhong> DangKyPhongs { get; set; } = new List<DangKyPhong>();
 
-        public virtual ICollection<Giuong> Giuong { get; set; } = new List<Giuong>();
-        public virtual ICollection<DangKyPhong> DangKyPhong { get; set; } = new List<DangKyPhong>();
-        public virtual ICollection<HopDong> HopDong { get; set; } = new List<HopDong>();
-        public virtual ICollection<YeuCauBaoTri> YeuCauBaoTri { get; set; } = new List<YeuCauBaoTri>();
-    }
+    [InverseProperty("MaPhongNavigation")]
+    public virtual ICollection<Giuong> Giuongs { get; set; } = new List<Giuong>();
+
+    [InverseProperty("MaPhongNavigation")]
+    public virtual ICollection<HopDong> HopDongs { get; set; } = new List<HopDong>();
+
+    [ForeignKey("MaToaNha")]
+    [InverseProperty("Phongs")]
+    public virtual ToaNha MaToaNhaNavigation { get; set; } = null!;
+
+    [InverseProperty("MaPhongNavigation")]
+    public virtual ICollection<YeuCauBaoTri> YeuCauBaoTris { get; set; } = new List<YeuCauBaoTri>();
 }

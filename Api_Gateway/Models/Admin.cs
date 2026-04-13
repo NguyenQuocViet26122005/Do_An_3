@@ -1,35 +1,41 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
-namespace Api_Gateway.Models
+namespace Api_Gateway.Models;
+
+[Table("Admin")]
+[Index("MaNv", Name = "IX_Admin_MaNV")]
+[Index("MaNv", Name = "UQ__Admin__2725D70BA6E824A8", IsUnique = true)]
+[Index("MaNguoiDung", Name = "UQ__Admin__C539D763A624E431", IsUnique = true)]
+public partial class Admin
 {
-    [Table("Admin")]
-    public class Admin
-    {
-        [Key]
-        public int MaAdmin { get; set; }
+    [Key]
+    public int MaAdmin { get; set; }
 
-        [Required]
-        public int MaNguoiDung { get; set; }
+    public int MaNguoiDung { get; set; }
 
-        [Required]
-        [StringLength(20)]
-        public string MaNV { get; set; } = string.Empty;
+    [Column("MaNV")]
+    [StringLength(20)]
+    public string MaNv { get; set; } = null!;
 
-        [StringLength(100)]
-        public string? ChucVu { get; set; }
+    [StringLength(100)]
+    public string? ChucVu { get; set; }
 
-        [StringLength(100)]
-        public string? PhongBan { get; set; }
+    [StringLength(100)]
+    public string? PhongBan { get; set; }
 
-        public DateTime? NgayVaoLam { get; set; }
+    public DateOnly? NgayVaoLam { get; set; }
 
-        public DateTime NgayTao { get; set; } = DateTime.Now;
+    [Column(TypeName = "datetime")]
+    public DateTime? NgayTao { get; set; }
 
-        // Navigation properties
-        [ForeignKey("MaNguoiDung")]
-        public virtual NguoiDung? NguoiDung { get; set; }
+    [InverseProperty("MaAdminTaoNavigation")]
+    public virtual ICollection<BaoCaoThongKe> BaoCaoThongKes { get; set; } = new List<BaoCaoThongKe>();
 
-        public virtual ICollection<BaoCaoThongKe> BaoCaoThongKe { get; set; } = new List<BaoCaoThongKe>();
-    }
+    [ForeignKey("MaNguoiDung")]
+    [InverseProperty("Admin")]
+    public virtual NguoiDung MaNguoiDungNavigation { get; set; } = null!;
 }

@@ -1,40 +1,41 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
-namespace Api_Gateway.Models
+namespace Api_Gateway.Models;
+
+[Table("ToaNha")]
+[Index("MaToa", Name = "UQ__ToaNha__314934452DDD1C25", IsUnique = true)]
+public partial class ToaNha
 {
-    [Table("ToaNha")]
-    public class ToaNha
-    {
-        [Key]
-        public int MaToaNha { get; set; }
+    [Key]
+    public int MaToaNha { get; set; }
 
-        [Required]
-        [StringLength(10)]
-        public string MaToa { get; set; } = string.Empty;
+    [StringLength(10)]
+    public string MaToa { get; set; } = null!;
 
-        [Required]
-        [StringLength(100)]
-        public string TenToaNha { get; set; } = string.Empty;
+    [StringLength(100)]
+    public string TenToaNha { get; set; } = null!;
 
-        [Required]
-        [StringLength(20)]
-        public string LoaiToaNha { get; set; } = string.Empty; // Nam, Nu
+    [StringLength(20)]
+    public string LoaiToaNha { get; set; } = null!;
 
-        [Required]
-        public int SoTang { get; set; }
+    public int SoTang { get; set; }
 
-        [StringLength(20)]
-        public string TrangThai { get; set; } = "HoatDong";
+    [StringLength(20)]
+    public string? TrangThai { get; set; }
 
-        public int? MaCanBoQuanLy { get; set; }
+    public int? MaCanBoQuanLy { get; set; }
 
-        public DateTime NgayTao { get; set; } = DateTime.Now;
+    [Column(TypeName = "datetime")]
+    public DateTime? NgayTao { get; set; }
 
-        // Navigation properties
-        [ForeignKey("MaCanBoQuanLy")]
-        public virtual CanBoKTX? CanBoQuanLy { get; set; }
+    [ForeignKey("MaCanBoQuanLy")]
+    [InverseProperty("ToaNhas")]
+    public virtual CanBoKtx? MaCanBoQuanLyNavigation { get; set; }
 
-        public virtual ICollection<Phong> Phong { get; set; } = new List<Phong>();
-    }
+    [InverseProperty("MaToaNhaNavigation")]
+    public virtual ICollection<Phong> Phongs { get; set; } = new List<Phong>();
 }

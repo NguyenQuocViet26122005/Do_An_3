@@ -1,40 +1,42 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
-namespace Api_Gateway.Models
+namespace Api_Gateway.Models;
+
+[Table("BaoCaoThongKe")]
+[Index("LoaiBaoCao", Name = "IX_BaoCaoThongKe_LoaiBaoCao")]
+[Index("MaAdminTao", Name = "IX_BaoCaoThongKe_MaAdminTao")]
+public partial class BaoCaoThongKe
 {
-    [Table("BaoCaoThongKe")]
-    public class BaoCaoThongKe
-    {
-        [Key]
-        public int MaBaoCao { get; set; }
+    [Key]
+    public int MaBaoCao { get; set; }
 
-        [Required]
-        [StringLength(255)]
-        public string TenBaoCao { get; set; } = string.Empty;
+    [StringLength(255)]
+    public string TenBaoCao { get; set; } = null!;
 
-        [Required]
-        [StringLength(50)]
-        public string LoaiBaoCao { get; set; } = string.Empty; // DoanhThu, SinhVien, Phong, ViPham, TongQuan
+    [StringLength(50)]
+    public string LoaiBaoCao { get; set; } = null!;
 
-        public string? MoTa { get; set; }
+    public string? MoTa { get; set; }
 
-        public DateTime? TuNgay { get; set; }
+    public DateOnly? TuNgay { get; set; }
 
-        public DateTime? DenNgay { get; set; }
+    public DateOnly? DenNgay { get; set; }
 
-        public string? NoiDung { get; set; } // JSON
+    public string? NoiDung { get; set; }
 
-        [StringLength(255)]
-        public string? FilePath { get; set; }
+    [StringLength(255)]
+    public string? FilePath { get; set; }
 
-        [Required]
-        public int MaAdminTao { get; set; }
+    public int MaAdminTao { get; set; }
 
-        public DateTime NgayTao { get; set; } = DateTime.Now;
+    [Column(TypeName = "datetime")]
+    public DateTime? NgayTao { get; set; }
 
-        // Navigation properties
-        [ForeignKey("MaAdminTao")]
-        public virtual Admin? AdminTao { get; set; }
-    }
+    [ForeignKey("MaAdminTao")]
+    [InverseProperty("BaoCaoThongKes")]
+    public virtual Admin MaAdminTaoNavigation { get; set; } = null!;
 }

@@ -1,62 +1,62 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
-namespace Api_Gateway.Models
+namespace Api_Gateway.Models;
+
+[Table("HopDong")]
+[Index("MaSinhVien", Name = "IX_HopDong_MaSinhVien")]
+[Index("SoHopDong", Name = "UQ__HopDong__71C5D5BB175120E7", IsUnique = true)]
+public partial class HopDong
 {
-    [Table("HopDong")]
-    public class HopDong
-    {
-        [Key]
-        public int MaHopDong { get; set; }
+    [Key]
+    public int MaHopDong { get; set; }
 
-        [Required]
-        [StringLength(50)]
-        public string SoHopDong { get; set; } = string.Empty;
+    [StringLength(50)]
+    public string SoHopDong { get; set; } = null!;
 
-        [Required]
-        public int MaSinhVien { get; set; }
+    public int MaSinhVien { get; set; }
 
-        [Required]
-        public int MaPhong { get; set; }
+    public int MaPhong { get; set; }
 
-        [Required]
-        public int MaGiuong { get; set; }
+    public int MaGiuong { get; set; }
 
-        [Required]
-        [StringLength(20)]
-        public string HocKy { get; set; } = string.Empty;
+    [StringLength(20)]
+    public string HocKy { get; set; } = null!;
 
-        [Required]
-        public DateTime NgayBatDau { get; set; }
+    public DateOnly NgayBatDau { get; set; }
 
-        [Required]
-        public DateTime NgayKetThuc { get; set; }
+    public DateOnly NgayKetThuc { get; set; }
 
-        [Required]
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal GiaThue { get; set; }
+    [Column(TypeName = "decimal(18, 2)")]
+    public decimal GiaThue { get; set; }
 
-        [StringLength(20)]
-        public string TrangThai { get; set; } = "HieuLuc";
+    [StringLength(20)]
+    public string? TrangThai { get; set; }
 
-        [Required]
-        public int MaCanBoTao { get; set; }
+    public int MaCanBoTao { get; set; }
 
-        public DateTime NgayTao { get; set; } = DateTime.Now;
+    [Column(TypeName = "datetime")]
+    public DateTime? NgayTao { get; set; }
 
-        // Navigation properties
-        [ForeignKey("MaSinhVien")]
-        public virtual SinhVien? SinhVien { get; set; }
+    [InverseProperty("MaHopDongNavigation")]
+    public virtual ICollection<HoaDon> HoaDons { get; set; } = new List<HoaDon>();
 
-        [ForeignKey("MaPhong")]
-        public virtual Phong? Phong { get; set; }
+    [ForeignKey("MaCanBoTao")]
+    [InverseProperty("HopDongs")]
+    public virtual CanBoKtx MaCanBoTaoNavigation { get; set; } = null!;
 
-        [ForeignKey("MaGiuong")]
-        public virtual Giuong? Giuong { get; set; }
+    [ForeignKey("MaGiuong")]
+    [InverseProperty("HopDongs")]
+    public virtual Giuong MaGiuongNavigation { get; set; } = null!;
 
-        [ForeignKey("MaCanBoTao")]
-        public virtual CanBoKTX? CanBoTao { get; set; }
+    [ForeignKey("MaPhong")]
+    [InverseProperty("HopDongs")]
+    public virtual Phong MaPhongNavigation { get; set; } = null!;
 
-        public virtual ICollection<HoaDon> HoaDon { get; set; } = new List<HoaDon>();
-    }
+    [ForeignKey("MaSinhVien")]
+    [InverseProperty("HopDongs")]
+    public virtual SinhVien MaSinhVienNavigation { get; set; } = null!;
 }

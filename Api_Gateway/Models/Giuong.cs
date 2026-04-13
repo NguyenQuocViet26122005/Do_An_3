@@ -1,35 +1,42 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
-namespace Api_Gateway.Models
+namespace Api_Gateway.Models;
+
+[Table("Giuong")]
+[Index("MaPhong", Name = "IX_Giuong_MaPhong")]
+[Index("MaPhong", "SoGiuong", Name = "UQ__Giuong__1FB89A3D9C95805F", IsUnique = true)]
+public partial class Giuong
 {
-    [Table("Giuong")]
-    public class Giuong
-    {
-        [Key]
-        public int MaGiuong { get; set; }
+    [Key]
+    public int MaGiuong { get; set; }
 
-        [Required]
-        public int MaPhong { get; set; }
+    public int MaPhong { get; set; }
 
-        [Required]
-        public int SoGiuong { get; set; }
+    public int SoGiuong { get; set; }
 
-        [StringLength(20)]
-        public string TrangThai { get; set; } = "ConTrong";
+    [StringLength(20)]
+    public string? TrangThai { get; set; }
 
-        public int? MaSinhVien { get; set; }
+    public int? MaSinhVien { get; set; }
 
-        public DateTime NgayTao { get; set; } = DateTime.Now;
+    [Column(TypeName = "datetime")]
+    public DateTime? NgayTao { get; set; }
 
-        // Navigation properties
-        [ForeignKey("MaPhong")]
-        public virtual Phong? Phong { get; set; }
+    [InverseProperty("MaGiuongNavigation")]
+    public virtual ICollection<DangKyPhong> DangKyPhongs { get; set; } = new List<DangKyPhong>();
 
-        [ForeignKey("MaSinhVien")]
-        public virtual SinhVien? SinhVien { get; set; }
+    [InverseProperty("MaGiuongNavigation")]
+    public virtual ICollection<HopDong> HopDongs { get; set; } = new List<HopDong>();
 
-        public virtual ICollection<DangKyPhong> DangKyPhong { get; set; } = new List<DangKyPhong>();
-        public virtual ICollection<HopDong> HopDong { get; set; } = new List<HopDong>();
-    }
+    [ForeignKey("MaPhong")]
+    [InverseProperty("Giuongs")]
+    public virtual Phong MaPhongNavigation { get; set; } = null!;
+
+    [ForeignKey("MaSinhVien")]
+    [InverseProperty("Giuongs")]
+    public virtual SinhVien? MaSinhVienNavigation { get; set; }
 }
