@@ -16,14 +16,29 @@ const LoginPage: React.FC = () => {
   const onFinish = async (values: any) => {
     setLoading(true);
     try {
-      const response = await authService.login(values);
+      // Mock authentication cho demo (bỏ comment khi backend sẵn sàng)
+      const mockUsers: any = {
+        'admin': { vaiTro: 'Admin', hoTen: 'Admin User', email: 'admin@ktx.com' },
+        'canbo': { vaiTro: 'CanBo', hoTen: 'Cán bộ KTX', email: 'canbo@ktx.com' },
+        'sinhvien': { vaiTro: 'SinhVien', hoTen: 'Sinh viên', email: 'sinhvien@ktx.com' },
+      };
+
+      const mockUser = mockUsers[values.tenDangNhap.toLowerCase()];
       
-      if (response.success) {
+      if (mockUser && values.matKhau === '123456') {
+        // Mock response
+        const mockResponse = {
+          token: 'mock-jwt-token',
+          ...mockUser,
+          maTaiKhoan: 1,
+          maNguoiDung: 1,
+        };
+        
         message.success('Đăng nhập thành công!');
-        login(response.data);
+        login(mockResponse);
         
         // Điều hướng theo vai trò
-        switch (response.data.vaiTro) {
+        switch (mockUser.vaiTro) {
           case 'Admin':
             navigate('/admin/dashboard');
             break;
@@ -36,7 +51,22 @@ const LoginPage: React.FC = () => {
           default:
             navigate('/');
         }
+      } else {
+        message.error('Tên đăng nhập hoặc mật khẩu không đúng!');
       }
+
+      // Uncomment khi backend sẵn sàng:
+      // const response = await authService.login(values);
+      // if (response.success) {
+      //   message.success('Đăng nhập thành công!');
+      //   login(response.data);
+      //   switch (response.data.vaiTro) {
+      //     case 'Admin': navigate('/admin/dashboard'); break;
+      //     case 'CanBo': navigate('/canbo/dashboard'); break;
+      //     case 'SinhVien': navigate('/sinhvien/dashboard'); break;
+      //     default: navigate('/');
+      //   }
+      // }
     } catch (error: any) {
       message.error(error.response?.data?.message || 'Đăng nhập thất bại!');
     } finally {
