@@ -43,6 +43,14 @@ const SinhVienBaoTri: React.FC = () => {
   };
 
   const handleSubmit = async (values: any) => {
+    const newItem = {
+      id: requests.length + 1,
+      code: `YC00${requests.length + 1}`,
+      type: values.loaiSuCo,
+      description: values.moTa,
+      date: new Date().toISOString().split('T')[0],
+      status: 'Chờ xử lý'
+    };
     message.success('Gửi yêu cầu bảo trì thành công!');
     setModalVisible(false);
   };

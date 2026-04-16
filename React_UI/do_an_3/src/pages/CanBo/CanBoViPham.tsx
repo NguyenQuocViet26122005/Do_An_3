@@ -3,8 +3,12 @@ import { Table, Button, Modal, Form, Input, InputNumber, DatePicker, Select, mes
 import { PlusOutlined, EyeOutlined } from '@ant-design/icons';
 
 const CanBoViPham: React.FC = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState([
+    { maViPham: 1, code: 'VP001', tenSinhVien: 'Hoàng Văn Học', tenPhong: 'A102', loaiViPham: 'Gây ồn', ngayViPham: '2024-03-10', tienPhat: 100000, trangThai: 'Chưa xử lý' },
+    { maViPham: 2, code: 'VP002', tenSinhVien: 'Phạm Thị Sinh Viên', tenPhong: 'A101', loaiViPham: 'Về muộn', ngayViPham: '2024-03-05', tienPhat: 50000, trangThai: 'Đã xử lý' },
+    { maViPham: 3, code: 'VP003', tenSinhVien: 'Nguyễn Thị Mai', tenPhong: 'B201', loaiViPham: 'Hút thuốc', ngayViPham: '2024-03-12', tienPhat: 200000, trangThai: 'Chưa xử lý' },
+  ]);
+  const [loading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [form] = Form.useForm();
 
@@ -40,6 +44,16 @@ const CanBoViPham: React.FC = () => {
   };
 
   const handleSubmit = async (values: any) => {
+    const newItem = { 
+      maViPham: data.length + 1, 
+      code: `VP00${data.length + 1}`,
+      tenSinhVien: 'Sinh viên',
+      tenPhong: 'A101',
+      ...values,
+      ngayViPham: values.ngayViPham?.format('YYYY-MM-DD'),
+      trangThai: 'Chưa xử lý'
+    };
+    setData([...data, newItem]);
     message.success('Thêm vi phạm thành công!');
     setModalVisible(false);
   };

@@ -3,8 +3,13 @@ import { Table, Button, Modal, Form, InputNumber, DatePicker, Select, message, S
 import { PlusOutlined, EyeOutlined, DollarOutlined } from '@ant-design/icons';
 
 const CanBoHoaDon: React.FC = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState([
+    { maHoaDon: 1, code: 'HD001', tenSinhVien: 'Hoàng Văn Học', tenPhong: 'A102', thang: '2024-04', tongTien: 700000, trangThai: 'Chưa thanh toán' },
+    { maHoaDon: 2, code: 'HD002', tenSinhVien: 'Hoàng Văn Học', tenPhong: 'A102', thang: '2024-03', tongTien: 685000, trangThai: 'Đã thanh toán' },
+    { maHoaDon: 3, code: 'HD003', tenSinhVien: 'Phạm Thị Sinh Viên', tenPhong: 'A101', thang: '2024-04', tongTien: 715000, trangThai: 'Chưa thanh toán' },
+    { maHoaDon: 4, code: 'HD004', tenSinhVien: 'Phạm Thị Sinh Viên', tenPhong: 'A101', thang: '2024-03', tongTien: 693000, trangThai: 'Đã thanh toán' },
+  ]);
+  const [loading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [form] = Form.useForm();
 
@@ -44,6 +49,17 @@ const CanBoHoaDon: React.FC = () => {
   };
 
   const handleSubmit = async (values: any) => {
+    const tongTien = (values.tienPhong || 0) + (values.tienDien || 0) + (values.tienNuoc || 0);
+    const newItem = { 
+      maHoaDon: data.length + 1, 
+      code: `HD00${data.length + 1}`,
+      tenSinhVien: 'Sinh viên',
+      tenPhong: 'A101',
+      thang: values.thang?.format('YYYY-MM'),
+      tongTien,
+      trangThai: 'Chưa thanh toán'
+    };
+    setData([...data, newItem]);
     message.success('Tạo hóa đơn thành công!');
     setModalVisible(false);
   };

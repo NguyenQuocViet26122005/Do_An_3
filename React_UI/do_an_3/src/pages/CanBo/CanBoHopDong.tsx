@@ -3,8 +3,12 @@ import { Table, Button, Modal, Form, Input, DatePicker, Select, message, Space, 
 import { PlusOutlined, EyeOutlined, FileTextOutlined } from '@ant-design/icons';
 
 const CanBoHopDong: React.FC = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState([
+    { maHopDong: 1, code: 'HD001', tenSinhVien: 'Hoàng Văn Học', maSV: 'B20DCCN002', tenPhong: 'A102', tenToaNha: 'Tòa A', ngayBatDau: '2024-01-01', ngayKetThuc: '2024-06-30', trangThai: 'Đang hiệu lực' },
+    { maHopDong: 2, code: 'HD002', tenSinhVien: 'Phạm Thị Sinh Viên', maSV: 'B20DCCN001', tenPhong: 'A101', tenToaNha: 'Tòa A', ngayBatDau: '2024-02-01', ngayKetThuc: '2024-07-31', trangThai: 'Đang hiệu lực' },
+    { maHopDong: 3, code: 'HD003', tenSinhVien: 'Nguyễn Thị Mai', maSV: 'B20DCCN003', tenPhong: 'B201', tenToaNha: 'Tòa B', ngayBatDau: '2023-09-01', ngayKetThuc: '2024-01-31', trangThai: 'Hết hạn' },
+  ]);
+  const [loading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [form] = Form.useForm();
 
@@ -40,6 +44,19 @@ const CanBoHopDong: React.FC = () => {
   };
 
   const handleSubmit = async (values: any) => {
+    const newItem = { 
+      maHopDong: data.length + 1, 
+      code: `HD00${data.length + 1}`,
+      tenSinhVien: 'Sinh viên mới',
+      maSV: 'B20DCCN00X',
+      tenPhong: 'A101',
+      tenToaNha: 'Tòa A',
+      ...values,
+      ngayBatDau: values.ngayBatDau?.format('YYYY-MM-DD'),
+      ngayKetThuc: values.ngayKetThuc?.format('YYYY-MM-DD'),
+      trangThai: 'Đang hiệu lực'
+    };
+    setData([...data, newItem]);
     message.success('Tạo hợp đồng thành công!');
     setModalVisible(false);
   };

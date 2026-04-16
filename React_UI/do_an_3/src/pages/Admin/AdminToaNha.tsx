@@ -3,8 +3,13 @@ import { Table, Button, Modal, Form, Input, InputNumber, message, Space, Popconf
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 
 const AdminToaNha: React.FC = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState([
+    { maToaNha: 1, tenToaNha: 'Tòa nhà A', diaChi: 'Số 1 Đại Cồ Việt', soTang: 5, tongSoPhong: 50 },
+    { maToaNha: 2, tenToaNha: 'Tòa nhà B', diaChi: 'Số 1 Đại Cồ Việt', soTang: 5, tongSoPhong: 50 },
+    { maToaNha: 3, tenToaNha: 'Tòa nhà C', diaChi: 'Số 1 Đại Cồ Việt', soTang: 6, tongSoPhong: 60 },
+    { maToaNha: 4, tenToaNha: 'Tòa nhà D', diaChi: 'Số 1 Đại Cồ Việt', soTang: 4, tongSoPhong: 40 },
+  ]);
+  const [loading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingRecord, setEditingRecord] = useState<any>(null);
   const [form] = Form.useForm();
@@ -42,13 +47,19 @@ const AdminToaNha: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
+    setData(data.filter(item => item.maToaNha !== id));
     message.success('Xóa thành công!');
   };
 
   const handleSubmit = async (values: any) => {
     if (editingRecord) {
+      setData(data.map(item => 
+        item.maToaNha === editingRecord.maToaNha ? { ...item, ...values } : item
+      ));
       message.success('Cập nhật thành công!');
     } else {
+      const newItem = { maToaNha: data.length + 1, ...values };
+      setData([...data, newItem]);
       message.success('Thêm mới thành công!');
     }
     setModalVisible(false);

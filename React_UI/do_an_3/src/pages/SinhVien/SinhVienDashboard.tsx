@@ -1,19 +1,37 @@
 import React from 'react';
 import { Card, Row, Col, Statistic, List, Tag, Descriptions } from 'antd';
 import { HomeOutlined, DollarOutlined, WarningOutlined, BellOutlined } from '@ant-design/icons';
+import { mockHopDong, mockHoaDon, mockViPham, mockThongBao } from '../../data/mockData';
 
 const SinhVienDashboard: React.FC = () => {
+  // Giả sử sinh viên hiện tại là "Hoàng Văn Học" với mã B20DCCN002
+  const currentStudent = 'B20DCCN002';
+  
+  // Lấy thông tin hợp đồng hiện tại
+  const currentContract = mockHopDong.find(h => h.maSV === currentStudent && h.status === 'Đang hiệu lực');
+  
+  // Đếm hóa đơn chưa thanh toán (giả sử theo mã hợp đồng)
+  const unpaidInvoices = mockHoaDon.filter(h => h.code === currentContract?.code && h.status === 'Chưa thanh toán').length;
+  
+  // Đếm vi phạm (giả sử theo mã sinh viên)
+  const violations = mockViPham.filter(v => v.maSV === currentStudent).length;
+  
+  // Đếm thông báo chưa đọc
+  const unreadNotifications = mockThongBao.filter(t => !t.read).length;
+
   const stats = [
-    { title: 'Phòng hiện tại', value: 'A101', icon: <HomeOutlined />, color: '#1890ff' },
-    { title: 'Hóa đơn chưa thanh toán', value: 0, icon: <DollarOutlined />, color: '#faad14' },
-    { title: 'Vi phạm', value: 0, icon: <WarningOutlined />, color: '#f5222d' },
-    { title: 'Thông báo mới', value: 0, icon: <BellOutlined />, color: '#52c41a' },
+    { title: 'Phòng hiện tại', value: currentContract?.room || 'Chưa có', icon: <HomeOutlined />, color: '#1890ff' },
+    { title: 'Hóa đơn chưa thanh toán', value: unpaidInvoices, icon: <DollarOutlined />, color: '#faad14' },
+    { title: 'Vi phạm', value: violations, icon: <WarningOutlined />, color: '#f5222d' },
+    { title: 'Thông báo mới', value: unreadNotifications, icon: <BellOutlined />, color: '#52c41a' },
   ];
 
-  const recentNotifications = [
-    { id: 1, title: 'Thông báo đóng tiền phòng tháng 3', time: '1 ngày trước', type: 'warning' },
-    { id: 2, title: 'Lịch kiểm tra phòng định kỳ', time: '2 ngày trước', type: 'info' },
-  ];
+  const recentNotifications = mockThongBao.slice(0, 3).map(n => ({
+    id: n.id,
+    title: n.title,
+    time: n.date,
+    type: n.type === 'important' ? 'warning' : 'info'
+  }));
 
   return (
     <div>
@@ -35,12 +53,19 @@ const SinhVienDashboard: React.FC = () => {
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col span={12}>
           <Card title="Thông tin phòng">
-            <Descriptions column={1}>
-              <Descriptions.Item label="Phòng">A101</Descriptions.Item>
-              <Descriptions.Item label="Tòa nhà">Tòa A</Descriptions.Item>
-              <Descriptions.Item label="Loại phòng">4 người</Descriptions.Item>
-              <Descriptions.Item label="Giá thuê">500,000 VNĐ/tháng</Descriptions.Item>
-            </Descriptions>
+            {currentContract ? (
+              <Descriptions column={1}>
+                <Descriptions.Item label="Phòng">{currentContract.room}</Descriptions.Item>
+                <Descriptions.Item label="Tòa nhà">{currentContract.building}</Descriptions.Item>
+                <Descriptions.Item label="Loại phòng">4 người</Descriptions.Item>
+                <Descriptions.Item label="Giá thuê">500,000 VNĐ/tháng</Descriptions.Item>
+                <Descriptions.Item label="Hợp đồng">
+                  <Tag color="green">{currentContract.status}</Tag>
+                </Descriptions.Item>
+              </Descriptions>
+            ) : (
+              <p>Bạn chưa có phòng. Vui lòng đăng ký phòng.</p>
+            )}
           </Card>
         </Col>
         <Col span={12}>

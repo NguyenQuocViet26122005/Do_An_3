@@ -67,7 +67,13 @@ const SinhVienHoaDon: React.FC = () => {
   };
 
   const handlePay = (invoice: any) => {
-    message.success('Chuyển đến trang thanh toán...');
+    Modal.confirm({
+      title: 'Xác nhận thanh toán',
+      content: `Bạn có chắc muốn thanh toán hóa đơn ${invoice.code} với số tiền ${invoice.total.toLocaleString()} VNĐ?`,
+      onOk() {
+        message.success('Chuyển đến trang thanh toán...');
+      },
+    });
   };
 
   return (

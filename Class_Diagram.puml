@@ -1,0 +1,476 @@
+@startuml Hệ thống Quản lý KTX
+
+' ============================================
+' BẢNG CHUNG
+' ============================================
+
+class TaiKhoan {
+  - MaTaiKhoan: int <<PK>>
+  - TenDangNhap: string <<unique>>
+  - MatKhau: string
+  - VaiTro: string
+  - TrangThai: bool
+  - NgayTao: DateTime
+  --
+  + DangNhap(): bool
+  + DoiMatKhau(): bool
+  + KhoaTaiKhoan(): void
+  + MoKhoaTaiKhoan(): void
+}
+
+class NguoiDung {
+  - MaNguoiDung: int <<PK>>
+  - MaTaiKhoan: int <<FK>>
+  - HoTen: string
+  - GioiTinh: string
+  - NgaySinh: Date
+  - SoDienThoai: string
+  - Email: string <<unique>>
+  - CCCD: string <<unique>>
+  - DiaChi: string
+  - NgayTao: DateTime
+  --
+  + CapNhatThongTin(): bool
+  + XemThongTin(): NguoiDung
+  + KiemTraEmail(): bool
+  + KiemTraCCCD(): bool
+}
+
+' ============================================
+' BẢNG RIÊNG (ACTORS)
+' ============================================
+
+class Admin {
+  - MaAdmin: int <<PK>>
+  - MaNguoiDung: int <<FK>>
+  - MaNV: string <<unique>>
+  - ChucVu: string
+  - PhongBan: string
+  - NgayVaoLam: Date
+  - NgayTao: DateTime
+  --
+  + TaoBaoCao(): BaoCaoThongKe
+  + XemBaoCao(): List<BaoCaoThongKe>
+  + XuatBaoCao(): string
+  + QuanLyNguoiDung(): void
+  + XemThongKeTongQuan(): object
+  + PhanQuyenCanBo(): bool
+}
+
+class CanBoKTX {
+  - MaCanBo: int <<PK>>
+  - MaNguoiDung: int <<FK>>
+  - MaNV: string <<unique>>
+  - ChucVu: string
+  - PhongBan: string
+  - NgayVaoLam: Date
+  - NgayTao: DateTime
+  --
+  + QuanLyToaNha(): void
+  + QuanLyPhong(): void
+  + DuyetDangKy(): bool
+  + TaoHopDong(): HopDong
+  + TaoHoaDon(): HoaDon
+  + GhiViPham(): ViPham
+  + XuLyBaoTri(): bool
+  + GuiThongBao(): ThongBao
+  + XemDanhSachSinhVien(): List<SinhVien>
+}
+
+class SinhVien {
+  - MaSinhVien: int <<PK>>
+  - MaNguoiDung: int <<FK>>
+  - MaSV: string <<unique>>
+  - Khoa: string
+  - Nganh: string
+  - Lop: string
+  - NamHoc: int
+  - DiemTB: decimal
+  - NgayTao: DateTime
+  --
+  + DangKyPhong(): DangKyPhong
+  + XemPhongTrong(): List<Phong>
+  + XemHopDong(): List<HopDong>
+  + XemHoaDon(): List<HoaDon>
+  + ThanhToanHoaDon(): bool
+  + XemViPham(): List<ViPham>
+  + GuiYeuCauBaoTri(): YeuCauBaoTri
+  + XemThongBao(): List<ThongBao>
+}
+
+' ============================================
+' QUẢN LÝ TÒA NHÀ & PHÒNG
+' ============================================
+
+class ToaNha {
+  - MaToaNha: int <<PK>>
+  - MaToa: string <<unique>>
+  - TenToaNha: string
+  - LoaiToaNha: string
+  - SoTang: int
+  - TrangThai: string
+  - MaCanBoQuanLy: int <<FK>>
+  - NgayTao: DateTime
+  --
+  + ThemToaNha(): bool
+  + CapNhatToaNha(): bool
+  + XoaToaNha(): bool
+  + XemDanhSachPhong(): List<Phong>
+  + ThongKeTinhTrang(): object
+  + PhanCongCanBo(): bool
+}
+
+class Phong {
+  - MaPhong: int <<PK>>
+  - MaToaNha: int <<FK>>
+  - SoPhong: string
+  - Tang: int
+  - LoaiPhong: string
+  - SucChua: int
+  - SoNguoiHienTai: int
+  - GiaPhong: decimal
+  - TrangThai: string
+  - NgayTao: DateTime
+  --
+  + ThemPhong(): bool
+  + CapNhatPhong(): bool
+  + XoaPhong(): bool
+  + KiemTraConTrong(): bool
+  + CapNhatSoNguoi(): void
+  + XemDanhSachGiuong(): List<Giuong>
+  + TinhTyLeLayDay(): decimal
+}
+
+class Giuong {
+  - MaGiuong: int <<PK>>
+  - MaPhong: int <<FK>>
+  - SoGiuong: int
+  - TrangThai: string
+  - MaSinhVien: int <<FK>>
+  - NgayTao: DateTime
+  --
+  + ThemGiuong(): bool
+  + CapNhatTrangThai(): bool
+  + PhanBoSinhVien(): bool
+  + GiaiPhongGiuong(): bool
+  + KiemTraTrong(): bool
+}
+
+' ============================================
+' ĐĂNG KÝ & HỢP ĐỒNG
+' ============================================
+
+class DangKyPhong {
+  - MaDangKy: int <<PK>>
+  - MaSinhVien: int <<FK>>
+  - MaPhong: int <<FK>>
+  - MaGiuong: int <<FK>>
+  - HocKy: string
+  - NgayDangKy: DateTime
+  - TrangThai: string
+  - MaCanBoDuyet: int <<FK>>
+  - NgayDuyet: DateTime
+  - LyDoTuChoi: string
+  --
+  + TaoDangKy(): bool
+  + DuyetDangKy(): bool
+  + TuChoiDangKy(): bool
+  + HuyDangKy(): bool
+  + XemTrangThai(): string
+  + KiemTraDieuKien(): bool
+}
+
+class HopDong {
+  - MaHopDong: int <<PK>>
+  - SoHopDong: string <<unique>>
+  - MaSinhVien: int <<FK>>
+  - MaPhong: int <<FK>>
+  - MaGiuong: int <<FK>>
+  - HocKy: string
+  - NgayBatDau: Date
+  - NgayKetThuc: Date
+  - GiaThue: decimal
+  - TrangThai: string
+  - MaCanBoTao: int <<FK>>
+  - NgayTao: DateTime
+  --
+  + TaoHopDong(): bool
+  + GiaHanHopDong(): bool
+  + HuyHopDong(): bool
+  + XemHopDong(): HopDong
+  + InHopDong(): string
+  + KiemTraHieuLuc(): bool
+  + TinhTienPhong(): decimal
+}
+
+' ============================================
+' HÓA ĐƠN
+' ============================================
+
+class HoaDon {
+  - MaHoaDon: int <<PK>>
+  - SoHoaDon: string <<unique>>
+  - MaHopDong: int <<FK>>
+  - MaSinhVien: int <<FK>>
+  - Thang: int
+  - Nam: int
+  - NgayPhatHanh: Date
+  - HanThanhToan: Date
+  - TienPhong: decimal
+  - TienDien: decimal
+  - TienNuoc: decimal
+  - PhiDichVu: decimal
+  - PhiPhat: decimal
+  - TongTien: decimal
+  - ChiSoDienCu: decimal
+  - ChiSoDienMoi: decimal
+  - ChiSoNuocCu: decimal
+  - ChiSoNuocMoi: decimal
+  - TrangThai: string
+  - NgayThanhToan: DateTime
+  - PhuongThucThanhToan: string
+  - MaGiaoDich: string
+  - MaCanBoTao: int <<FK>>
+  - NgayTao: DateTime
+  --
+  + TaoHoaDon(): bool
+  + TinhTongTien(): decimal
+  + ThanhToan(): bool
+  + XacNhanThanhToan(): bool
+  + XemChiTiet(): HoaDon
+  + InHoaDon(): string
+  + GuiThongBao(): bool
+  + KiemTraQuaHan(): bool
+}
+
+' ============================================
+' VI PHẠM
+' ============================================
+
+class ViPham {
+  - MaViPham: int <<PK>>
+  - MaSinhVien: int <<FK>>
+  - TenViPham: string
+  - MucDo: string
+  - MoTa: string
+  - MucPhat: decimal
+  - NgayViPham: DateTime
+  - TrangThai: string
+  - MaCanBoGhi: int <<FK>>
+  - NgayGhi: DateTime
+  --
+  + GhiViPham(): bool
+  + CapNhatViPham(): bool
+  + XoaViPham(): bool
+  + XemChiTiet(): ViPham
+  + TinhTongPhat(): decimal
+  + XuLyViPham(): bool
+  + ThongBaoSinhVien(): bool
+}
+
+' ============================================
+' THÔNG BÁO
+' ============================================
+
+class ThongBao {
+  - MaThongBao: int <<PK>>
+  - TieuDe: string
+  - NoiDung: string
+  - LoaiThongBao: string
+  - LoaiNguoiNhan: string
+  - MaSinhVienNhan: int <<FK>>
+  - MaCanBoNhan: int <<FK>>
+  - DaDoc: bool
+  - NgayDoc: DateTime
+  - MaCanBoGui: int <<FK>>
+  - NgayGui: DateTime
+  --
+  + TaoThongBao(): bool
+  + GuiThongBao(): bool
+  + XemThongBao(): List<ThongBao>
+  + DanhDauDaDoc(): bool
+  + XoaThongBao(): bool
+  + GuiTheoDoiTuong(): bool
+  + DemChuaDoc(): int
+}
+
+' ============================================
+' BẢO TRÌ
+' ============================================
+
+class YeuCauBaoTri {
+  - MaYeuCau: int <<PK>>
+  - MaPhong: int <<FK>>
+  - MaSinhVien: int <<FK>>
+  - TieuDe: string
+  - MoTa: string
+  - LoaiYeuCau: string
+  - TrangThai: string
+  - MaCanBoXuLy: int <<FK>>
+  - NgayXuLy: DateTime
+  - ChiPhi: decimal
+  - NgayTao: DateTime
+  --
+  + TaoYeuCau(): bool
+  + CapNhatTrangThai(): bool
+  + PhanCongCanBo(): bool
+  + XuLyYeuCau(): bool
+  + HoanThanh(): bool
+  + TinhChiPhi(): decimal
+  + ThongBaoSinhVien(): bool
+}
+
+' ============================================
+' BÁO CÁO THỐNG KÊ
+' ============================================
+
+class BaoCaoThongKe {
+  - MaBaoCao: int <<PK>>
+  - TenBaoCao: string
+  - LoaiBaoCao: string
+  - MoTa: string
+  - TuNgay: Date
+  - DenNgay: Date
+  - NoiDung: string
+  - FilePath: string
+  - MaAdminTao: int <<FK>>
+  - NgayTao: DateTime
+  --
+  + TaoBaoCao(): bool
+  + ThongKeDoanhThu(): object
+  + ThongKeSinhVien(): object
+  + ThongKePhong(): object
+  + ThongKeViPham(): object
+  + XuatExcel(): string
+  + XuatPDF(): string
+  + XemBaoCao(): BaoCaoThongKe
+}
+
+' ============================================
+' QUAN HỆ GIỮA CÁC LỚP
+' ============================================
+
+' ========== QUAN HỆ KẾ THỪA (Generalization) ==========
+' Sử dụng <|-- để thể hiện quan hệ kế thừa/chuyên biệt hóa
+
+NguoiDung <|-- Admin : extends
+NguoiDung <|-- CanBoKTX : extends
+NguoiDung <|-- SinhVien : extends
+
+' ========== QUAN HỆ PHỤ THUỘC (Dependency) ==========
+' Sử dụng ..> để thể hiện phụ thuộc tạm thời
+
+TaiKhoan ..> NguoiDung : <<create>>
+DangKyPhong ..> HopDong : <<create>>
+HopDong ..> HoaDon : <<create>>
+
+' ========== QUAN HỆ LIÊN KẾT (Association) ==========
+' Sử dụng -- hoặc --> để thể hiện liên kết hai chiều hoặc một chiều
+
+' Liên kết 1-1 (One-to-One)
+TaiKhoan "1" -- "1" NguoiDung : có >
+SinhVien "0..1" -- "0..1" Giuong : ở >
+
+' Liên kết 1-nhiều (One-to-Many)
+CanBoKTX "1" --> "0..*" ToaNha : quản lý >
+SinhVien "1" --> "0..*" DangKyPhong : đăng ký >
+SinhVien "1" --> "0..*" HopDong : ký >
+SinhVien "1" --> "0..*" HoaDon : có >
+SinhVien "1" --> "0..*" ViPham : vi phạm >
+SinhVien "1" --> "0..*" YeuCauBaoTri : yêu cầu >
+Admin "1" --> "0..*" BaoCaoThongKe : tạo >
+
+' Liên kết nhiều-nhiều (Many-to-Many) - thông qua bảng trung gian
+Phong "1" -- "0..*" DangKyPhong
+DangKyPhong "0..*" -- "1" SinhVien
+Giuong "0..1" -- "0..*" DangKyPhong : chọn >
+
+' ========== QUAN HỆ TẬP HỢP (Aggregation) ==========
+' Sử dụng o-- để thể hiện quan hệ "có" (has-a) yếu
+' Các phần có thể tồn tại độc lập khi tổng thể bị hủy
+
+CanBoKTX "1" o-- "0..*" DangKyPhong : duyệt
+CanBoKTX "1" o-- "0..*" HopDong : tạo
+CanBoKTX "1" o-- "0..*" HoaDon : lập
+CanBoKTX "1" o-- "0..*" ViPham : ghi nhận
+CanBoKTX "0..1" o-- "0..*" YeuCauBaoTri : xử lý
+CanBoKTX "1" o-- "0..*" ThongBao : gửi
+
+' ========== QUAN HỆ TỔNG HỢP (Composition) ==========
+' Sử dụng *-- để thể hiện quan hệ "chứa" (contains) mạnh
+' Các phần không thể tồn tại độc lập khi tổng thể bị hủy
+
+ToaNha "1" *-- "0..*" Phong : chứa
+Phong "1" *-- "0..*" Giuong : có
+HopDong "1" *-- "0..*" HoaDon : phát sinh
+
+' ========== QUAN HỆ THỰC THI (Realization) ==========
+' Nếu có interface, sử dụng ..|> để thể hiện implement
+
+' Quan hệ bổ sung
+Phong "1" -- "0..*" HopDong : được thuê
+Giuong "1" -- "0..*" HopDong : được sử dụng
+Phong "1" -- "0..*" YeuCauBaoTri : cần bảo trì
+SinhVien "0..1" -- "0..*" ThongBao : nhận
+CanBoKTX "0..1" -- "0..*" ThongBao : nhận
+
+' ============================================
+' GHI CHÚ VỀ CÁC LOẠI QUAN HỆ
+' ============================================
+
+note as RelationshipTypes
+  **CÁC LOẠI QUAN HỆ TRONG UML**
+  
+  1. **Generalization (Kế thừa)**: <|--
+     - Admin, CanBo, SinhVien kế thừa từ NguoiDung
+     - Quan hệ "is-a" (là một)
+  
+  2. **Dependency (Phụ thuộc)**: ..>
+     - TaiKhoan tạo NguoiDung
+     - DangKy tạo HopDong
+     - Quan hệ tạm thời, yếu
+  
+  3. **Association (Liên kết)**: -- hoặc -->
+     - Quan hệ hai chiều hoặc một chiều
+     - Ví dụ: SinhVien đăng ký DangKyPhong
+  
+  4. **Aggregation (Tập hợp)**: o--
+     - Quan hệ "has-a" yếu
+     - Phần có thể tồn tại độc lập
+     - Ví dụ: CanBo duyệt DangKy
+  
+  5. **Composition (Tổng hợp)**: *--
+     - Quan hệ "contains" mạnh
+     - Phần không thể tồn tại độc lập
+     - Ví dụ: ToaNha chứa Phong
+end note
+
+note right of TaiKhoan
+  Bảng chung cho tất cả người dùng
+  Quản lý đăng nhập và phân quyền
+end note
+
+note right of Admin
+  Vai trò: Quản trị hệ thống
+  - Tạo báo cáo thống kê
+  - Quản lý người dùng
+  - Xem tổng quan hệ thống
+end note
+
+note right of CanBoKTX
+  Vai trò: Cán bộ quản lý KTX
+  - Quản lý tòa nhà, phòng
+  - Duyệt đăng ký
+  - Tạo hợp đồng, hóa đơn
+  - Ghi vi phạm, xử lý bảo trì
+end note
+
+note right of SinhVien
+  Vai trò: Sinh viên ở KTX
+  - Đăng ký phòng
+  - Xem hợp đồng, hóa đơn
+  - Thanh toán
+  - Yêu cầu bảo trì
+end note
+
+@enduml

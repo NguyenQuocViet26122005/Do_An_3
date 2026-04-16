@@ -25,15 +25,15 @@ const SinhVienDangKy: React.FC = () => {
   ];
 
   const handleSubmit = async (values: any) => {
-    setLoading(true);
-    try {
-      message.success('Đăng ký phòng thành công! Vui lòng chờ duyệt.');
-      form.resetFields();
-    } catch (error) {
-      message.error('Đăng ký thất bại!');
-    } finally {
-      setLoading(false);
-    }
+    const newItem = {
+      id: registrations.length + 1,
+      room: 'A101',
+      building: 'Tòa A',
+      date: new Date().toISOString().split('T')[0],
+      status: 'Chờ duyệt'
+    };
+    message.success('Đăng ký phòng thành công! Vui lòng chờ duyệt.');
+    form.resetFields();
   };
 
   return (

@@ -3,8 +3,12 @@ import { Table, Button, Modal, Form, Select, message, Space, Tag, Input } from '
 import { CheckOutlined, EyeOutlined } from '@ant-design/icons';
 
 const CanBoBaoTri: React.FC = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState([
+    { maYeuCau: 1, code: 'YC001', tenSinhVien: 'Hoàng Văn Học', tenPhong: 'A102', loaiSuCo: 'Điện', ngayYeuCau: '2024-03-15', trangThai: 'Đang xử lý' },
+    { maYeuCau: 2, code: 'YC002', tenSinhVien: 'Phạm Thị Sinh Viên', tenPhong: 'A101', loaiSuCo: 'Nước', ngayYeuCau: '2024-03-14', trangThai: 'Đã hoàn thành' },
+    { maYeuCau: 3, code: 'YC003', tenSinhVien: 'Nguyễn Thị Mai', tenPhong: 'B201', loaiSuCo: 'Đồ dùng', ngayYeuCau: '2024-03-16', trangThai: 'Chờ xử lý' },
+  ]);
+  const [loading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
   const [form] = Form.useForm();
@@ -45,6 +49,11 @@ const CanBoBaoTri: React.FC = () => {
   };
 
   const handleUpdateStatus = async (record: any) => {
+    const newStatus = record.trangThai === 'Chờ xử lý' ? 'Đang xử lý' : 
+                      record.trangThai === 'Đang xử lý' ? 'Đã hoàn thành' : record.trangThai;
+    setData(data.map(item => 
+      item.maYeuCau === record.maYeuCau ? { ...item, trangThai: newStatus } : item
+    ));
     message.success('Cập nhật trạng thái thành công!');
   };
 

@@ -3,8 +3,12 @@ import { Table, Button, Modal, Form, Input, Select, message, Space } from 'antd'
 import { PlusOutlined, EyeOutlined, DeleteOutlined } from '@ant-design/icons';
 
 const CanBoThongBao: React.FC = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState([
+    { maThongBao: 1, tieuDe: 'Thông báo đóng tiền phòng tháng 4', doiTuong: 'Tất cả', ngayGui: '2024-04-01' },
+    { maThongBao: 2, tieuDe: 'Lịch kiểm tra phòng định kỳ', doiTuong: 'Tòa A', ngayGui: '2024-03-28' },
+    { maThongBao: 3, tieuDe: 'Thông báo bảo trì hệ thống điện', doiTuong: 'Tất cả', ngayGui: '2024-04-05' },
+  ]);
+  const [loading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [form] = Form.useForm();
 
@@ -31,6 +35,12 @@ const CanBoThongBao: React.FC = () => {
   };
 
   const handleSubmit = async (values: any) => {
+    const newItem = { 
+      maThongBao: data.length + 1, 
+      ...values,
+      ngayGui: new Date().toISOString().split('T')[0]
+    };
+    setData([...data, newItem]);
     message.success('Gửi thông báo thành công!');
     setModalVisible(false);
   };

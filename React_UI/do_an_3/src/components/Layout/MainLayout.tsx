@@ -221,13 +221,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </div>
           <Space>
             <Dropdown menu={{ items: userMenuItems, onClick: handleUserMenuClick }} placement="bottomRight">
-              <Space style={{ cursor: 'pointer' }}>
+              <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <Avatar icon={<UserOutlined />} />
                 <div>
                   <div><Text strong>{user?.hoTen}</Text></div>
                   <div><Text type="secondary" style={{ fontSize: '12px' }}>{user?.vaiTro}</Text></div>
                 </div>
-              </Space>
+              </div>
             </Dropdown>
           </Space>
         </Header>

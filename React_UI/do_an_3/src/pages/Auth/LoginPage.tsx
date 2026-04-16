@@ -16,11 +16,33 @@ const LoginPage: React.FC = () => {
   const onFinish = async (values: any) => {
     setLoading(true);
     try {
+      // Clear old cache first
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
       // Mock authentication cho demo (bỏ comment khi backend sẵn sàng)
       const mockUsers: any = {
-        'admin': { vaiTro: 'Admin', hoTen: 'Admin User', email: 'admin@ktx.com' },
-        'canbo': { vaiTro: 'CanBo', hoTen: 'Cán bộ KTX', email: 'canbo@ktx.com' },
-        'sinhvien': { vaiTro: 'SinhVien', hoTen: 'Sinh viên', email: 'sinhvien@ktx.com' },
+        'admin': { 
+          vaiTro: 'Admin', 
+          hoTen: 'Nguyễn Văn Admin', 
+          email: 'admin@ktx.edu.vn',
+          maTaiKhoan: 1,
+          maNguoiDung: 1,
+        },
+        'canbo': { 
+          vaiTro: 'CanBo', 
+          hoTen: 'Trần Thị Cán Bộ', 
+          email: 'canbo@ktx.edu.vn',
+          maTaiKhoan: 2,
+          maNguoiDung: 2,
+        },
+        'sinhvien': { 
+          vaiTro: 'SinhVien', 
+          hoTen: 'Lê Văn Sinh Viên', 
+          email: 'sinhvien@ktx.edu.vn',
+          maTaiKhoan: 3,
+          maNguoiDung: 3,
+        },
       };
 
       const mockUser = mockUsers[values.tenDangNhap.toLowerCase()];
@@ -28,10 +50,8 @@ const LoginPage: React.FC = () => {
       if (mockUser && values.matKhau === '123456') {
         // Mock response
         const mockResponse = {
-          token: 'mock-jwt-token',
+          token: 'mock-jwt-token-' + Date.now(),
           ...mockUser,
-          maTaiKhoan: 1,
-          maNguoiDung: 1,
         };
         
         message.success('Đăng nhập thành công!');

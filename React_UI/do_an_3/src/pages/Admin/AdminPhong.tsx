@@ -3,8 +3,15 @@ import { Table, Button, Modal, Form, Input, InputNumber, Select, message, Space,
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 
 const AdminPhong: React.FC = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState([
+    { maPhong: 1, tenPhong: 'A101', tenToaNha: 'Tòa A', tang: 1, loaiPhong: '4 người', sucChua: 4, giaThue: 500000, trangThai: 'Trống' },
+    { maPhong: 2, tenPhong: 'A102', tenToaNha: 'Tòa A', tang: 1, loaiPhong: '4 người', sucChua: 4, giaThue: 500000, trangThai: 'Đầy' },
+    { maPhong: 3, tenPhong: 'A201', tenToaNha: 'Tòa A', tang: 2, loaiPhong: '6 người', sucChua: 6, giaThue: 400000, trangThai: 'Còn chỗ' },
+    { maPhong: 4, tenPhong: 'B101', tenToaNha: 'Tòa B', tang: 1, loaiPhong: '8 người', sucChua: 8, giaThue: 350000, trangThai: 'Trống' },
+    { maPhong: 5, tenPhong: 'B102', tenToaNha: 'Tòa B', tang: 1, loaiPhong: '4 người', sucChua: 4, giaThue: 500000, trangThai: 'Đầy' },
+    { maPhong: 6, tenPhong: 'C101', tenToaNha: 'Tòa C', tang: 1, loaiPhong: '6 người', sucChua: 6, giaThue: 400000, trangThai: 'Trống' },
+  ]);
+  const [loading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingRecord, setEditingRecord] = useState<any>(null);
   const [form] = Form.useForm();
@@ -52,11 +59,26 @@ const AdminPhong: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
+    setData(data.filter(item => item.maPhong !== id));
     message.success('Xóa thành công!');
   };
 
   const handleSubmit = async (values: any) => {
-    message.success(editingRecord ? 'Cập nhật thành công!' : 'Thêm mới thành công!');
+    if (editingRecord) {
+      setData(data.map(item => 
+        item.maPhong === editingRecord.maPhong ? { ...item, ...values, tenToaNha: values.maToaNha === 1 ? 'Tòa A' : 'Tòa B' } : item
+      ));
+      message.success('Cập nhật thành công!');
+    } else {
+      const newItem = { 
+        maPhong: data.length + 1, 
+        ...values, 
+        tenToaNha: values.maToaNha === 1 ? 'Tòa A' : 'Tòa B',
+        trangThai: 'Trống'
+      };
+      setData([...data, newItem]);
+      message.success('Thêm mới thành công!');
+    }
     setModalVisible(false);
   };
 
