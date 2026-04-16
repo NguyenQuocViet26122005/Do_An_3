@@ -63,21 +63,21 @@ Database gồm 20 bảng được chia thành 10 nhóm chức năng chính:
 
 ### Chức năng chính
 
-Hệ thống cung cấp hơn 50 chức năng được phân chia theo module:
+Hệ thống cung cấp hơn 50 chức năng được phân chia :
 
-**Module đăng ký phòng**: Sinh viên xem phòng trống, đăng ký online, hệ thống tự động tính điểm ưu tiên dựa trên khoảng cách từ nhà, điểm trung bình, học bổng, hoàn cảnh khó khăn. Cán bộ có thể duyệt tự động theo tiêu chí hoặc duyệt thủ công, phân phòng theo độ ưu tiên.
+**Đăng ký phòng**: Sinh viên xem phòng trống, đăng ký online, hệ thống tự động tính điểm ưu tiên dựa trên khoảng cách từ nhà, điểm trung bình, học bổng, hoàn cảnh khó khăn. Cán bộ có thể duyệt tự động theo tiêu chí hoặc duyệt thủ công, phân phòng theo độ ưu tiên.
 
-**Module hợp đồng**: Tự động tạo hợp đồng sau khi duyệt đăng ký, hỗ trợ ký điện tử, in PDF, gia hạn và chấm dứt hợp đồng với đầy đủ lịch sử.
+**Hợp đồng**: Tự động tạo hợp đồng sau khi duyệt đăng ký, hỗ trợ ký điện tử, in PDF, gia hạn và chấm dứt hợp đồng với đầy đủ lịch sử.
 
-**Module hóa đơn**: Tự động tạo hóa đơn hàng tháng bao gồm tiền phòng, điện, nước, dịch vụ và phí phạt. Hỗ trợ thanh toán online qua VNPay, Momo hoặc thanh toán tại quầy. Tự động nhắc nhở và tính phí trễ hạn.
+**Hóa đơn**: Tự động tạo hóa đơn hàng tháng bao gồm tiền phòng, điện, nước, dịch vụ và phí phạt. Hỗ trợ thanh toán online qua VNPay, Momo hoặc thanh toán tại quầy. Tự động nhắc nhở và tính phí trễ hạn.
 
-**Module vi phạm**: Cán bộ ghi nhận vi phạm với mức độ và mức phạt tương ứng. Hệ thống tự động cảnh báo khi vi phạm nhiều lần và đề xuất chấm dứt hợp đồng nếu vi phạm nặng.
+**Vi phạm**: Cán bộ ghi nhận vi phạm với mức độ và mức phạt tương ứng. Hệ thống tự động cảnh báo khi vi phạm nhiều lần và đề xuất chấm dứt hợp đồng nếu vi phạm nặng.
 
-**Module thông báo**: Gửi thông báo theo đối tượng (tất cả, tòa nhà, tầng, phòng, cá nhân) với độ ưu tiên khác nhau. Tự động gửi thông báo khi có sự kiện quan trọng.
+**Thông báo**: Gửi thông báo theo đối tượng (tất cả, tòa nhà, tầng, phòng, cá nhân) với độ ưu tiên khác nhau. Tự động gửi thông báo khi có sự kiện quan trọng.
 
-**Module bảo trì**: Sinh viên báo cáo sự cố, cán bộ tiếp nhận, phân công xử lý và theo dõi tiến độ. Ghi nhận chi phí và lịch sử bảo trì.
+**Bảo trì**: Sinh viên báo cáo sự cố, cán bộ tiếp nhận, phân công xử lý và theo dõi tiến độ. Ghi nhận chi phí và lịch sử bảo trì.
 
-**Module thống kê**: Dashboard tổng quan với biểu đồ trực quan. Báo cáo chi tiết về tòa nhà, sinh viên, doanh thu, vi phạm, điện nước. Xuất báo cáo Excel và PDF.
+**Thống kê**: Dashboard tổng quan với biểu đồ trực quan. Báo cáo chi tiết về tòa nhà, sinh viên, doanh thu, vi phạm, điện nước. Xuất báo cáo Excel và PDF.
 
 ### Tính năng nổi bật
 
