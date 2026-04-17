@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Table, Button, Modal, Form, Input, InputNumber, Select, message, Space, Popconfirm, Tag } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import { mockGiuong } from '../../data/mockData';
 
 const CanBoPhong: React.FC = () => {
   const [data, setData] = useState([
@@ -11,8 +12,43 @@ const CanBoPhong: React.FC = () => {
   ]);
   const [loading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [bedModalVisible, setBedModalVisible] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState<any>(null);
   const [editingRecord, setEditingRecord] = useState<any>(null);
   const [form] = Form.useForm();
+
+  const bedColumns = [
+    { title: 'Số giường', dataIndex: 'soGiuong', key: 'soGiuong', width: 100 },
+    { 
+      title: 'Trạng thái', 
+      dataIndex: 'trangThai', 
+      key: 'trangThai',
+      render: (val: string) => (
+        <Tag color={val === 'Trống' ? 'green' : 'red'}>{val}</Tag>
+      )
+    },
+    { 
+      title: 'Sinh viên', 
+      dataIndex: 'tenSinhVien', 
+      key: 'tenSinhVien',
+      render: (val: string) => val || '-'
+    },
+    { 
+      title: 'Mã SV', 
+      dataIndex: 'maSV', 
+      key: 'maSV',
+      render: (val: string) => val || '-'
+    },
+  ];
+
+  const handleViewBeds = (record: any) => {
+    setSelectedRoom(record);
+    setBedModalVisible(true);
+  };
+
+  const getBedsForRoom = (maPhong: number) => {
+    return mockGiuong.filter(g => g.maPhong === maPhong);
+  };
 
   const columns = [
     { title: 'Mã phòng', dataIndex: 'maPhong', key: 'maPhong' },
@@ -35,6 +71,7 @@ const CanBoPhong: React.FC = () => {
       key: 'action',
       render: (_: any, record: any) => (
         <Space>
+          <Button icon={<EyeOutlined />} size="small" onClick={() => handleViewBeds(record)}>Giường</Button>
           <Button icon={<EditOutlined />} size="small" onClick={() => handleEdit(record)}>Sửa</Button>
           <Popconfirm title="Xác nhận xóa?" onConfirm={() => handleDelete(record.maPhong)}>
             <Button danger icon={<DeleteOutlined />} size="small">Xóa</Button>
@@ -123,6 +160,21 @@ const CanBoPhong: React.FC = () => {
             <InputNumber min={0} style={{ width: '100%' }} />
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title={`Danh sách giường - Phòng ${selectedRoom?.tenPhong}`}
+        open={bedModalVisible}
+        onCancel={() => setBedModalVisible(false)}
+        footer={null}
+        width={700}
+      >
+        <Table 
+          columns={bedColumns} 
+          dataSource={selectedRoom ? getBedsForRoom(selectedRoom.maPhong) : []} 
+          rowKey="maGiuong"
+          pagination={false}
+        />
       </Modal>
     </div>
   );

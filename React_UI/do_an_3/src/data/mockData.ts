@@ -32,9 +32,9 @@ export const mockDangKy = [
 ];
 
 export const mockHopDong = [
-  { maHopDong: 1, code: 'HD001', tenSinhVien: 'Hoàng Văn Học', maSV: 'B20DCCN002', room: 'A102', building: 'Tòa A', startDate: '2024-01-01', endDate: '2024-06-30', status: 'Đang hiệu lực' },
-  { maHopDong: 2, code: 'HD002', tenSinhVien: 'Phạm Thị Sinh Viên', maSV: 'B20DCCN001', room: 'A101', building: 'Tòa A', startDate: '2024-02-01', endDate: '2024-07-31', status: 'Đang hiệu lực' },
-  { maHopDong: 3, code: 'HD003', tenSinhVien: 'Nguyễn Thị Mai', maSV: 'B20DCCN003', room: 'B201', building: 'Tòa B', startDate: '2023-09-01', endDate: '2024-01-31', status: 'Hết hạn' },
+  { maHopDong: 1, code: 'HD001', tenSinhVien: 'Hoàng Văn Học', maSV: 'B20DCCN002', room: 'A102', building: 'Tòa A', soGiuong: 1, startDate: '2024-01-01', endDate: '2024-06-30', status: 'Đang hiệu lực' },
+  { maHopDong: 2, code: 'HD002', tenSinhVien: 'Phạm Thị Sinh Viên', maSV: 'B20DCCN001', room: 'A201', building: 'Tòa A', soGiuong: 1, startDate: '2024-02-01', endDate: '2024-07-31', status: 'Đang hiệu lực' },
+  { maHopDong: 3, code: 'HD003', tenSinhVien: 'Nguyễn Thị Mai', maSV: 'B20DCCN003', room: 'B201', building: 'Tòa B', soGiuong: 3, startDate: '2023-09-01', endDate: '2024-01-31', status: 'Hết hạn' },
 ];
 
 export const mockHoaDon = [
@@ -60,4 +60,37 @@ export const mockThongBao = [
   { id: 1, title: 'Thông báo đóng tiền phòng tháng 4', content: 'Sinh viên vui lòng đóng tiền phòng tháng 4 trước ngày 10/04/2024.', date: '2024-04-01', type: 'important', read: false },
   { id: 2, title: 'Lịch kiểm tra phòng định kỳ', content: 'Kiểm tra phòng định kỳ sẽ diễn ra vào ngày 15/04/2024.', date: '2024-03-28', type: 'info', read: true },
   { id: 3, title: 'Thông báo bảo trì hệ thống điện', content: 'Hệ thống điện sẽ được bảo trì vào ngày 20/04/2024 từ 8h-12h.', date: '2024-04-05', type: 'warning', read: false },
+];
+
+// Mock data cho Giường
+export const mockGiuong = [
+  // Phòng A101 (4 giường) - Tất cả trống
+  { maGiuong: 1, maPhong: 1, tenPhong: 'A101', soGiuong: 1, trangThai: 'Trống', maSinhVien: null, tenSinhVien: null, maSV: null },
+  { maGiuong: 2, maPhong: 1, tenPhong: 'A101', soGiuong: 2, trangThai: 'Trống', maSinhVien: null, tenSinhVien: null, maSV: null },
+  { maGiuong: 3, maPhong: 1, tenPhong: 'A101', soGiuong: 3, trangThai: 'Trống', maSinhVien: null, tenSinhVien: null, maSV: null },
+  { maGiuong: 4, maPhong: 1, tenPhong: 'A101', soGiuong: 4, trangThai: 'Trống', maSinhVien: null, tenSinhVien: null, maSV: null },
+  
+  // Phòng A102 (4 giường) - Hoàng Văn Học ở giường 1, đầy
+  { maGiuong: 5, maPhong: 2, tenPhong: 'A102', soGiuong: 1, trangThai: 'Đã sử dụng', maSinhVien: 2, tenSinhVien: 'Hoàng Văn Học', maSV: 'B20DCCN002' },
+  { maGiuong: 6, maPhong: 2, tenPhong: 'A102', soGiuong: 2, trangThai: 'Đã sử dụng', maSinhVien: 5, tenSinhVien: 'Nguyễn Văn An', maSV: 'B20DCCN005' },
+  { maGiuong: 7, maPhong: 2, tenPhong: 'A102', soGiuong: 3, trangThai: 'Đã sử dụng', maSinhVien: 6, tenSinhVien: 'Trần Thị Bình', maSV: 'B20DCCN006' },
+  { maGiuong: 8, maPhong: 2, tenPhong: 'A102', soGiuong: 4, trangThai: 'Đã sử dụng', maSinhVien: 7, tenSinhVien: 'Lê Văn Cường', maSV: 'B20DCCN007' },
+  
+  // Phòng A201 (6 giường) - Phạm Thị Sinh Viên ở giường 1, còn 4 chỗ trống
+  { maGiuong: 9, maPhong: 3, tenPhong: 'A201', soGiuong: 1, trangThai: 'Đã sử dụng', maSinhVien: 1, tenSinhVien: 'Phạm Thị Sinh Viên', maSV: 'B20DCCN001' },
+  { maGiuong: 10, maPhong: 3, tenPhong: 'A201', soGiuong: 2, trangThai: 'Đã sử dụng', maSinhVien: 8, tenSinhVien: 'Hoàng Thị Dung', maSV: 'B20DCCN008' },
+  { maGiuong: 11, maPhong: 3, tenPhong: 'A201', soGiuong: 3, trangThai: 'Trống', maSinhVien: null, tenSinhVien: null, maSV: null },
+  { maGiuong: 12, maPhong: 3, tenPhong: 'A201', soGiuong: 4, trangThai: 'Trống', maSinhVien: null, tenSinhVien: null, maSV: null },
+  { maGiuong: 13, maPhong: 3, tenPhong: 'A201', soGiuong: 5, trangThai: 'Trống', maSinhVien: null, tenSinhVien: null, maSV: null },
+  { maGiuong: 14, maPhong: 3, tenPhong: 'A201', soGiuong: 6, trangThai: 'Trống', maSinhVien: null, tenSinhVien: null, maSV: null },
+  
+  // Phòng B101 (8 giường) - Tất cả trống
+  { maGiuong: 15, maPhong: 4, tenPhong: 'B101', soGiuong: 1, trangThai: 'Trống', maSinhVien: null, tenSinhVien: null, maSV: null },
+  { maGiuong: 16, maPhong: 4, tenPhong: 'B101', soGiuong: 2, trangThai: 'Trống', maSinhVien: null, tenSinhVien: null, maSV: null },
+  { maGiuong: 17, maPhong: 4, tenPhong: 'B101', soGiuong: 3, trangThai: 'Trống', maSinhVien: null, tenSinhVien: null, maSV: null },
+  { maGiuong: 18, maPhong: 4, tenPhong: 'B101', soGiuong: 4, trangThai: 'Trống', maSinhVien: null, tenSinhVien: null, maSV: null },
+  { maGiuong: 19, maPhong: 4, tenPhong: 'B101', soGiuong: 5, trangThai: 'Trống', maSinhVien: null, tenSinhVien: null, maSV: null },
+  { maGiuong: 20, maPhong: 4, tenPhong: 'B101', soGiuong: 6, trangThai: 'Trống', maSinhVien: null, tenSinhVien: null, maSV: null },
+  { maGiuong: 21, maPhong: 4, tenPhong: 'B101', soGiuong: 7, trangThai: 'Trống', maSinhVien: null, tenSinhVien: null, maSV: null },
+  { maGiuong: 22, maPhong: 4, tenPhong: 'B101', soGiuong: 8, trangThai: 'Trống', maSinhVien: null, tenSinhVien: null, maSV: null },
 ];

@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { Card, Row, Col, Tag, Button, Modal, Descriptions } from 'antd';
+import { Card, Row, Col, Tag, Button, Modal, Descriptions, Table } from 'antd';
 import { HomeOutlined, EyeOutlined } from '@ant-design/icons';
+import { mockPhong, mockGiuong } from '../../data/mockData';
 
 const SinhVienPhong: React.FC = () => {
-  const [rooms] = useState([
-    { id: 1, name: 'A101', building: 'Tòa A', floor: 1, type: '4 người', capacity: 4, available: 2, price: 500000 },
-    { id: 2, name: 'A102', building: 'Tòa A', floor: 1, type: '4 người', capacity: 4, available: 1, price: 500000 },
-    { id: 3, name: 'B201', building: 'Tòa B', floor: 2, type: '6 người', capacity: 6, available: 3, price: 400000 },
-  ]);
+  // Lọc các phòng có chỗ trống
+  const availableRooms = mockPhong.filter(p => p.trangThai !== 'Đầy').map(phong => {
+    const giuongTrong = mockGiuong.filter(g => g.maPhong === phong.maPhong && g.trangThai === 'Trống').length;
+    return { ...phong, giuongTrong };
+  });
+
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<any>(null);
 
@@ -16,23 +18,47 @@ const SinhVienPhong: React.FC = () => {
     setModalVisible(true);
   };
 
+  // Lấy danh sách giường của phòng được chọn
+  const getBedsForRoom = (maPhong: number) => {
+    return mockGiuong.filter(g => g.maPhong === maPhong);
+  };
+
+  const bedColumns = [
+    { title: 'Số giường', dataIndex: 'soGiuong', key: 'soGiuong', width: 100 },
+    { 
+      title: 'Trạng thái', 
+      dataIndex: 'trangThai', 
+      key: 'trangThai',
+      render: (val: string) => (
+        <Tag color={val === 'Trống' ? 'green' : 'red'}>{val}</Tag>
+      )
+    },
+    { 
+      title: 'Sinh viên', 
+      dataIndex: 'tenSinhVien', 
+      key: 'tenSinhVien',
+      render: (val: string) => val || '-'
+    },
+  ];
+
   return (
     <div>
       <Row gutter={[16, 16]}>
-        {rooms.map((room) => (
-          <Col span={8} key={room.id}>
+        {availableRooms.map((room) => (
+          <Col span={8} key={room.maPhong}>
             <Card
               title={
                 <span>
-                  <HomeOutlined /> {room.name}
+                  <HomeOutlined /> {room.tenPhong}
                 </span>
               }
-              extra={<Tag color="green">Còn {room.available} chỗ</Tag>}
+              extra={<Tag color="green">Còn {room.giuongTrong} giường trống</Tag>}
             >
-              <p><strong>Tòa nhà:</strong> {room.building}</p>
-              <p><strong>Tầng:</strong> {room.floor}</p>
-              <p><strong>Loại:</strong> {room.type}</p>
-              <p><strong>Giá:</strong> {room.price.toLocaleString()} VNĐ/tháng</p>
+              <p><strong>Tòa nhà:</strong> {room.tenToaNha}</p>
+              <p><strong>Tầng:</strong> {room.tang}</p>
+              <p><strong>Loại:</strong> {room.loaiPhong}</p>
+              <p><strong>Sức chứa:</strong> {room.sucChua} người</p>
+              <p><strong>Giá:</strong> {room.giaThue.toLocaleString()} VNĐ/tháng</p>
               <Button type="primary" block onClick={() => handleViewDetail(room)}>
                 <EyeOutlined /> Xem chi tiết
               </Button>
@@ -42,21 +68,35 @@ const SinhVienPhong: React.FC = () => {
       </Row>
 
       <Modal
-        title="Chi tiết phòng"
+        title={`Chi tiết phòng ${selectedRoom?.tenPhong}`}
         open={modalVisible}
         onCancel={() => setModalVisible(false)}
         footer={null}
+        width={700}
       >
         {selectedRoom && (
-          <Descriptions bordered column={1}>
-            <Descriptions.Item label="Tên phòng">{selectedRoom.name}</Descriptions.Item>
-            <Descriptions.Item label="Tòa nhà">{selectedRoom.building}</Descriptions.Item>
-            <Descriptions.Item label="Tầng">{selectedRoom.floor}</Descriptions.Item>
-            <Descriptions.Item label="Loại phòng">{selectedRoom.type}</Descriptions.Item>
-            <Descriptions.Item label="Sức chứa">{selectedRoom.capacity} người</Descriptions.Item>
-            <Descriptions.Item label="Còn trống">{selectedRoom.available} chỗ</Descriptions.Item>
-            <Descriptions.Item label="Giá thuê">{selectedRoom.price.toLocaleString()} VNĐ/tháng</Descriptions.Item>
-          </Descriptions>
+          <>
+            <Descriptions bordered column={2} style={{ marginBottom: 16 }}>
+              <Descriptions.Item label="Tên phòng">{selectedRoom.tenPhong}</Descriptions.Item>
+              <Descriptions.Item label="Tòa nhà">{selectedRoom.tenToaNha}</Descriptions.Item>
+              <Descriptions.Item label="Tầng">{selectedRoom.tang}</Descriptions.Item>
+              <Descriptions.Item label="Loại phòng">{selectedRoom.loaiPhong}</Descriptions.Item>
+              <Descriptions.Item label="Sức chứa">{selectedRoom.sucChua} người</Descriptions.Item>
+              <Descriptions.Item label="Giường trống">{selectedRoom.giuongTrong} giường</Descriptions.Item>
+              <Descriptions.Item label="Giá thuê" span={2}>
+                {selectedRoom.giaThue.toLocaleString()} VNĐ/tháng
+              </Descriptions.Item>
+            </Descriptions>
+            
+            <h4>Danh sách giường:</h4>
+            <Table 
+              columns={bedColumns} 
+              dataSource={getBedsForRoom(selectedRoom.maPhong)} 
+              rowKey="maGiuong"
+              pagination={false}
+              size="small"
+            />
+          </>
         )}
       </Modal>
     </div>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, Row, Col, Statistic, List, Tag, Descriptions } from 'antd';
 import { HomeOutlined, DollarOutlined, WarningOutlined, BellOutlined } from '@ant-design/icons';
-import { mockHopDong, mockHoaDon, mockViPham, mockThongBao } from '../../data/mockData';
+import { mockHopDong, mockHoaDon, mockViPham, mockThongBao, mockGiuong } from '../../data/mockData';
 
 const SinhVienDashboard: React.FC = () => {
   // Giả sử sinh viên hiện tại là "Hoàng Văn Học" với mã B20DCCN002
@@ -9,6 +9,9 @@ const SinhVienDashboard: React.FC = () => {
   
   // Lấy thông tin hợp đồng hiện tại
   const currentContract = mockHopDong.find(h => h.maSV === currentStudent && h.status === 'Đang hiệu lực');
+  
+  // Lấy thông tin giường của sinh viên
+  const currentBed = mockGiuong.find(g => g.maSV === currentStudent);
   
   // Đếm hóa đơn chưa thanh toán (giả sử theo mã hợp đồng)
   const unpaidInvoices = mockHoaDon.filter(h => h.code === currentContract?.code && h.status === 'Chưa thanh toán').length;
@@ -53,10 +56,11 @@ const SinhVienDashboard: React.FC = () => {
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col span={12}>
           <Card title="Thông tin phòng">
-            {currentContract ? (
+            {currentContract && currentBed ? (
               <Descriptions column={1}>
                 <Descriptions.Item label="Phòng">{currentContract.room}</Descriptions.Item>
                 <Descriptions.Item label="Tòa nhà">{currentContract.building}</Descriptions.Item>
+                <Descriptions.Item label="Giường">Giường số {currentBed.soGiuong}</Descriptions.Item>
                 <Descriptions.Item label="Loại phòng">4 người</Descriptions.Item>
                 <Descriptions.Item label="Giá thuê">500,000 VNĐ/tháng</Descriptions.Item>
                 <Descriptions.Item label="Hợp đồng">

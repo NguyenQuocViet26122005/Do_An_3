@@ -20,6 +20,7 @@ const SinhVienHopDong: React.FC = () => {
   const columns = [
     { title: 'Mã hợp đồng', dataIndex: 'code', key: 'code' },
     { title: 'Phòng', dataIndex: 'room', key: 'room' },
+    { title: 'Giường', dataIndex: 'soGiuong', key: 'soGiuong', render: (val: number) => `Giường ${val}` },
     { title: 'Tòa nhà', dataIndex: 'building', key: 'building' },
     { title: 'Ngày bắt đầu', dataIndex: 'startDate', key: 'startDate' },
     { title: 'Ngày kết thúc', dataIndex: 'endDate', key: 'endDate' },
@@ -65,6 +66,7 @@ const SinhVienHopDong: React.FC = () => {
           <Descriptions bordered column={1}>
             <Descriptions.Item label="Mã hợp đồng">{selectedContract.code}</Descriptions.Item>
             <Descriptions.Item label="Phòng">{selectedContract.room}</Descriptions.Item>
+            <Descriptions.Item label="Giường">Giường số {selectedContract.soGiuong}</Descriptions.Item>
             <Descriptions.Item label="Tòa nhà">{selectedContract.building}</Descriptions.Item>
             <Descriptions.Item label="Ngày bắt đầu">{selectedContract.startDate}</Descriptions.Item>
             <Descriptions.Item label="Ngày kết thúc">{selectedContract.endDate}</Descriptions.Item>
