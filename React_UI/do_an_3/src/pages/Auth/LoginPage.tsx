@@ -20,45 +20,15 @@ const LoginPage: React.FC = () => {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       
-      // Mock authentication cho demo (bỏ comment khi backend sẵn sàng)
-      const mockUsers: any = {
-        'admin': { 
-          vaiTro: 'Admin', 
-          hoTen: 'Nguyễn Văn Admin', 
-          email: 'admin@ktx.edu.vn',
-          maTaiKhoan: 1,
-          maNguoiDung: 1,
-        },
-        'canbo': { 
-          vaiTro: 'CanBo', 
-          hoTen: 'Trần Thị Cán Bộ', 
-          email: 'canbo@ktx.edu.vn',
-          maTaiKhoan: 2,
-          maNguoiDung: 2,
-        },
-        'sinhvien': { 
-          vaiTro: 'SinhVien', 
-          hoTen: 'Lê Văn Sinh Viên', 
-          email: 'sinhvien@ktx.edu.vn',
-          maTaiKhoan: 3,
-          maNguoiDung: 3,
-        },
-      };
-
-      const mockUser = mockUsers[values.tenDangNhap.toLowerCase()];
+      // Gọi API đăng nhập thật
+      const response = await authService.login(values);
       
-      if (mockUser && values.matKhau === '123456') {
-        // Mock response
-        const mockResponse = {
-          token: 'mock-jwt-token-' + Date.now(),
-          ...mockUser,
-        };
-        
+      if (response.success) {
         message.success('Đăng nhập thành công!');
-        login(mockResponse);
+        login(response.data);
         
         // Điều hướng theo vai trò
-        switch (mockUser.vaiTro) {
+        switch (response.data.vaiTro) {
           case 'Admin':
             navigate('/admin/dashboard');
             break;
@@ -72,21 +42,8 @@ const LoginPage: React.FC = () => {
             navigate('/');
         }
       } else {
-        message.error('Tên đăng nhập hoặc mật khẩu không đúng!');
+        message.error(response.message || 'Đăng nhập thất bại!');
       }
-
-      // Uncomment khi backend sẵn sàng:
-      // const response = await authService.login(values);
-      // if (response.success) {
-      //   message.success('Đăng nhập thành công!');
-      //   login(response.data);
-      //   switch (response.data.vaiTro) {
-      //     case 'Admin': navigate('/admin/dashboard'); break;
-      //     case 'CanBo': navigate('/canbo/dashboard'); break;
-      //     case 'SinhVien': navigate('/sinhvien/dashboard'); break;
-      //     default: navigate('/');
-      //   }
-      // }
     } catch (error: any) {
       message.error(error.response?.data?.message || 'Đăng nhập thất bại!');
     } finally {
