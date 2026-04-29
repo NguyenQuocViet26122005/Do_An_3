@@ -25,6 +25,11 @@ builder.Services.AddScoped<ToaNhaBLL>();
 builder.Services.AddScoped<PhongBLL>();
 builder.Services.AddScoped<DangKyPhongBLL>();
 builder.Services.AddScoped<HopDongBLL>();
+builder.Services.AddScoped<HoaDonBLL>();
+builder.Services.AddScoped<ViPhamBLL>();
+builder.Services.AddScoped<ThongBaoBLL>();
+builder.Services.AddScoped<YeuCauBaoTriBLL>();
+builder.Services.AddScoped<SinhVienBLL>();
 
 // Add JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
