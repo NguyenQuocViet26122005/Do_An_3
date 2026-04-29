@@ -19,6 +19,7 @@ import CanBoHoaDon from './pages/CanBo/CanBoHoaDon';
 import CanBoViPham from './pages/CanBo/CanBoViPham';
 import CanBoBaoTri from './pages/CanBo/CanBoBaoTri';
 import CanBoThongBao from './pages/CanBo/CanBoThongBao';
+import CanBoBaoCao from './pages/CanBo/CanBoBaoCao';
 import SinhVienDashboard from './pages/SinhVien/SinhVienDashboard';
 import SinhVienPhong from './pages/SinhVien/SinhVienPhong';
 import SinhVienDangKy from './pages/SinhVien/SinhVienDangKy';
@@ -55,6 +56,7 @@ function App() {
             <Route path="/canbo/vipham" element={<ProtectedRoute allowedRoles={['CanBo']}><CanBoViPham /></ProtectedRoute>} />
             <Route path="/canbo/baotri" element={<ProtectedRoute allowedRoles={['CanBo']}><CanBoBaoTri /></ProtectedRoute>} />
             <Route path="/canbo/thongbao" element={<ProtectedRoute allowedRoles={['CanBo']}><CanBoThongBao /></ProtectedRoute>} />
+            <Route path="/canbo/baocao" element={<ProtectedRoute allowedRoles={['CanBo']}><CanBoBaoCao /></ProtectedRoute>} />
             
             {/* SinhVien Routes */}
             <Route path="/sinhvien/dashboard" element={<ProtectedRoute allowedRoles={['SinhVien']}><SinhVienDashboard /></ProtectedRoute>} />

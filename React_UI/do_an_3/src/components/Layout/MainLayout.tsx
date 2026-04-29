@@ -58,11 +58,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           icon: <UserOutlined />,
           label: 'Quản lý người dùng',
         },
-        {
-          key: 'baocao',
-          icon: <BarChartOutlined />,
-          label: 'Báo cáo thống kê',
-        },
       ];
     }
 
@@ -108,6 +103,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           key: 'thongbao',
           icon: <BellOutlined />,
           label: 'Gửi thông báo',
+        },
+        {
+          key: 'baocao',
+          icon: <BarChartOutlined />,
+          label: 'Báo cáo thống kê',
         },
       ];
     }
