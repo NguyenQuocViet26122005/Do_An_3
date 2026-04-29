@@ -1,0 +1,47 @@
+using Api_Gateway.BLL;
+using Api_Gateway.DTO.HopDong;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+
+namespace Api_Gateway.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    [Authorize]
+    public class HopDongController : ControllerBase
+    {
+        private readonly HopDongBLL _hopDongBLL;
+
+        public HopDongController(HopDongBLL hopDongBLL)
+        {
+            _hopDongBLL = hopDongBLL;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] int? maSinhVien, [FromQuery] string? trangThai)
+        {
+            var result = await _hopDongBLL.GetAll(maSinhVien, trangThai);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "CanBo")]
+        public async Task<IActionResult> Create([FromBody] CreateHopDongDTO dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var maActorClaim = User.FindFirst("MaActor")?.Value;
+            if (string.IsNullOrEmpty(maActorClaim) || !int.TryParse(maActorClaim, out int maCanBo))
+            {
+                return Unauthorized(new { message = "Không xác định được cán bộ" });
+            }
+
+            var result = await _hopDongBLL.Create(maCanBo, dto);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+    }
+}

@@ -21,6 +21,10 @@ builder.Services.AddScoped<PasswordService>();
 
 // Add BLL
 builder.Services.AddScoped<AuthBLL>();
+builder.Services.AddScoped<ToaNhaBLL>();
+builder.Services.AddScoped<PhongBLL>();
+builder.Services.AddScoped<DangKyPhongBLL>();
+builder.Services.AddScoped<HopDongBLL>();
 
 // Add JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
