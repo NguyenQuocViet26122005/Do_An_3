@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5134/api';
+// Backend đang chạy ở IIS Express
+const API_BASE_URL = 'https://localhost:44359/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

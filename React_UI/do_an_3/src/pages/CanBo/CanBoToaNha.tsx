@@ -1,28 +1,52 @@
-import React, { useState } from 'react';
-import { Table, Button, Modal, Form, Input, InputNumber, message, Space, Popconfirm } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import React, { useState, useEffect } from 'react';
+import { Table, Button, Modal, Form, Input, InputNumber, Select, message, Space, Popconfirm, Tag } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
+import toaNhaService, { ToaNha, CreateToaNhaDTO, UpdateToaNhaDTO } from '../../services/toaNhaService';
+
+const { Option } = Select;
 
 const CanBoToaNha: React.FC = () => {
-  const [data, setData] = useState([
-    { maToaNha: 1, tenToaNha: 'Tòa nhà A', diaChi: 'Số 1 Đại Cồ Việt', soTang: 5, tongSoPhong: 50 },
-    { maToaNha: 2, tenToaNha: 'Tòa nhà B', diaChi: 'Số 1 Đại Cồ Việt', soTang: 5, tongSoPhong: 50 },
-    { maToaNha: 3, tenToaNha: 'Tòa nhà C', diaChi: 'Số 1 Đại Cồ Việt', soTang: 6, tongSoPhong: 60 },
-  ]);
-  const [loading] = useState(false);
+  const [data, setData] = useState<ToaNha[]>([]);
+  const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<any>(null);
+  const [editingRecord, setEditingRecord] = useState<ToaNha | null>(null);
   const [form] = Form.useForm();
 
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const result = await toaNhaService.getAll();
+      if (result.success) {
+        setData(result.data || []);
+      } else {
+        message.error(result.message || 'Lỗi tải dữ liệu');
+      }
+    } catch (error: any) {
+      message.error(error.response?.data?.message || 'Lỗi kết nối server');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   const columns = [
-    { title: 'Mã tòa nhà', dataIndex: 'maToaNha', key: 'maToaNha' },
+    { title: 'Mã tòa', dataIndex: 'maToa', key: 'maToa' },
     { title: 'Tên tòa nhà', dataIndex: 'tenToaNha', key: 'tenToaNha' },
-    { title: 'Địa chỉ', dataIndex: 'diaChi', key: 'diaChi' },
+    { title: 'Loại', dataIndex: 'loaiToaNha', key: 'loaiToaNha', render: (v: string) => v === 'Nam' ? <Tag color="blue">Nam</Tag> : <Tag color="pink">Nữ</Tag> },
     { title: 'Số tầng', dataIndex: 'soTang', key: 'soTang' },
-    { title: 'Tổng số phòng', dataIndex: 'tongSoPhong', key: 'tongSoPhong' },
+    { title: 'Tổng phòng', dataIndex: 'tongSoPhong', key: 'tongSoPhong' },
+    { title: 'Phòng trống', dataIndex: 'soPhongTrong', key: 'soPhongTrong' },
+    { 
+      title: 'Trạng thái', dataIndex: 'trangThai', key: 'trangThai',
+      render: (v: string) => v === 'HoatDong' ? <Tag color="green">Hoạt động</Tag> : <Tag color="red">Tạm dừng</Tag>
+    },
     {
       title: 'Thao tác',
       key: 'action',
-      render: (_: any, record: any) => (
+      render: (_: any, record: ToaNha) => (
         <Space>
           <Button icon={<EditOutlined />} onClick={() => handleEdit(record)}>Sửa</Button>
           <Popconfirm title="Xác nhận xóa?" onConfirm={() => handleDelete(record.maToaNha)}>
@@ -39,37 +63,61 @@ const CanBoToaNha: React.FC = () => {
     setModalVisible(true);
   };
 
-  const handleEdit = (record: any) => {
+  const handleEdit = (record: ToaNha) => {
     setEditingRecord(record);
     form.setFieldsValue(record);
     setModalVisible(true);
   };
 
   const handleDelete = async (id: number) => {
-    setData(data.filter(item => item.maToaNha !== id));
-    message.success('Xóa thành công!');
+    try {
+      const result = await toaNhaService.delete(id);
+      if (result.success) {
+        message.success('Xóa thành công!');
+        fetchData();
+      } else {
+        message.error(result.message);
+      }
+    } catch (error: any) {
+      message.error(error.response?.data?.message || 'Lỗi xóa tòa nhà');
+    }
   };
 
   const handleSubmit = async (values: any) => {
-    if (editingRecord) {
-      setData(data.map(item => 
-        item.maToaNha === editingRecord.maToaNha ? { ...item, ...values } : item
-      ));
-      message.success('Cập nhật thành công!');
-    } else {
-      const newItem = { maToaNha: data.length + 1, ...values };
-      setData([...data, newItem]);
-      message.success('Thêm mới thành công!');
+    try {
+      if (editingRecord) {
+        const updateData: UpdateToaNhaDTO = { ...values };
+        const result = await toaNhaService.update(editingRecord.maToaNha, updateData);
+        if (result.success) {
+          message.success('Cập nhật thành công!');
+        } else {
+          message.error(result.message);
+          return;
+        }
+      } else {
+        const createData: CreateToaNhaDTO = { ...values };
+        const result = await toaNhaService.create(createData);
+        if (result.success) {
+          message.success('Thêm mới thành công!');
+        } else {
+          message.error(result.message);
+          return;
+        }
+      }
+      setModalVisible(false);
+      fetchData();
+    } catch (error: any) {
+      message.error(error.response?.data?.message || 'Có lỗi xảy ra');
     }
-    setModalVisible(false);
   };
 
   return (
     <div>
-      <div style={{ marginBottom: 16 }}>
+      <div style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
         <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
           Thêm tòa nhà
         </Button>
+        <Button icon={<ReloadOutlined />} onClick={fetchData}>Tải lại</Button>
       </div>
       <Table columns={columns} dataSource={data} loading={loading} rowKey="maToaNha" />
       
@@ -80,18 +128,29 @@ const CanBoToaNha: React.FC = () => {
         onOk={() => form.submit()}
       >
         <Form form={form} layout="vertical" onFinish={handleSubmit}>
-          <Form.Item name="tenToaNha" label="Tên tòa nhà" rules={[{ required: true }]}>
+          <Form.Item name="maToa" label="Mã tòa" rules={[{ required: true, message: 'Nhập mã tòa' }]}>
+            <Input disabled={!!editingRecord} />
+          </Form.Item>
+          <Form.Item name="tenToaNha" label="Tên tòa nhà" rules={[{ required: true, message: 'Nhập tên tòa nhà' }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="diaChi" label="Địa chỉ" rules={[{ required: true }]}>
-            <Input />
+          <Form.Item name="loaiToaNha" label="Loại tòa nhà">
+            <Select placeholder="Chọn loại">
+              <Option value="Nam">Nam</Option>
+              <Option value="Nu">Nữ</Option>
+            </Select>
           </Form.Item>
-          <Form.Item name="soTang" label="Số tầng" rules={[{ required: true }]}>
+          <Form.Item name="soTang" label="Số tầng">
             <InputNumber min={1} style={{ width: '100%' }} />
           </Form.Item>
-          <Form.Item name="tongSoPhong" label="Tổng số phòng" rules={[{ required: true }]}>
-            <InputNumber min={1} style={{ width: '100%' }} />
-          </Form.Item>
+          {editingRecord && (
+            <Form.Item name="trangThai" label="Trạng thái">
+              <Select>
+                <Option value="HoatDong">Hoạt động</Option>
+                <Option value="TamDung">Tạm dừng</Option>
+              </Select>
+            </Form.Item>
+          )}
         </Form>
       </Modal>
     </div>

@@ -1,5 +1,6 @@
 import api from './api';
 
+// Khớp với backend DangKyPhongDTO
 export interface DangKyPhong {
   maDangKy: number;
   maSinhVien: number;
@@ -8,21 +9,27 @@ export interface DangKyPhong {
   maPhong: number;
   tenPhong?: string;
   tenToaNha?: string;
-  ngayDangKy: Date;
-  trangThai: string;
-  lyDo?: string;
-  ngayDuyet?: Date;
-  maNguoiDuyet?: number;
-  tenNguoiDuyet?: string;
+  maGiuong?: number;
+  soGiuong?: number;
+  hocKy?: string;
+  ngayDangKy?: string;
+  trangThai?: string;
+  maCanBoDuyet?: number;
+  tenCanBoDuyet?: string;
+  ngayDuyet?: string;
+  lyDoTuChoi?: string;
 }
 
+// Khớp với backend CreateDangKyDTO
 export interface CreateDangKyDTO {
   maPhong: number;
-  lyDo?: string;
+  maGiuong?: number;
+  hocKy?: string;
 }
 
+// Khớp với backend DuyetDangKyDTO
 export interface DuyetDangKyDTO {
-  trangThai: string;
+  trangThai: string; // DaDuyet hoặc TuChoi
   lyDoTuChoi?: string;
 }
 
@@ -35,11 +42,6 @@ const dangKyService = {
     return response.data;
   },
 
-  getById: async (id: number) => {
-    const response = await api.get(`/dangky/${id}`);
-    return response.data;
-  },
-
   create: async (data: CreateDangKyDTO) => {
     const response = await api.post('/dangky', data);
     return response.data;
@@ -47,6 +49,11 @@ const dangKyService = {
 
   duyet: async (id: number, data: DuyetDangKyDTO) => {
     const response = await api.put(`/dangky/${id}/duyet`, data);
+    return response.data;
+  },
+
+  delete: async (id: number) => {
+    const response = await api.delete(`/dangky/${id}`);
     return response.data;
   },
 };

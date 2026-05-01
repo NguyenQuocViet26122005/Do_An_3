@@ -1,35 +1,56 @@
-import React, { useState } from 'react';
-import { Table, Button, Modal, Descriptions, Tag } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Table, Button, Modal, Descriptions, Tag, Spin } from 'antd';
 import { EyeOutlined, FileTextOutlined } from '@ant-design/icons';
+import hopDongService from '../../services/hopDongService';
+import { useAuth } from '../../contexts/AuthContext';
 
 const SinhVienHopDong: React.FC = () => {
-  const [contracts] = useState([
-    {
-      id: 1,
-      code: 'HD001',
-      room: 'A101',
-      building: 'Tòa A',
-      startDate: '2024-01-01',
-      endDate: '2024-06-30',
-      status: 'Đang hiệu lực',
-    },
-  ]);
+  const [loading, setLoading] = useState(true);
+  const [contracts, setContracts] = useState<any[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedContract, setSelectedContract] = useState<any>(null);
 
+  const { user } = useAuth();
+  const maSinhVien = user?.maActor || 0;
+
+  useEffect(() => {
+    const fetchContracts = async () => {
+      try {
+        setLoading(true);
+        const response = await hopDongService.getAll(maSinhVien);
+        if (response.success) {
+          setContracts(response.data);
+        }
+      } catch (error) {
+        console.error('Lỗi khi tải hợp đồng:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContracts();
+  }, [maSinhVien]);
+
   const columns = [
-    { title: 'Mã hợp đồng', dataIndex: 'code', key: 'code' },
-    { title: 'Phòng', dataIndex: 'room', key: 'room' },
-    { title: 'Giường', dataIndex: 'soGiuong', key: 'soGiuong', render: (val: number) => `Giường ${val}` },
-    { title: 'Tòa nhà', dataIndex: 'building', key: 'building' },
-    { title: 'Ngày bắt đầu', dataIndex: 'startDate', key: 'startDate' },
-    { title: 'Ngày kết thúc', dataIndex: 'endDate', key: 'endDate' },
+    { title: 'Số hợp đồng', dataIndex: 'soHopDong', key: 'soHopDong' },
+    { title: 'Phòng', dataIndex: 'tenPhong', key: 'tenPhong' },
+    { 
+      title: 'Giường', 
+      dataIndex: 'soGiuong', 
+      key: 'soGiuong', 
+      render: (val: number) => `Giường ${val}` 
+    },
+    { title: 'Học kỳ', dataIndex: 'hocKy', key: 'hocKy' },
+    { title: 'Ngày bắt đầu', dataIndex: 'ngayBatDau', key: 'ngayBatDau' },
+    { title: 'Ngày kết thúc', dataIndex: 'ngayKetThuc', key: 'ngayKetThuc' },
     {
       title: 'Trạng thái',
-      dataIndex: 'status',
-      key: 'status',
+      dataIndex: 'trangThai',
+      key: 'trangThai',
       render: (val: string) => (
-        <Tag color={val === 'Đang hiệu lực' ? 'green' : 'red'}>{val}</Tag>
+        <Tag color={val === 'HieuLuc' ? 'green' : 'red'}>
+          {val === 'HieuLuc' ? 'Hiệu lực' : 'Hết hạn'}
+        </Tag>
       ),
     },
     {
@@ -48,9 +69,17 @@ const SinhVienHopDong: React.FC = () => {
     setModalVisible(true);
   };
 
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '50px' }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
+
   return (
     <div>
-      <Table columns={columns} dataSource={contracts} rowKey="id" />
+      <Table columns={columns} dataSource={contracts} rowKey="maHopDong" />
       
       <Modal
         title="Chi tiết hợp đồng"
@@ -61,17 +90,28 @@ const SinhVienHopDong: React.FC = () => {
             In hợp đồng
           </Button>,
         ]}
+        width={700}
       >
         {selectedContract && (
-          <Descriptions bordered column={1}>
-            <Descriptions.Item label="Mã hợp đồng">{selectedContract.code}</Descriptions.Item>
-            <Descriptions.Item label="Phòng">{selectedContract.room}</Descriptions.Item>
+          <Descriptions bordered column={2}>
+            <Descriptions.Item label="Số hợp đồng" span={2}>{selectedContract.soHopDong}</Descriptions.Item>
+            <Descriptions.Item label="Sinh viên">{selectedContract.tenSinhVien}</Descriptions.Item>
+            <Descriptions.Item label="Mã SV">{selectedContract.maSV}</Descriptions.Item>
+            <Descriptions.Item label="Phòng">{selectedContract.tenPhong}</Descriptions.Item>
             <Descriptions.Item label="Giường">Giường số {selectedContract.soGiuong}</Descriptions.Item>
-            <Descriptions.Item label="Tòa nhà">{selectedContract.building}</Descriptions.Item>
-            <Descriptions.Item label="Ngày bắt đầu">{selectedContract.startDate}</Descriptions.Item>
-            <Descriptions.Item label="Ngày kết thúc">{selectedContract.endDate}</Descriptions.Item>
+            <Descriptions.Item label="Học kỳ" span={2}>{selectedContract.hocKy}</Descriptions.Item>
+            <Descriptions.Item label="Ngày bắt đầu">{selectedContract.ngayBatDau}</Descriptions.Item>
+            <Descriptions.Item label="Ngày kết thúc">{selectedContract.ngayKetThuc}</Descriptions.Item>
+            <Descriptions.Item label="Giá thuê" span={2}>
+              <strong style={{ color: '#1890ff', fontSize: '16px' }}>
+                {selectedContract.giaThue?.toLocaleString('vi-VN')} VNĐ/tháng
+              </strong>
+            </Descriptions.Item>
+            <Descriptions.Item label="Ngày tạo">{selectedContract.ngayTao}</Descriptions.Item>
             <Descriptions.Item label="Trạng thái">
-              <Tag color="green">{selectedContract.status}</Tag>
+              <Tag color={selectedContract.trangThai === 'HieuLuc' ? 'green' : 'red'}>
+                {selectedContract.trangThai === 'HieuLuc' ? 'Hiệu lực' : 'Hết hạn'}
+              </Tag>
             </Descriptions.Item>
           </Descriptions>
         )}

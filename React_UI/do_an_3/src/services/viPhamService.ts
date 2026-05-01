@@ -1,28 +1,31 @@
 import api from './api';
 
+// Khớp với backend ViPhamDTO
 export interface ViPham {
   maViPham: number;
   maSinhVien: number;
   tenSinhVien?: string;
   maSV?: string;
+  tenPhong?: string;
   tenViPham: string;
   mucDo?: string;
   moTa?: string;
   mucPhat: number;
-  ngayViPham: Date;
-  trangThai: string;
-  maCanBoGhi?: number;
+  ngayViPham: string;
+  trangThai?: string;
+  maCanBoGhi: number;
   tenCanBoGhi?: string;
-  ngayGhi: Date;
+  ngayGhi: string;
 }
 
+// Khớp với backend CreateViPhamDTO
 export interface CreateViPhamDTO {
   maSinhVien: number;
   tenViPham: string;
   mucDo?: string;
   moTa?: string;
-  mucPhat?: number;
-  ngayViPham: Date;
+  mucPhat: number;
+  ngayViPham: string;
 }
 
 const viPhamService = {

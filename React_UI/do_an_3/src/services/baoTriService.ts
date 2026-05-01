@@ -1,5 +1,6 @@
 import api from './api';
 
+// Khớp với backend YeuCauBaoTriDTO
 export interface YeuCauBaoTri {
   maYeuCau: number;
   maSinhVien: number;
@@ -10,14 +11,17 @@ export interface YeuCauBaoTri {
   tieuDe: string;
   moTa?: string;
   loaiYeuCau?: string;
-  trangThai: string;
+  trangThai?: string;
   maCanBoXuLy?: number;
   tenCanBoXuLy?: string;
-  ngayXuLy?: Date;
+  ngayXuLy?: string;
+  ngayHoanThanh?: string;
   chiPhi?: number;
-  ngayTao: Date;
+  ghiChu?: string;
+  ngayTao: string;
 }
 
+// Khớp với backend CreateYeuCauBaoTriDTO
 export interface CreateYeuCauBaoTriDTO {
   maPhong: number;
   tieuDe: string;
@@ -25,9 +29,11 @@ export interface CreateYeuCauBaoTriDTO {
   loaiYeuCau?: string;
 }
 
+// Khớp với backend XuLyBaoTriDTO
 export interface XuLyBaoTriDTO {
-  trangThai: string;
+  trangThai: string; // DangXuLy, DaHoanThanh, DaHuy
   chiPhi?: number;
+  ghiChu?: string;
 }
 
 const baoTriService = {

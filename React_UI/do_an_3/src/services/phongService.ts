@@ -1,40 +1,50 @@
 import api from './api';
 
+// Khớp với backend PhongDTO
 export interface Phong {
   maPhong: number;
+  soPhong: string;
+  tang?: number;
+  loaiPhong?: string;
+  sucChua?: number;
+  giaPhong?: number;
+  trangThai?: string;
+  soNguoiHienTai?: number;
   maToaNha: number;
   tenToaNha?: string;
-  soPhong: string;
-  tang?: number;
-  loaiPhong?: string;
-  giaThue?: number;
-  dienTich?: number;
-  soGiuong?: number;
   soGiuongTrong?: number;
-  trangThai?: string;
-  moTa?: string;
 }
 
+// Khớp với backend GiuongDTO
+export interface Giuong {
+  maGiuong: number;
+  maPhong: number;
+  soGiuong: number;
+  trangThai?: string;
+  maSinhVien?: number;
+  tenSinhVien?: string;
+  maSV?: string;
+}
+
+// Khớp với backend CreatePhongDTO
 export interface CreatePhongDTO {
-  maToaNha: number;
   soPhong: string;
   tang?: number;
   loaiPhong?: string;
-  giaThue?: number;
-  dienTich?: number;
-  soGiuong?: number;
-  moTa?: string;
+  sucChua: number;
+  giaPhong: number;
+  maToaNha: number;
 }
 
+// Khớp với backend UpdatePhongDTO
 export interface UpdatePhongDTO {
-  soPhong: string;
+  soPhong?: string;
   tang?: number;
   loaiPhong?: string;
-  giaThue?: number;
-  dienTich?: number;
-  soGiuong?: number;
+  sucChua?: number;
+  giaPhong?: number;
   trangThai?: string;
-  moTa?: string;
+  maToaNha?: number;
 }
 
 const phongService = {
@@ -48,6 +58,11 @@ const phongService = {
 
   getById: async (id: number) => {
     const response = await api.get(`/phong/${id}`);
+    return response.data;
+  },
+
+  getGiuong: async (maPhong: number) => {
+    const response = await api.get(`/phong/${maPhong}/giuong`);
     return response.data;
   },
 

@@ -1,28 +1,36 @@
 import api from './api';
 
+// Khớp với backend ToaNhaDTO
 export interface ToaNha {
   maToaNha: number;
+  maToa: string;
   tenToaNha: string;
-  diaChi?: string;
+  loaiToaNha?: string;
   soTang?: number;
-  soPhong?: number;
-  moTa?: string;
   trangThai?: string;
+  maCanBoQuanLy?: number;
+  tenCanBoQuanLy?: string;
+  tongSoPhong?: number;
+  soPhongTrong?: number;
 }
 
+// Khớp với backend CreateToaNhaDTO
 export interface CreateToaNhaDTO {
+  maToa: string;
   tenToaNha: string;
-  diaChi?: string;
+  loaiToaNha?: string;
   soTang?: number;
-  moTa?: string;
+  maCanBoQuanLy?: number;
 }
 
+// Khớp với backend UpdateToaNhaDTO
 export interface UpdateToaNhaDTO {
-  tenToaNha: string;
-  diaChi?: string;
+  maToa?: string;
+  tenToaNha?: string;
+  loaiToaNha?: string;
   soTang?: number;
-  moTa?: string;
   trangThai?: string;
+  maCanBoQuanLy?: number;
 }
 
 const toaNhaService = {

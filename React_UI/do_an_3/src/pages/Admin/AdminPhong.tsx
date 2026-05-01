@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, InputNumber, Select, message, Space, Popconfirm, Tag } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import MainLayout from '../../components/Layout/MainLayout';
-import phongService, { Phong } from '../../services/phongService';
-import toaNhaService, { ToaNha } from '../../services/toaNhaService';
+import { Table, Button, Modal, Form, Input, InputNumber, Select, message, Space, Popconfirm, Tag, Spin } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import phongService from '../../services/phongService';
+import toaNhaService from '../../services/toaNhaService';
 
 const AdminPhong: React.FC = () => {
-  const [data, setData] = useState<Phong[]>([]);
-  const [toaNhas, setToaNhas] = useState<ToaNha[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<any[]>([]);
+  const [toaNhas, setToaNhas] = useState<any[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<Phong | null>(null);
+  const [bedModalVisible, setBedModalVisible] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState<any>(null);
+  const [editingRecord, setEditingRecord] = useState<any>(null);
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -19,14 +20,14 @@ const AdminPhong: React.FC = () => {
   }, []);
 
   const fetchData = async () => {
-    setLoading(true);
     try {
+      setLoading(true);
       const response = await phongService.getAll();
       if (response.success) {
         setData(response.data);
       }
-    } catch (error: any) {
-      message.error('Không thể tải dữ liệu phòng!');
+    } catch (error) {
+      console.error('Lỗi khi tải phòng:', error);
     } finally {
       setLoading(false);
     }
@@ -38,40 +39,89 @@ const AdminPhong: React.FC = () => {
       if (response.success) {
         setToaNhas(response.data);
       }
-    } catch (error: any) {
-      message.error('Không thể tải danh sách tòa nhà!');
+    } catch (error) {
+      console.error('Lỗi khi tải tòa nhà:', error);
+    }
+  };
+
+  const handleViewBeds = async (record: any) => {
+    try {
+      const response = await phongService.getById(record.maPhong);
+      if (response.success) {
+        setSelectedRoom(response.data);
+        setBedModalVisible(true);
+      }
+    } catch (error) {
+      console.error('Lỗi khi tải giường:', error);
     }
   };
 
   const columns = [
-    { title: 'Mã phòng', dataIndex: 'maPhong', key: 'maPhong' },
     { title: 'Số phòng', dataIndex: 'soPhong', key: 'soPhong' },
     { title: 'Tòa nhà', dataIndex: 'tenToaNha', key: 'tenToaNha' },
     { title: 'Tầng', dataIndex: 'tang', key: 'tang' },
     { title: 'Loại phòng', dataIndex: 'loaiPhong', key: 'loaiPhong' },
-    { title: 'Số giường', dataIndex: 'soGiuong', key: 'soGiuong' },
-    { title: 'Giường trống', dataIndex: 'soGiuongTrong', key: 'soGiuongTrong' },
-    { title: 'Giá thuê', dataIndex: 'giaThue', key: 'giaThue', render: (val: number) => `${val?.toLocaleString()} VNĐ` },
+    { title: 'Sức chứa', dataIndex: 'sucChua', key: 'sucChua' },
+    { 
+      title: 'Đang ở', 
+      dataIndex: 'soNguoiHienTai', 
+      key: 'soNguoiHienTai',
+      render: (val: number, record: any) => `${val}/${record.sucChua}`
+    },
+    { 
+      title: 'Giá thuê', 
+      dataIndex: 'giaPhong', 
+      key: 'giaPhong', 
+      render: (val: number) => `${val?.toLocaleString('vi-VN')} VNĐ` 
+    },
     {
       title: 'Trạng thái',
       dataIndex: 'trangThai',
       key: 'trangThai',
       render: (val: string) => {
-        const color = val === 'Trống' ? 'green' : val === 'Đầy' ? 'red' : 'orange';
-        return <Tag color={color}>{val}</Tag>;
+        const color = val === 'ConTrong' ? 'green' : val === 'Day' ? 'red' : 'orange';
+        const text = val === 'ConTrong' ? 'Còn trống' : val === 'Day' ? 'Đầy' : 'Bảo trì';
+        return <Tag color={color}>{text}</Tag>;
       },
     },
     {
       title: 'Thao tác',
       key: 'action',
-      render: (_: any, record: Phong) => (
+      render: (_: any, record: any) => (
         <Space>
-          <Button icon={<EditOutlined />} size="small" onClick={() => handleEdit(record)}>Sửa</Button>
+          <Button icon={<EyeOutlined />} size="small" onClick={() => handleViewBeds(record)}>
+            Giường
+          </Button>
+          <Button icon={<EditOutlined />} size="small" onClick={() => handleEdit(record)}>
+            Sửa
+          </Button>
           <Popconfirm title="Xác nhận xóa?" onConfirm={() => handleDelete(record.maPhong)}>
-            <Button danger icon={<DeleteOutlined />} size="small">Xóa</Button>
+            <Button danger icon={<DeleteOutlined />} size="small">
+              Xóa
+            </Button>
           </Popconfirm>
         </Space>
       ),
+    },
+  ];
+
+  const bedColumns = [
+    { title: 'Số giường', dataIndex: 'soGiuong', key: 'soGiuong' },
+    { 
+      title: 'Trạng thái', 
+      dataIndex: 'trangThai', 
+      key: 'trangThai',
+      render: (val: string) => (
+        <Tag color={val === 'ConTrong' ? 'green' : 'red'}>
+          {val === 'ConTrong' ? 'Còn trống' : 'Đang sử dụng'}
+        </Tag>
+      )
+    },
+    { 
+      title: 'Sinh viên', 
+      dataIndex: 'maSinhVien', 
+      key: 'maSinhVien',
+      render: (val: number) => val ? `SV${val}` : '-'
     },
   ];
 
@@ -81,7 +131,7 @@ const AdminPhong: React.FC = () => {
     setModalVisible(true);
   };
 
-  const handleEdit = (record: Phong) => {
+  const handleEdit = (record: any) => {
     setEditingRecord(record);
     form.setFieldsValue(record);
     setModalVisible(true);
@@ -91,11 +141,13 @@ const AdminPhong: React.FC = () => {
     try {
       const response = await phongService.delete(id);
       if (response.success) {
-        message.success('Xóa thành công!');
+        message.success('Xóa phòng thành công!');
         fetchData();
+      } else {
+        message.error(response.message || 'Xóa thất bại');
       }
     } catch (error: any) {
-      message.error(error.response?.data?.message || 'Xóa thất bại!');
+      message.error(error.response?.data?.message || 'Có lỗi xảy ra khi xóa');
     }
   };
 
@@ -104,78 +156,98 @@ const AdminPhong: React.FC = () => {
       if (editingRecord) {
         const response = await phongService.update(editingRecord.maPhong, values);
         if (response.success) {
-          message.success('Cập nhật thành công!');
-          fetchData();
-          setModalVisible(false);
+          message.success('Cập nhật phòng thành công!');
+        } else {
+          message.error(response.message || 'Cập nhật thất bại');
+          return;
         }
       } else {
         const response = await phongService.create(values);
         if (response.success) {
-          message.success('Thêm mới thành công!');
-          fetchData();
-          setModalVisible(false);
+          message.success('Thêm phòng thành công!');
+        } else {
+          message.error(response.message || 'Thêm thất bại');
+          return;
         }
       }
+      setModalVisible(false);
+      fetchData();
     } catch (error: any) {
-      message.error(error.response?.data?.message || 'Thao tác thất bại!');
+      message.error(error.response?.data?.message || 'Có lỗi xảy ra');
     }
   };
 
-  return (
-    <MainLayout>
-      <div>
-        <h2 style={{ marginBottom: 16 }}>Quản lý phòng</h2>
-        <div style={{ marginBottom: 16 }}>
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-            Thêm phòng
-          </Button>
-        </div>
-        <Table columns={columns} dataSource={data} loading={loading} rowKey="maPhong" />
-        
-        <Modal
-          title={editingRecord ? 'Sửa phòng' : 'Thêm phòng'}
-          open={modalVisible}
-          onCancel={() => setModalVisible(false)}
-          onOk={() => form.submit()}
-          width={600}
-        >
-          <Form form={form} layout="vertical" onFinish={handleSubmit}>
-            <Form.Item name="maToaNha" label="Tòa nhà" rules={[{ required: true, message: 'Vui lòng chọn tòa nhà!' }]}>
-              <Select placeholder="Chọn tòa nhà">
-                {toaNhas.map(tn => (
-                  <Select.Option key={tn.maToaNha} value={tn.maToaNha}>{tn.tenToaNha}</Select.Option>
-                ))}
-              </Select>
-            </Form.Item>
-            <Form.Item name="soPhong" label="Số phòng" rules={[{ required: true, message: 'Vui lòng nhập số phòng!' }]}>
-              <Input />
-            </Form.Item>
-            <Form.Item name="tang" label="Tầng">
-              <InputNumber min={1} style={{ width: '100%' }} />
-            </Form.Item>
-            <Form.Item name="loaiPhong" label="Loại phòng">
-              <Select>
-                <Select.Option value="4 người">4 người</Select.Option>
-                <Select.Option value="6 người">6 người</Select.Option>
-                <Select.Option value="8 người">8 người</Select.Option>
-              </Select>
-            </Form.Item>
-            <Form.Item name="soGiuong" label="Số giường">
-              <InputNumber min={1} style={{ width: '100%' }} />
-            </Form.Item>
-            <Form.Item name="giaThue" label="Giá thuê (VNĐ)">
-              <InputNumber min={0} style={{ width: '100%' }} />
-            </Form.Item>
-            <Form.Item name="dienTich" label="Diện tích (m²)">
-              <InputNumber min={0} style={{ width: '100%' }} />
-            </Form.Item>
-            <Form.Item name="moTa" label="Mô tả">
-              <Input.TextArea rows={3} />
-            </Form.Item>
-          </Form>
-        </Modal>
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '50px' }}>
+        <Spin size="large" />
       </div>
-    </MainLayout>
+    );
+  }
+
+  return (
+    <div>
+      <div style={{ marginBottom: 16 }}>
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+          Thêm phòng
+        </Button>
+      </div>
+      <Table columns={columns} dataSource={data} loading={loading} rowKey="maPhong" />
+      
+      <Modal
+        title={editingRecord ? 'Sửa phòng' : 'Thêm phòng'}
+        open={modalVisible}
+        onCancel={() => setModalVisible(false)}
+        onOk={() => form.submit()}
+        width={600}
+      >
+        <Form form={form} layout="vertical" onFinish={handleSubmit}>
+          <Form.Item name="maToaNha" label="Tòa nhà" rules={[{ required: true }]}>
+            <Select placeholder="Chọn tòa nhà">
+              {toaNhas.map(tn => (
+                <Select.Option key={tn.maToaNha} value={tn.maToaNha}>
+                  {tn.tenToaNha}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item name="soPhong" label="Số phòng" rules={[{ required: true }]}>
+            <Input placeholder="Ví dụ: A101" />
+          </Form.Item>
+          <Form.Item name="tang" label="Tầng" rules={[{ required: true }]}>
+            <InputNumber min={1} style={{ width: '100%' }} />
+          </Form.Item>
+          <Form.Item name="loaiPhong" label="Loại phòng" rules={[{ required: true }]}>
+            <Select>
+              <Select.Option value="Phong4Nguoi">Phòng 4 người</Select.Option>
+              <Select.Option value="Phong6Nguoi">Phòng 6 người</Select.Option>
+              <Select.Option value="Phong8Nguoi">Phòng 8 người</Select.Option>
+            </Select>
+          </Form.Item>
+          <Form.Item name="sucChua" label="Sức chứa" rules={[{ required: true }]}>
+            <InputNumber min={1} style={{ width: '100%' }} />
+          </Form.Item>
+          <Form.Item name="giaPhong" label="Giá thuê (VNĐ)" rules={[{ required: true }]}>
+            <InputNumber min={0} style={{ width: '100%' }} />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title={`Danh sách giường - Phòng ${selectedRoom?.soPhong}`}
+        open={bedModalVisible}
+        onCancel={() => setBedModalVisible(false)}
+        footer={null}
+        width={700}
+      >
+        <Table 
+          columns={bedColumns} 
+          dataSource={selectedRoom?.giuongs || []} 
+          rowKey="maGiuong"
+          pagination={false}
+        />
+      </Modal>
+    </div>
   );
 };
 

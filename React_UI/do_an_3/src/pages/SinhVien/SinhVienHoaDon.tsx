@@ -1,46 +1,58 @@
-import React, { useState } from 'react';
-import { Table, Button, Modal, Descriptions, Tag, message } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Table, Button, Modal, Descriptions, Tag, message, Spin } from 'antd';
 import { EyeOutlined, DollarOutlined } from '@ant-design/icons';
+import hoaDonService from '../../services/hoaDonService';
+import { useAuth } from '../../contexts/AuthContext';
 
 const SinhVienHoaDon: React.FC = () => {
-  const [invoices] = useState([
-    {
-      id: 1,
-      code: 'HD001',
-      month: '2024-03',
-      room: 'A101',
-      roomFee: 500000,
-      electricFee: 150000,
-      waterFee: 50000,
-      total: 700000,
-      status: 'Chưa thanh toán',
-    },
-    {
-      id: 2,
-      code: 'HD002',
-      month: '2024-02',
-      room: 'A101',
-      roomFee: 500000,
-      electricFee: 140000,
-      waterFee: 45000,
-      total: 685000,
-      status: 'Đã thanh toán',
-    },
-  ]);
+  const [loading, setLoading] = useState(true);
+  const [invoices, setInvoices] = useState<any[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
 
+  const { user } = useAuth();
+  const maSinhVien = user?.maActor || 0;
+
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      try {
+        setLoading(true);
+        const response = await hoaDonService.getAll(maSinhVien);
+        if (response.success) {
+          setInvoices(response.data);
+        }
+      } catch (error) {
+        console.error('Lỗi khi tải hóa đơn:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInvoices();
+  }, [maSinhVien]);
+
   const columns = [
-    { title: 'Mã hóa đơn', dataIndex: 'code', key: 'code' },
-    { title: 'Tháng', dataIndex: 'month', key: 'month' },
-    { title: 'Phòng', dataIndex: 'room', key: 'room' },
-    { title: 'Tổng tiền', dataIndex: 'total', key: 'total', render: (val: number) => `${val.toLocaleString()} VNĐ` },
+    { title: 'Số hóa đơn', dataIndex: 'soHoaDon', key: 'soHoaDon' },
+    { 
+      title: 'Tháng/Năm', 
+      key: 'thangNam',
+      render: (_: any, record: any) => `${record.thang}/${record.nam}`
+    },
+    { title: 'Phòng', dataIndex: 'tenPhong', key: 'tenPhong' },
+    { 
+      title: 'Tổng tiền', 
+      dataIndex: 'tongTien', 
+      key: 'tongTien', 
+      render: (val: number) => `${val?.toLocaleString('vi-VN')} VNĐ` 
+    },
     {
       title: 'Trạng thái',
-      dataIndex: 'status',
-      key: 'status',
+      dataIndex: 'trangThai',
+      key: 'trangThai',
       render: (val: string) => (
-        <Tag color={val === 'Đã thanh toán' ? 'green' : 'orange'}>{val}</Tag>
+        <Tag color={val === 'DaThanhToan' ? 'green' : 'orange'}>
+          {val === 'DaThanhToan' ? 'Đã thanh toán' : 'Chưa thanh toán'}
+        </Tag>
       ),
     },
     {
@@ -51,7 +63,7 @@ const SinhVienHoaDon: React.FC = () => {
           <Button icon={<EyeOutlined />} onClick={() => handleView(record)} style={{ marginRight: 8 }}>
             Chi tiết
           </Button>
-          {record.status === 'Chưa thanh toán' && (
+          {record.trangThai === 'ChuaThanhToan' && (
             <Button type="primary" icon={<DollarOutlined />} onClick={() => handlePay(record)}>
               Thanh toán
             </Button>
@@ -69,39 +81,77 @@ const SinhVienHoaDon: React.FC = () => {
   const handlePay = (invoice: any) => {
     Modal.confirm({
       title: 'Xác nhận thanh toán',
-      content: `Bạn có chắc muốn thanh toán hóa đơn ${invoice.code} với số tiền ${invoice.total.toLocaleString()} VNĐ?`,
-      onOk() {
-        message.success('Chuyển đến trang thanh toán...');
+      content: `Bạn có chắc muốn thanh toán hóa đơn ${invoice.soHoaDon} với số tiền ${invoice.tongTien?.toLocaleString('vi-VN')} VNĐ?`,
+      onOk: async () => {
+        try {
+          const response = await hoaDonService.thanhToan(invoice.maHoaDon, 'Chuyển khoản');
+          if (response.success) {
+            message.success('Thanh toán thành công!');
+            // Reload data
+            const reloadResponse = await hoaDonService.getAll(maSinhVien);
+            if (reloadResponse.success) {
+              setInvoices(reloadResponse.data);
+            }
+          }
+        } catch (error) {
+          message.error('Có lỗi xảy ra khi thanh toán');
+        }
       },
     });
   };
 
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '50px' }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
+
   return (
     <div>
-      <Table columns={columns} dataSource={invoices} rowKey="id" />
+      <Table columns={columns} dataSource={invoices} rowKey="maHoaDon" />
       
       <Modal
         title="Chi tiết hóa đơn"
         open={modalVisible}
         onCancel={() => setModalVisible(false)}
         footer={null}
+        width={700}
       >
         {selectedInvoice && (
-          <Descriptions bordered column={1}>
-            <Descriptions.Item label="Mã hóa đơn">{selectedInvoice.code}</Descriptions.Item>
-            <Descriptions.Item label="Tháng">{selectedInvoice.month}</Descriptions.Item>
-            <Descriptions.Item label="Phòng">{selectedInvoice.room}</Descriptions.Item>
-            <Descriptions.Item label="Tiền phòng">{selectedInvoice.roomFee.toLocaleString()} VNĐ</Descriptions.Item>
-            <Descriptions.Item label="Tiền điện">{selectedInvoice.electricFee.toLocaleString()} VNĐ</Descriptions.Item>
-            <Descriptions.Item label="Tiền nước">{selectedInvoice.waterFee.toLocaleString()} VNĐ</Descriptions.Item>
-            <Descriptions.Item label="Tổng tiền">
-              <strong style={{ color: '#f5222d' }}>{selectedInvoice.total.toLocaleString()} VNĐ</strong>
+          <Descriptions bordered column={2}>
+            <Descriptions.Item label="Số hóa đơn" span={2}>{selectedInvoice.soHoaDon}</Descriptions.Item>
+            <Descriptions.Item label="Tháng/Năm">{selectedInvoice.thang}/{selectedInvoice.nam}</Descriptions.Item>
+            <Descriptions.Item label="Phòng">{selectedInvoice.tenPhong}</Descriptions.Item>
+            <Descriptions.Item label="Ngày phát hành">{selectedInvoice.ngayPhatHanh}</Descriptions.Item>
+            <Descriptions.Item label="Hạn thanh toán">{selectedInvoice.hanThanhToan}</Descriptions.Item>
+            <Descriptions.Item label="Tiền phòng">{selectedInvoice.tienPhong?.toLocaleString('vi-VN')} VNĐ</Descriptions.Item>
+            <Descriptions.Item label="Tiền điện">{selectedInvoice.tienDien?.toLocaleString('vi-VN')} VNĐ</Descriptions.Item>
+            <Descriptions.Item label="Chỉ số điện">Cũ: {selectedInvoice.chiSoDienCu} - Mới: {selectedInvoice.chiSoDienMoi}</Descriptions.Item>
+            <Descriptions.Item label="Tiền nước">{selectedInvoice.tienNuoc?.toLocaleString('vi-VN')} VNĐ</Descriptions.Item>
+            <Descriptions.Item label="Chỉ số nước">Cũ: {selectedInvoice.chiSoNuocCu} - Mới: {selectedInvoice.chiSoNuocMoi}</Descriptions.Item>
+            <Descriptions.Item label="Phí dịch vụ">{selectedInvoice.phiDichVu?.toLocaleString('vi-VN')} VNĐ</Descriptions.Item>
+            <Descriptions.Item label="Phí phạt">{selectedInvoice.phiPhat?.toLocaleString('vi-VN')} VNĐ</Descriptions.Item>
+            <Descriptions.Item label="Tổng tiền" span={2}>
+              <strong style={{ color: '#f5222d', fontSize: '18px' }}>
+                {selectedInvoice.tongTien?.toLocaleString('vi-VN')} VNĐ
+              </strong>
             </Descriptions.Item>
-            <Descriptions.Item label="Trạng thái">
-              <Tag color={selectedInvoice.status === 'Đã thanh toán' ? 'green' : 'orange'}>
-                {selectedInvoice.status}
+            <Descriptions.Item label="Trạng thái" span={2}>
+              <Tag color={selectedInvoice.trangThai === 'DaThanhToan' ? 'green' : 'orange'}>
+                {selectedInvoice.trangThai === 'DaThanhToan' ? 'Đã thanh toán' : 'Chưa thanh toán'}
               </Tag>
             </Descriptions.Item>
+            {selectedInvoice.trangThai === 'DaThanhToan' && (
+              <>
+                <Descriptions.Item label="Ngày thanh toán">{selectedInvoice.ngayThanhToan}</Descriptions.Item>
+                <Descriptions.Item label="Phương thức">{selectedInvoice.phuongThucThanhToan}</Descriptions.Item>
+                {selectedInvoice.maGiaoDich && (
+                  <Descriptions.Item label="Mã giao dịch" span={2}>{selectedInvoice.maGiaoDich}</Descriptions.Item>
+                )}
+              </>
+            )}
           </Descriptions>
         )}
       </Modal>

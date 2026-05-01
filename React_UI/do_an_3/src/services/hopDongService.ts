@@ -1,5 +1,6 @@
 import api from './api';
 
+// Khớp với backend HopDongDTO
 export interface HopDong {
   maHopDong: number;
   soHopDong: string;
@@ -8,25 +9,27 @@ export interface HopDong {
   maSV?: string;
   maPhong: number;
   tenPhong?: string;
+  tenToaNha?: string;
+  maGiuong: number;
   soGiuong?: number;
-  ngayBatDau: Date;
-  ngayKetThuc: Date;
-  giaThue: number;
-  tienCoc: number;
-  trangThai: string;
-  ngayKy?: Date;
-  maCanBoTao?: number;
-  tenCanBoTao?: string;
-}
-
-export interface CreateHopDongDTO {
-  maSinhVien: number;
-  maPhong: number;
-  soGiuong: number;
   ngayBatDau: string;
   ngayKetThuc: string;
   giaThue: number;
-  tienCoc: number;
+  trangThai?: string;
+  maCanBoTao: number;
+  tenCanBoTao?: string;
+  ngayTao?: string;
+}
+
+// Khớp với backend CreateHopDongDTO
+export interface CreateHopDongDTO {
+  soHopDong: string;
+  maSinhVien: number;
+  maPhong: number;
+  maGiuong: number;
+  ngayBatDau: string;
+  ngayKetThuc: string;
+  giaThue: number;
 }
 
 const hopDongService = {
@@ -45,11 +48,6 @@ const hopDongService = {
 
   create: async (data: CreateHopDongDTO) => {
     const response = await api.post('/hopdong', data);
-    return response.data;
-  },
-
-  ketThuc: async (id: number, lyDo?: string) => {
-    const response = await api.put(`/hopdong/${id}/ketthuc`, { lyDo });
     return response.data;
   },
 };

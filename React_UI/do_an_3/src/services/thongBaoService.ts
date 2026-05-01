@@ -1,16 +1,22 @@
 import api from './api';
 
+// Khớp với backend ThongBaoDTO
 export interface ThongBao {
   maThongBao: number;
   tieuDe: string;
   noiDung: string;
   loaiThongBao?: string;
-  maCanBoGui?: number;
+  maCanBoGui: number;
   tenCanBoGui?: string;
-  ngayGui: Date;
+  maSinhVienNhan?: number;
+  tenSinhVienNhan?: string;
+  maCanBoNhan?: number;
+  tenCanBoNhan?: string;
+  ngayGui: string;
   daDoc: boolean;
 }
 
+// Khớp với backend CreateThongBaoDTO
 export interface CreateThongBaoDTO {
   tieuDe: string;
   noiDung: string;

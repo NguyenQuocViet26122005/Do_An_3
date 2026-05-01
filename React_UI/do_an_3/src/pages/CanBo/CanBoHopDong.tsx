@@ -1,21 +1,40 @@
-import React, { useState } from 'react';
-import { Table, Button, Modal, Form, Input, DatePicker, Select, message, Space, Tag } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Table, Button, Modal, Form, DatePicker, Select, message, Space, Tag, Spin, Descriptions } from 'antd';
 import { PlusOutlined, EyeOutlined, FileTextOutlined } from '@ant-design/icons';
+import hopDongService from '../../services/hopDongService';
 
 const CanBoHopDong: React.FC = () => {
-  const [data, setData] = useState([
-    { maHopDong: 1, code: 'HD001', tenSinhVien: 'Hoàng Văn Học', maSV: 'B20DCCN002', tenPhong: 'A102', tenToaNha: 'Tòa A', ngayBatDau: '2024-01-01', ngayKetThuc: '2024-06-30', trangThai: 'Đang hiệu lực' },
-    { maHopDong: 2, code: 'HD002', tenSinhVien: 'Phạm Thị Sinh Viên', maSV: 'B20DCCN001', tenPhong: 'A101', tenToaNha: 'Tòa A', ngayBatDau: '2024-02-01', ngayKetThuc: '2024-07-31', trangThai: 'Đang hiệu lực' },
-    { maHopDong: 3, code: 'HD003', tenSinhVien: 'Nguyễn Thị Mai', maSV: 'B20DCCN003', tenPhong: 'B201', tenToaNha: 'Tòa B', ngayBatDau: '2023-09-01', ngayKetThuc: '2024-01-31', trangThai: 'Hết hạn' },
-  ]);
-  const [loading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<any[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [detailVisible, setDetailVisible] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState<any>(null);
   const [form] = Form.useForm();
 
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const response = await hopDongService.getAll();
+      if (response.success) {
+        setData(response.data);
+      }
+    } catch (error) {
+      console.error('Lỗi khi tải hợp đồng:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const columns = [
-    { title: 'Mã hợp đồng', dataIndex: 'maHopDong', key: 'maHopDong' },
+    { title: 'Số hợp đồng', dataIndex: 'soHopDong', key: 'soHopDong' },
     { title: 'Sinh viên', dataIndex: 'tenSinhVien', key: 'tenSinhVien' },
+    { title: 'Mã SV', dataIndex: 'maSV', key: 'maSV' },
     { title: 'Phòng', dataIndex: 'tenPhong', key: 'tenPhong' },
+    { title: 'Học kỳ', dataIndex: 'hocKy', key: 'hocKy' },
     { title: 'Ngày bắt đầu', dataIndex: 'ngayBatDau', key: 'ngayBatDau' },
     { title: 'Ngày kết thúc', dataIndex: 'ngayKetThuc', key: 'ngayKetThuc' },
     {
@@ -23,7 +42,9 @@ const CanBoHopDong: React.FC = () => {
       dataIndex: 'trangThai',
       key: 'trangThai',
       render: (val: string) => (
-        <Tag color={val === 'Đang hiệu lực' ? 'green' : val === 'Hết hạn' ? 'red' : 'orange'}>{val}</Tag>
+        <Tag color={val === 'HieuLuc' ? 'green' : 'red'}>
+          {val === 'HieuLuc' ? 'Hiệu lực' : 'Hết hạn'}
+        </Tag>
       ),
     },
     {
@@ -31,8 +52,12 @@ const CanBoHopDong: React.FC = () => {
       key: 'action',
       render: (_: any, record: any) => (
         <Space>
-          <Button icon={<EyeOutlined />} size="small">Chi tiết</Button>
-          <Button icon={<FileTextOutlined />} size="small">In hợp đồng</Button>
+          <Button icon={<EyeOutlined />} size="small" onClick={() => handleViewDetail(record)}>
+            Chi tiết
+          </Button>
+          <Button icon={<FileTextOutlined />} size="small">
+            In hợp đồng
+          </Button>
         </Space>
       ),
     },
@@ -43,23 +68,38 @@ const CanBoHopDong: React.FC = () => {
     setModalVisible(true);
   };
 
-  const handleSubmit = async (values: any) => {
-    const newItem = { 
-      maHopDong: data.length + 1, 
-      code: `HD00${data.length + 1}`,
-      tenSinhVien: 'Sinh viên mới',
-      maSV: 'B20DCCN00X',
-      tenPhong: 'A101',
-      tenToaNha: 'Tòa A',
-      ...values,
-      ngayBatDau: values.ngayBatDau?.format('YYYY-MM-DD'),
-      ngayKetThuc: values.ngayKetThuc?.format('YYYY-MM-DD'),
-      trangThai: 'Đang hiệu lực'
-    };
-    setData([...data, newItem]);
-    message.success('Tạo hợp đồng thành công!');
-    setModalVisible(false);
+  const handleViewDetail = (record: any) => {
+    setSelectedRecord(record);
+    setDetailVisible(true);
   };
+
+  const handleSubmit = async (values: any) => {
+    try {
+      const submitData = {
+        ...values,
+        ngayBatDau: values.ngayBatDau?.format('YYYY-MM-DD'),
+        ngayKetThuc: values.ngayKetThuc?.format('YYYY-MM-DD'),
+      };
+      const response = await hopDongService.create(submitData);
+      if (response.success) {
+        message.success('Tạo hợp đồng thành công!');
+        setModalVisible(false);
+        fetchData();
+      } else {
+        message.error(response.message || 'Tạo hợp đồng thất bại');
+      }
+    } catch (error: any) {
+      message.error(error.response?.data?.message || 'Có lỗi xảy ra');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '50px' }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -90,10 +130,38 @@ const CanBoHopDong: React.FC = () => {
           <Form.Item name="ngayKetThuc" label="Ngày kết thúc" rules={[{ required: true }]}>
             <DatePicker style={{ width: '100%' }} />
           </Form.Item>
-          <Form.Item name="ghiChu" label="Ghi chú">
-            <Input.TextArea rows={3} />
-          </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title="Chi tiết hợp đồng"
+        open={detailVisible}
+        onCancel={() => setDetailVisible(false)}
+        footer={null}
+        width={700}
+      >
+        {selectedRecord && (
+          <Descriptions bordered column={2}>
+            <Descriptions.Item label="Số hợp đồng" span={2}>{selectedRecord.soHopDong}</Descriptions.Item>
+            <Descriptions.Item label="Sinh viên">{selectedRecord.tenSinhVien}</Descriptions.Item>
+            <Descriptions.Item label="Mã SV">{selectedRecord.maSV}</Descriptions.Item>
+            <Descriptions.Item label="Phòng">{selectedRecord.tenPhong}</Descriptions.Item>
+            <Descriptions.Item label="Giường">Giường số {selectedRecord.soGiuong}</Descriptions.Item>
+            <Descriptions.Item label="Học kỳ" span={2}>{selectedRecord.hocKy}</Descriptions.Item>
+            <Descriptions.Item label="Ngày bắt đầu">{selectedRecord.ngayBatDau}</Descriptions.Item>
+            <Descriptions.Item label="Ngày kết thúc">{selectedRecord.ngayKetThuc}</Descriptions.Item>
+            <Descriptions.Item label="Giá thuê" span={2}>
+              <strong style={{ color: '#1890ff', fontSize: '16px' }}>
+                {selectedRecord.giaThue?.toLocaleString('vi-VN')} VNĐ/tháng
+              </strong>
+            </Descriptions.Item>
+            <Descriptions.Item label="Trạng thái" span={2}>
+              <Tag color={selectedRecord.trangThai === 'HieuLuc' ? 'green' : 'red'}>
+                {selectedRecord.trangThai === 'HieuLuc' ? 'Hiệu lực' : 'Hết hạn'}
+              </Tag>
+            </Descriptions.Item>
+          </Descriptions>
+        )}
       </Modal>
     </div>
   );

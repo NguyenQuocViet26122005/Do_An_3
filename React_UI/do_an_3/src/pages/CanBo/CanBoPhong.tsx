@@ -1,84 +1,126 @@
-import React, { useState } from 'react';
-import { Table, Button, Modal, Form, Input, InputNumber, Select, message, Space, Popconfirm, Tag } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
-import { mockGiuong } from '../../data/mockData';
+import React, { useState, useEffect } from 'react';
+import { Table, Button, Modal, Form, Input, InputNumber, Select, message, Space, Popconfirm, Tag, Spin } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, ReloadOutlined } from '@ant-design/icons';
+import phongService, { Phong, Giuong } from '../../services/phongService';
+import toaNhaService, { ToaNha } from '../../services/toaNhaService';
 
 const CanBoPhong: React.FC = () => {
-  const [data, setData] = useState([
-    { maPhong: 1, tenPhong: 'A101', tenToaNha: 'Tòa A', tang: 1, loaiPhong: '4 người', sucChua: 4, giaThue: 500000, trangThai: 'Trống' },
-    { maPhong: 2, tenPhong: 'A102', tenToaNha: 'Tòa A', tang: 1, loaiPhong: '4 người', sucChua: 4, giaThue: 500000, trangThai: 'Đầy' },
-    { maPhong: 3, tenPhong: 'A201', tenToaNha: 'Tòa A', tang: 2, loaiPhong: '6 người', sucChua: 6, giaThue: 400000, trangThai: 'Còn chỗ' },
-    { maPhong: 4, tenPhong: 'B101', tenToaNha: 'Tòa B', tang: 1, loaiPhong: '8 người', sucChua: 8, giaThue: 350000, trangThai: 'Trống' },
-  ]);
-  const [loading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<Phong[]>([]);
+  const [toaNhas, setToaNhas] = useState<ToaNha[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [bedModalVisible, setBedModalVisible] = useState(false);
-  const [selectedRoom, setSelectedRoom] = useState<any>(null);
-  const [editingRecord, setEditingRecord] = useState<any>(null);
+  const [beds, setBeds] = useState<Giuong[]>([]);
+  const [selectedRoom, setSelectedRoom] = useState<Phong | null>(null);
+  const [editingRecord, setEditingRecord] = useState<Phong | null>(null);
   const [form] = Form.useForm();
 
+  useEffect(() => {
+    fetchData();
+    fetchToaNhas();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const response = await phongService.getAll();
+      if (response.success) {
+        setData(response.data || []);
+      }
+    } catch (error: any) {
+      message.error(error.response?.data?.message || 'Lỗi tải danh sách phòng');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchToaNhas = async () => {
+    try {
+      const response = await toaNhaService.getAll();
+      if (response.success) {
+        setToaNhas(response.data || []);
+      }
+    } catch (error) {
+      console.error('Lỗi khi tải danh sách tòa nhà:', error);
+    }
+  };
+
+  const handleViewBeds = async (record: Phong) => {
+    try {
+      const response = await phongService.getGiuong(record.maPhong);
+      if (response.success) {
+        setBeds(response.data || []);
+        setSelectedRoom(record);
+        setBedModalVisible(true);
+      }
+    } catch (error: any) {
+      message.error(error.response?.data?.message || 'Lỗi tải danh sách giường');
+    }
+  };
+
+  const columns = [
+    { title: 'Số phòng', dataIndex: 'soPhong', key: 'soPhong' },
+    { title: 'Tòa nhà', dataIndex: 'tenToaNha', key: 'tenToaNha' },
+    { title: 'Tầng', dataIndex: 'tang', key: 'tang' },
+    { title: 'Loại phòng', dataIndex: 'loaiPhong', key: 'loaiPhong' },
+    { title: 'Sức chứa', dataIndex: 'sucChua', key: 'sucChua' },
+    { 
+      title: 'Đang ở', 
+      dataIndex: 'soNguoiHienTai', 
+      key: 'soNguoiHienTai',
+      render: (val: number, record: Phong) => `${val || 0}/${record.sucChua}`
+    },
+    { 
+      title: 'Giá thuê', 
+      dataIndex: 'giaPhong', 
+      key: 'giaPhong', 
+      render: (val: number) => `${val?.toLocaleString('vi-VN')} VNĐ` 
+    },
+    {
+      title: 'Trạng thái',
+      dataIndex: 'trangThai',
+      key: 'trangThai',
+      render: (val: string) => {
+        const color = val === 'ConTrong' ? 'green' : val === 'Day' ? 'red' : 'orange';
+        const text = val === 'ConTrong' ? 'Còn trống' : val === 'Day' ? 'Đầy' : 'Bảo trì';
+        return <Tag color={color}>{text}</Tag>;
+      },
+    },
+    {
+      title: 'Thao tác',
+      key: 'action',
+      render: (_: any, record: Phong) => (
+        <Space>
+          <Button icon={<EyeOutlined />} size="small" onClick={() => handleViewBeds(record)}>
+            Giường
+          </Button>
+          <Button icon={<EditOutlined />} size="small" onClick={() => handleEdit(record)}>
+            Sửa
+          </Button>
+          <Popconfirm title="Xác nhận xóa?" onConfirm={() => handleDelete(record.maPhong)}>
+            <Button danger icon={<DeleteOutlined />} size="small">
+              Xóa
+            </Button>
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
+
   const bedColumns = [
-    { title: 'Số giường', dataIndex: 'soGiuong', key: 'soGiuong', width: 100 },
+    { title: 'Số giường', dataIndex: 'soGiuong', key: 'soGiuong' },
     { 
       title: 'Trạng thái', 
       dataIndex: 'trangThai', 
       key: 'trangThai',
       render: (val: string) => (
-        <Tag color={val === 'Trống' ? 'green' : 'red'}>{val}</Tag>
+        <Tag color={val === 'ConTrong' ? 'green' : 'red'}>
+          {val === 'ConTrong' ? 'Còn trống' : 'Đang sử dụng'}
+        </Tag>
       )
     },
-    { 
-      title: 'Sinh viên', 
-      dataIndex: 'tenSinhVien', 
-      key: 'tenSinhVien',
-      render: (val: string) => val || '-'
-    },
-    { 
-      title: 'Mã SV', 
-      dataIndex: 'maSV', 
-      key: 'maSV',
-      render: (val: string) => val || '-'
-    },
-  ];
-
-  const handleViewBeds = (record: any) => {
-    setSelectedRoom(record);
-    setBedModalVisible(true);
-  };
-
-  const getBedsForRoom = (maPhong: number) => {
-    return mockGiuong.filter(g => g.maPhong === maPhong);
-  };
-
-  const columns = [
-    { title: 'Mã phòng', dataIndex: 'maPhong', key: 'maPhong' },
-    { title: 'Tên phòng', dataIndex: 'tenPhong', key: 'tenPhong' },
-    { title: 'Tòa nhà', dataIndex: 'tenToaNha', key: 'tenToaNha' },
-    { title: 'Tầng', dataIndex: 'tang', key: 'tang' },
-    { title: 'Loại phòng', dataIndex: 'loaiPhong', key: 'loaiPhong' },
-    { title: 'Sức chứa', dataIndex: 'sucChua', key: 'sucChua' },
-    { title: 'Giá thuê', dataIndex: 'giaThue', key: 'giaThue', render: (val: number) => `${val?.toLocaleString()} VNĐ` },
-    {
-      title: 'Trạng thái',
-      dataIndex: 'trangThai',
-      key: 'trangThai',
-      render: (val: string) => (
-        <Tag color={val === 'Trống' ? 'green' : val === 'Đầy' ? 'red' : 'orange'}>{val}</Tag>
-      ),
-    },
-    {
-      title: 'Thao tác',
-      key: 'action',
-      render: (_: any, record: any) => (
-        <Space>
-          <Button icon={<EyeOutlined />} size="small" onClick={() => handleViewBeds(record)}>Giường</Button>
-          <Button icon={<EditOutlined />} size="small" onClick={() => handleEdit(record)}>Sửa</Button>
-          <Popconfirm title="Xác nhận xóa?" onConfirm={() => handleDelete(record.maPhong)}>
-            <Button danger icon={<DeleteOutlined />} size="small">Xóa</Button>
-          </Popconfirm>
-        </Space>
-      ),
-    },
+    { title: 'Sinh viên', dataIndex: 'tenSinhVien', key: 'tenSinhVien', render: (val: string) => val || '-' },
+    { title: 'Mã SV', dataIndex: 'maSV', key: 'maSV', render: (val: string) => val || '-' },
   ];
 
   const handleAdd = () => {
@@ -87,42 +129,59 @@ const CanBoPhong: React.FC = () => {
     setModalVisible(true);
   };
 
-  const handleEdit = (record: any) => {
+  const handleEdit = (record: Phong) => {
     setEditingRecord(record);
     form.setFieldsValue(record);
     setModalVisible(true);
   };
 
   const handleDelete = async (id: number) => {
-    setData(data.filter(item => item.maPhong !== id));
-    message.success('Xóa thành công!');
+    try {
+      const result = await phongService.delete(id);
+      if (result.success) {
+        message.success('Xóa thành công!');
+        fetchData();
+      } else {
+        message.error(result.message);
+      }
+    } catch (error: any) {
+      message.error(error.response?.data?.message || 'Lỗi xóa phòng');
+    }
   };
 
   const handleSubmit = async (values: any) => {
-    if (editingRecord) {
-      setData(data.map(item => 
-        item.maPhong === editingRecord.maPhong ? { ...item, ...values, tenToaNha: values.maToaNha === 1 ? 'Tòa A' : 'Tòa B' } : item
-      ));
-      message.success('Cập nhật thành công!');
-    } else {
-      const newItem = { 
-        maPhong: data.length + 1, 
-        ...values, 
-        tenToaNha: values.maToaNha === 1 ? 'Tòa A' : 'Tòa B',
-        trangThai: 'Trống'
-      };
-      setData([...data, newItem]);
-      message.success('Thêm mới thành công!');
+    try {
+      if (editingRecord) {
+        const result = await phongService.update(editingRecord.maPhong, values);
+        if (result.success) {
+          message.success('Cập nhật thành công!');
+        } else {
+          message.error(result.message);
+          return;
+        }
+      } else {
+        const result = await phongService.create(values);
+        if (result.success) {
+          message.success('Thêm mới thành công!');
+        } else {
+          message.error(result.message);
+          return;
+        }
+      }
+      setModalVisible(false);
+      fetchData();
+    } catch (error: any) {
+      message.error(error.response?.data?.message || 'Có lỗi xảy ra');
     }
-    setModalVisible(false);
   };
 
   return (
     <div>
-      <div style={{ marginBottom: 16 }}>
+      <div style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
         <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
           Thêm phòng
         </Button>
+        <Button icon={<ReloadOutlined />} onClick={fetchData}>Tải lại</Button>
       </div>
       <Table columns={columns} dataSource={data} loading={loading} rowKey="maPhong" />
       
@@ -136,34 +195,37 @@ const CanBoPhong: React.FC = () => {
         <Form form={form} layout="vertical" onFinish={handleSubmit}>
           <Form.Item name="maToaNha" label="Tòa nhà" rules={[{ required: true }]}>
             <Select placeholder="Chọn tòa nhà">
-              <Select.Option value={1}>Tòa A</Select.Option>
-              <Select.Option value={2}>Tòa B</Select.Option>
+              {toaNhas.map(tn => (
+                <Select.Option key={tn.maToaNha} value={tn.maToaNha}>
+                  {tn.tenToaNha}
+                </Select.Option>
+              ))}
             </Select>
           </Form.Item>
-          <Form.Item name="tenPhong" label="Tên phòng" rules={[{ required: true }]}>
-            <Input />
+          <Form.Item name="soPhong" label="Số phòng" rules={[{ required: true }]}>
+            <Input placeholder="Ví dụ: A101" />
           </Form.Item>
-          <Form.Item name="tang" label="Tầng" rules={[{ required: true }]}>
+          <Form.Item name="tang" label="Tầng">
             <InputNumber min={1} style={{ width: '100%' }} />
           </Form.Item>
-          <Form.Item name="loaiPhong" label="Loại phòng" rules={[{ required: true }]}>
+          <Form.Item name="loaiPhong" label="Loại phòng">
             <Select>
-              <Select.Option value="4 người">4 người</Select.Option>
-              <Select.Option value="6 người">6 người</Select.Option>
-              <Select.Option value="8 người">8 người</Select.Option>
+              <Select.Option value="Phong4Nguoi">Phòng 4 người</Select.Option>
+              <Select.Option value="Phong6Nguoi">Phòng 6 người</Select.Option>
+              <Select.Option value="Phong8Nguoi">Phòng 8 người</Select.Option>
             </Select>
           </Form.Item>
           <Form.Item name="sucChua" label="Sức chứa" rules={[{ required: true }]}>
             <InputNumber min={1} style={{ width: '100%' }} />
           </Form.Item>
-          <Form.Item name="giaThue" label="Giá thuê (VNĐ)" rules={[{ required: true }]}>
+          <Form.Item name="giaPhong" label="Giá thuê (VNĐ)" rules={[{ required: true }]}>
             <InputNumber min={0} style={{ width: '100%' }} />
           </Form.Item>
         </Form>
       </Modal>
 
       <Modal
-        title={`Danh sách giường - Phòng ${selectedRoom?.tenPhong}`}
+        title={`Danh sách giường - Phòng ${selectedRoom?.soPhong}`}
         open={bedModalVisible}
         onCancel={() => setBedModalVisible(false)}
         footer={null}
@@ -171,7 +233,7 @@ const CanBoPhong: React.FC = () => {
       >
         <Table 
           columns={bedColumns} 
-          dataSource={selectedRoom ? getBedsForRoom(selectedRoom.maPhong) : []} 
+          dataSource={beds} 
           rowKey="maGiuong"
           pagination={false}
         />

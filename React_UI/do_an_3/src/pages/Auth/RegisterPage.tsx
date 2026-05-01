@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Card, message, Typography, Select, DatePicker, Steps, Row, Col } from 'antd';
+import { Form, Input, Button, Card, message, Typography, Select, DatePicker, Steps, Row, Col, Spin } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, IdcardOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import authService from '../../services/authService';
@@ -24,29 +24,64 @@ const RegisterPage: React.FC = () => {
   const onFinish = async (values: any) => {
     setLoading(true);
     try {
-      const data = {
-        ...values,
-        ngaySinh: values.ngaySinh.format('YYYY-MM-DD'),
-        ngayVaoLam: values.ngayVaoLam?.format('YYYY-MM-DD'),
-      };
+      // Loại bỏ confirmPassword trước khi gửi
+      const { confirmPassword, ...registerData } = values;
+      
+      // Format ngày tháng
+      if (registerData.ngaySinh) {
+        registerData.ngaySinh = registerData.ngaySinh.format('YYYY-MM-DD');
+      }
+      if (registerData.ngayVaoLam) {
+        registerData.ngayVaoLam = registerData.ngayVaoLam.format('YYYY-MM-DD');
+      }
 
-      const response = await authService.register(data);
+      console.log('Dữ liệu gửi đi:', registerData);
+
+      const response = await authService.register(registerData);
       
       if (response.success) {
         message.success('Đăng ký thành công! Vui lòng đăng nhập.');
         navigate('/login');
+      } else {
+        message.error(response.message || 'Đăng ký thất bại!');
       }
     } catch (error: any) {
-      message.error(error.response?.data?.message || 'Đăng ký thất bại!');
+      console.error('Lỗi đăng ký:', error);
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.errors?.[0] || 
+                          error.message ||
+                          'Đăng ký thất bại!';
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   const next = () => {
-    form.validateFields().then(() => {
+    // Validate các field của bước hiện tại
+    const fieldsToValidate = getFieldsForCurrentStep();
+    form.validateFields(fieldsToValidate).then(() => {
       setCurrent(current + 1);
+    }).catch((errorInfo) => {
+      console.log('Validation failed:', errorInfo);
     });
+  };
+
+  const getFieldsForCurrentStep = () => {
+    switch (current) {
+      case 0:
+        return ['vaiTro', 'tenDangNhap', 'matKhau', 'confirmPassword'];
+      case 1:
+        return ['hoTen', 'gioiTinh', 'ngaySinh', 'email', 'soDienThoai', 'cccd'];
+      case 2:
+        if (vaiTro === 'SinhVien') {
+          return ['maSV'];
+        } else {
+          return ['maNV'];
+        }
+      default:
+        return [];
+    }
   };
 
   const prev = () => {

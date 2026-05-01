@@ -1,5 +1,6 @@
 import api from './api';
 
+// Khớp với backend HoaDonDTO
 export interface HoaDon {
   maHoaDon: number;
   soHoaDon: string;
@@ -17,13 +18,14 @@ export interface HoaDon {
   phiDichVu: number;
   phiPhat: number;
   tongTien: number;
-  trangThai: string;
-  ngayPhatHanh: Date;
-  ngayThanhToan?: Date;
-  maCanBoTao?: number;
+  trangThai?: string;
+  ngayPhatHanh: string;
+  ngayThanhToan?: string;
+  maCanBoTao: number;
   tenCanBoTao?: string;
 }
 
+// Khớp với backend CreateHoaDonDTO
 export interface CreateHoaDonDTO {
   soHoaDon: string;
   maHopDong: number;
@@ -31,10 +33,10 @@ export interface CreateHoaDonDTO {
   thang: number;
   nam: number;
   tienPhong: number;
-  tienDien: number;
-  tienNuoc: number;
-  phiDichVu: number;
-  phiPhat: number;
+  tienDien?: number;
+  tienNuoc?: number;
+  phiDichVu?: number;
+  phiPhat?: number;
 }
 
 const hoaDonService = {

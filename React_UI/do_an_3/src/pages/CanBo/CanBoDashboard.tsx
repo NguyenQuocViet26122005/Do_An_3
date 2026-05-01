@@ -1,14 +1,51 @@
-import React from 'react';
-import { Card, Row, Col, Statistic, List, Tag } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Card, Row, Col, Statistic, List, Tag, Spin, message } from 'antd';
 import { HomeOutlined, FileTextOutlined, DollarOutlined, WarningOutlined } from '@ant-design/icons';
-import { mockPhong, mockDangKy, mockHoaDon, mockBaoTri } from '../../data/mockData';
+import phongService from '../../services/phongService';
+import dangKyService from '../../services/dangKyService';
+import hoaDonService from '../../services/hoaDonService';
+import baoTriService from '../../services/baoTriService';
 
 const CanBoDashboard: React.FC = () => {
-  // Tính toán số liệu từ mock data
-  const phongTrong = mockPhong.filter(p => p.trangThai === 'Trống').length;
-  const dangKyChoDuyet = mockDangKy.filter(d => d.trangThai === 'Chờ duyệt').length;
-  const hoaDonChuaThanhToan = mockHoaDon.filter(h => h.status === 'Chưa thanh toán').length;
-  const yeuCauBaoTri = mockBaoTri.filter(b => b.status !== 'Đã hoàn thành').length;
+  const [loading, setLoading] = useState(true);
+  const [phongTrong, setPhongTrong] = useState(0);
+  const [dangKyChoDuyet, setDangKyChoDuyet] = useState(0);
+  const [hoaDonChuaThanhToan, setHoaDonChuaThanhToan] = useState(0);
+  const [yeuCauBaoTri, setYeuCauBaoTri] = useState(0);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+
+        const [phongRes, dangKyRes, hoaDonRes, baoTriRes] = await Promise.allSettled([
+          phongService.getAll(undefined, 'ConTrong'),
+          dangKyService.getAll(undefined, 'ChoDuyet'),
+          hoaDonService.getAll(undefined, 'ChuaThanhToan'),
+          baoTriService.getAll(undefined, 'ChoDuyet'),
+        ]);
+
+        if (phongRes.status === 'fulfilled' && phongRes.value.success) {
+          setPhongTrong(phongRes.value.data?.length || 0);
+        }
+        if (dangKyRes.status === 'fulfilled' && dangKyRes.value.success) {
+          setDangKyChoDuyet(dangKyRes.value.data?.length || 0);
+        }
+        if (hoaDonRes.status === 'fulfilled' && hoaDonRes.value.success) {
+          setHoaDonChuaThanhToan(hoaDonRes.value.data?.length || 0);
+        }
+        if (baoTriRes.status === 'fulfilled' && baoTriRes.value.success) {
+          setYeuCauBaoTri(baoTriRes.value.data?.length || 0);
+        }
+      } catch (error) {
+        console.error('Lỗi khi tải dữ liệu:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const stats = [
     { title: 'Phòng trống', value: phongTrong, icon: <HomeOutlined />, color: '#52c41a' },
@@ -17,13 +54,13 @@ const CanBoDashboard: React.FC = () => {
     { title: 'Yêu cầu bảo trì', value: yeuCauBaoTri, icon: <WarningOutlined />, color: '#f5222d' },
   ];
 
-  const recentActivities = [
-    { id: 1, content: 'Sinh viên Phạm Thị Sinh Viên đăng ký phòng A101', time: '10 phút trước', type: 'info' },
-    { id: 2, content: 'Hóa đơn HD002 đã được thanh toán', time: '30 phút trước', type: 'success' },
-    { id: 3, content: 'Yêu cầu bảo trì phòng A102 - Đèn hỏng', time: '1 giờ trước', type: 'warning' },
-    { id: 4, content: 'Đã duyệt đăng ký phòng của Hoàng Văn Học', time: '2 giờ trước', type: 'success' },
-    { id: 5, content: 'Tạo hóa đơn tháng 04/2024 cho phòng A101', time: '3 giờ trước', type: 'info' },
-  ];
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '50px' }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -41,23 +78,6 @@ const CanBoDashboard: React.FC = () => {
           </Col>
         ))}
       </Row>
-
-      <Card title="Hoạt động gần đây" style={{ marginTop: 16 }}>
-        <List
-          dataSource={recentActivities}
-          renderItem={(item) => (
-            <List.Item>
-              <List.Item.Meta
-                title={item.content}
-                description={item.time}
-              />
-              <Tag color={item.type === 'info' ? 'blue' : item.type === 'success' ? 'green' : 'orange'}>
-                {item.type}
-              </Tag>
-            </List.Item>
-          )}
-        />
-      </Card>
     </div>
   );
 };

@@ -1,40 +1,72 @@
-import React from 'react';
-import { Card, Row, Col, Statistic, List, Tag, Descriptions } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Card, Row, Col, Statistic, List, Tag, Descriptions, Spin } from 'antd';
 import { HomeOutlined, DollarOutlined, WarningOutlined, BellOutlined } from '@ant-design/icons';
-import { mockHopDong, mockHoaDon, mockViPham, mockThongBao, mockGiuong } from '../../data/mockData';
+import hopDongService from '../../services/hopDongService';
+import hoaDonService from '../../services/hoaDonService';
+import viPhamService from '../../services/viPhamService';
+import thongBaoService from '../../services/thongBaoService';
+import { useAuth } from '../../contexts/AuthContext';
 
 const SinhVienDashboard: React.FC = () => {
-  // Giả sử sinh viên hiện tại là "Hoàng Văn Học" với mã B20DCCN002
-  const currentStudent = 'B20DCCN002';
-  
-  // Lấy thông tin hợp đồng hiện tại
-  const currentContract = mockHopDong.find(h => h.maSV === currentStudent && h.status === 'Đang hiệu lực');
-  
-  // Lấy thông tin giường của sinh viên
-  const currentBed = mockGiuong.find(g => g.maSV === currentStudent);
-  
-  // Đếm hóa đơn chưa thanh toán (giả sử theo mã hợp đồng)
-  const unpaidInvoices = mockHoaDon.filter(h => h.code === currentContract?.code && h.status === 'Chưa thanh toán').length;
-  
-  // Đếm vi phạm (giả sử theo mã sinh viên)
-  const violations = mockViPham.filter(v => v.maSV === currentStudent).length;
-  
-  // Đếm thông báo chưa đọc
-  const unreadNotifications = mockThongBao.filter(t => !t.read).length;
+  const [loading, setLoading] = useState(true);
+  const [currentContract, setCurrentContract] = useState<any>(null);
+  const [unpaidInvoices, setUnpaidInvoices] = useState(0);
+  const [violations, setViolations] = useState(0);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [recentNotifications, setRecentNotifications] = useState<any[]>([]);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        const [hopDongRes, hoaDonRes, viPhamRes, thongBaoRes] = await Promise.allSettled([
+          hopDongService.getAll(undefined, 'HieuLuc'),
+          hoaDonService.getAll(undefined, 'ChuaThanhToan'),
+          viPhamService.getAll(),
+          thongBaoService.getAll(),
+        ]);
+
+        if (hopDongRes.status === 'fulfilled' && hopDongRes.value.success && hopDongRes.value.data?.length > 0) {
+          setCurrentContract(hopDongRes.value.data[0]);
+        }
+        if (hoaDonRes.status === 'fulfilled' && hoaDonRes.value.success) {
+          setUnpaidInvoices(hoaDonRes.value.data?.length || 0);
+        }
+        if (viPhamRes.status === 'fulfilled' && viPhamRes.value.success) {
+          setViolations(viPhamRes.value.data?.length || 0);
+        }
+        if (thongBaoRes.status === 'fulfilled' && thongBaoRes.value.success) {
+          const data = thongBaoRes.value.data || [];
+          const unread = data.filter((tb: any) => !tb.daDoc);
+          setUnreadNotifications(unread.length);
+          setRecentNotifications(data.slice(0, 3));
+        }
+      } catch (error) {
+        console.error('Lỗi khi tải dữ liệu:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const stats = [
-    { title: 'Phòng hiện tại', value: currentContract?.room || 'Chưa có', icon: <HomeOutlined />, color: '#1890ff' },
+    { title: 'Phòng hiện tại', value: currentContract?.tenPhong || 'Chưa có', icon: <HomeOutlined />, color: '#1890ff' },
     { title: 'Hóa đơn chưa thanh toán', value: unpaidInvoices, icon: <DollarOutlined />, color: '#faad14' },
     { title: 'Vi phạm', value: violations, icon: <WarningOutlined />, color: '#f5222d' },
     { title: 'Thông báo mới', value: unreadNotifications, icon: <BellOutlined />, color: '#52c41a' },
   ];
 
-  const recentNotifications = mockThongBao.slice(0, 3).map(n => ({
-    id: n.id,
-    title: n.title,
-    time: n.date,
-    type: n.type === 'important' ? 'warning' : 'info'
-  }));
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '50px' }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -56,15 +88,18 @@ const SinhVienDashboard: React.FC = () => {
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col span={12}>
           <Card title="Thông tin phòng">
-            {currentContract && currentBed ? (
+            {currentContract ? (
               <Descriptions column={1}>
-                <Descriptions.Item label="Phòng">{currentContract.room}</Descriptions.Item>
-                <Descriptions.Item label="Tòa nhà">{currentContract.building}</Descriptions.Item>
-                <Descriptions.Item label="Giường">Giường số {currentBed.soGiuong}</Descriptions.Item>
-                <Descriptions.Item label="Loại phòng">4 người</Descriptions.Item>
-                <Descriptions.Item label="Giá thuê">500,000 VNĐ/tháng</Descriptions.Item>
-                <Descriptions.Item label="Hợp đồng">
-                  <Tag color="green">{currentContract.status}</Tag>
+                <Descriptions.Item label="Phòng">{currentContract.tenPhong}</Descriptions.Item>
+                <Descriptions.Item label="Số hợp đồng">{currentContract.soHopDong}</Descriptions.Item>
+                <Descriptions.Item label="Giường">Giường số {currentContract.soGiuong}</Descriptions.Item>
+                <Descriptions.Item label="Giá thuê">
+                  {currentContract.giaThue?.toLocaleString('vi-VN')} VNĐ/tháng
+                </Descriptions.Item>
+                <Descriptions.Item label="Ngày bắt đầu">{currentContract.ngayBatDau}</Descriptions.Item>
+                <Descriptions.Item label="Ngày kết thúc">{currentContract.ngayKetThuc}</Descriptions.Item>
+                <Descriptions.Item label="Trạng thái">
+                  <Tag color="green">{currentContract.trangThai}</Tag>
                 </Descriptions.Item>
               </Descriptions>
             ) : (
@@ -76,10 +111,15 @@ const SinhVienDashboard: React.FC = () => {
           <Card title="Thông báo mới">
             <List
               dataSource={recentNotifications}
-              renderItem={(item) => (
+              renderItem={(item: any) => (
                 <List.Item>
-                  <List.Item.Meta title={item.title} description={item.time} />
-                  <Tag color={item.type === 'warning' ? 'orange' : 'blue'}>{item.type}</Tag>
+                  <List.Item.Meta 
+                    title={item.tieuDe} 
+                    description={item.ngayGui} 
+                  />
+                  <Tag color={item.loaiThongBao === 'QuanTrong' ? 'orange' : 'blue'}>
+                    {item.loaiThongBao || 'Thông báo'}
+                  </Tag>
                 </List.Item>
               )}
             />

@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { Form, Input, Button, Card, message, Typography } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import authService from '../../services/authService';
 import { useAuth } from '../../contexts/AuthContext';
+import authService from '../../services/authService';
+import APP_CONFIG from '../../config/appConfig';
 import './AuthPages.css';
 
 const { Title, Text } = Typography;
@@ -16,18 +17,16 @@ const LoginPage: React.FC = () => {
   const onFinish = async (values: any) => {
     setLoading(true);
     try {
-      // Clear old cache first
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      
-      // Gọi API đăng nhập thật
-      const response = await authService.login(values);
-      
-      if (response.success) {
+      const response = await authService.login({
+        tenDangNhap: values.tenDangNhap,
+        matKhau: values.matKhau,
+      });
+
+      if (response.success && response.data) {
         message.success('Đăng nhập thành công!');
         login(response.data);
-        
-        // Điều hướng theo vai trò
+
+        // Navigate based on role
         switch (response.data.vaiTro) {
           case 'Admin':
             navigate('/admin/dashboard');
@@ -45,7 +44,11 @@ const LoginPage: React.FC = () => {
         message.error(response.message || 'Đăng nhập thất bại!');
       }
     } catch (error: any) {
-      message.error(error.response?.data?.message || 'Đăng nhập thất bại!');
+      console.error('Lỗi đăng nhập:', error);
+      const errorMessage = error.response?.data?.message || 
+                          error.message ||
+                          'Đăng nhập thất bại! Kiểm tra kết nối server.';
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -55,7 +58,7 @@ const LoginPage: React.FC = () => {
     <div className="auth-container">
       <Card className="auth-card">
         <div className="auth-header">
-          <Title level={2}>Hệ thống quản lý KTX</Title>
+          <Title level={2}>{APP_CONFIG.APP_NAME}</Title>
           <Text type="secondary">Đăng nhập vào hệ thống</Text>
         </div>
 
