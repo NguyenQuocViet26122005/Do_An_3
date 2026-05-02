@@ -10,6 +10,8 @@ const SinhVienDangKy: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [registrations, setRegistrations] = useState<any[]>([]);
   const [availableRooms, setAvailableRooms] = useState<any[]>([]);
+  const [availableBeds, setAvailableBeds] = useState<any[]>([]);
+  const [selectedRoom, setSelectedRoom] = useState<number | null>(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -38,9 +40,36 @@ const SinhVienDangKy: React.FC = () => {
     }
   };
 
+  const handleRoomChange = async (maPhong: number) => {
+    setSelectedRoom(maPhong);
+    form.setFieldsValue({ maGiuong: undefined }); // Reset giường khi đổi phòng
+    
+    try {
+      setLoading(true);
+      const response = await phongService.getGiuong(maPhong);
+      if (response.success) {
+        // Lọc chỉ lấy giường còn trống
+        const giuongTrong = (response.data || []).filter((g: any) => g.trangThai === 'ConTrong');
+        setAvailableBeds(giuongTrong);
+      }
+    } catch (error) {
+      console.error('Lỗi khi tải danh sách giường:', error);
+      message.error('Không thể tải danh sách giường');
+      setAvailableBeds([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const columns = [
     { title: 'Phòng', dataIndex: 'tenPhong', key: 'tenPhong' },
     { title: 'Tòa nhà', dataIndex: 'tenToaNha', key: 'tenToaNha' },
+    { 
+      title: 'Giường', 
+      dataIndex: 'soGiuong', 
+      key: 'soGiuong',
+      render: (val: number) => val ? `Giường ${val}` : '-'
+    },
     { title: 'Học kỳ', dataIndex: 'hocKy', key: 'hocKy' },
     { title: 'Ngày đăng ký', dataIndex: 'ngayDangKy', key: 'ngayDangKy' },
     {
@@ -73,12 +102,15 @@ const SinhVienDangKy: React.FC = () => {
       setLoading(true);
       const response = await dangKyService.create({
         maPhong: values.maPhong,
+        maGiuong: values.maGiuong, // Thêm giường đã chọn
         hocKy: 'HK2-2024',
       });
       
       if (response.success) {
         message.success('Đăng ký phòng thành công! Vui lòng chờ duyệt.');
         form.resetFields();
+        setSelectedRoom(null);
+        setAvailableBeds([]);
         fetchData();
       } else {
         message.error(response.message || 'Đăng ký thất bại');
@@ -103,7 +135,11 @@ const SinhVienDangKy: React.FC = () => {
       <Card title="Đăng ký phòng mới" style={{ marginBottom: 16 }}>
         <Form form={form} layout="vertical" onFinish={handleSubmit}>
           <Form.Item name="maPhong" label="Chọn phòng" rules={[{ required: true, message: 'Vui lòng chọn phòng!' }]}>
-            <Select placeholder="Chọn phòng" loading={loading}>
+            <Select 
+              placeholder="Chọn phòng" 
+              loading={loading}
+              onChange={handleRoomChange}
+            >
               {availableRooms.map(room => (
                 <Select.Option key={room.maPhong} value={room.maPhong}>
                   {room.soPhong} - {room.tenToaNha} (Còn {(room.sucChua || 0) - (room.soNguoiHienTai || 0)} chỗ) - {room.giaPhong?.toLocaleString('vi-VN')} VNĐ/tháng
@@ -111,6 +147,25 @@ const SinhVienDangKy: React.FC = () => {
               ))}
             </Select>
           </Form.Item>
+
+          <Form.Item 
+            name="maGiuong" 
+            label="Chọn giường" 
+            rules={[{ required: true, message: 'Vui lòng chọn giường!' }]}
+          >
+            <Select 
+              placeholder={selectedRoom ? "Chọn giường" : "Vui lòng chọn phòng trước"}
+              loading={loading}
+              disabled={!selectedRoom || availableBeds.length === 0}
+            >
+              {availableBeds.map(bed => (
+                <Select.Option key={bed.maGiuong} value={bed.maGiuong}>
+                  Giường số {bed.soGiuong}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+
           <Form.Item>
             <Button type="primary" htmlType="submit" loading={loading} icon={<FileTextOutlined />}>
               Đăng ký
