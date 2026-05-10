@@ -4,12 +4,14 @@ namespace Api_Gateway.Services
     {
         public string HashPassword(string password)
         {
-            return BCrypt.Net.BCrypt.HashPassword(password);
+            // Lưu plain text, không mã hóa
+            return password;
         }
 
         public bool VerifyPassword(string password, string hashedPassword)
         {
-            return BCrypt.Net.BCrypt.Verify(password, hashedPassword);
+            // So sánh trực tiếp
+            return password == hashedPassword;
         }
     }
 }
