@@ -22,7 +22,7 @@ const LoginPage: React.FC = () => {
         matKhau: values.matKhau,
       });
 
-      if (response.success && response.data) {
+      if (response.success) {
         message.success('Đăng nhập thành công!');
         login(response.data);
 
@@ -45,9 +45,7 @@ const LoginPage: React.FC = () => {
       }
     } catch (error: any) {
       console.error('Lỗi đăng nhập:', error);
-      const errorMessage = error.response?.data?.message || 
-                          error.message ||
-                          'Đăng nhập thất bại! Kiểm tra kết nối server.';
+      const errorMessage = error.response?.data?.message || 'Đăng nhập thất bại! Kiểm tra lại backend.';
       message.error(errorMessage);
     } finally {
       setLoading(false);
@@ -61,6 +59,15 @@ const LoginPage: React.FC = () => {
           <Title level={2}>{APP_CONFIG.APP_NAME}</Title>
           <Text type="secondary">Đăng nhập vào hệ thống</Text>
         </div>
+
+        <Card size="small" style={{ marginBottom: 16, background: '#e6f7ff', border: '1px solid #91d5ff' }}>
+          <Text strong style={{ color: '#0050b3' }}>📋 Tài khoản mẫu:</Text>
+          <div style={{ marginTop: 8, fontSize: 13 }}>
+            <div>• <strong>Admin:</strong> admin / 123456</div>
+            <div>• <strong>Cán bộ KTX:</strong> canbo01 / 123456</div>
+            <div>• <strong>Sinh viên:</strong> sinhvien01 / 123456</div>
+          </div>
+        </Card>
 
         <Form
           name="login"

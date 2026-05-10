@@ -29,10 +29,12 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      // Token hết hạn hoặc không hợp lệ → redirect về login
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';
     }
+    console.error('API Error:', error.response?.data?.message || error.message);
     return Promise.reject(error);
   }
 );

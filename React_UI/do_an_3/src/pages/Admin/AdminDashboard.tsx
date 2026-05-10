@@ -16,16 +16,20 @@ const AdminDashboard: React.FC = () => {
     const fetchStats = async () => {
       try {
         setLoading(true);
+        
         const [toaNhaRes, phongRes, hoaDonRes, baoTriRes] = await Promise.allSettled([
           toaNhaService.getAll(),
           phongService.getAll(),
           hoaDonService.getAll(undefined, 'ChuaThanhToan'),
           baoTriService.getAll(undefined, 'ChoDuyet'),
         ]);
+        
         const s: any = {};
+        
         if (toaNhaRes.status === 'fulfilled' && toaNhaRes.value.success) {
           s.tongToaNha = toaNhaRes.value.data?.length || 0;
         }
+        
         if (phongRes.status === 'fulfilled' && phongRes.value.success) {
           const phongs = phongRes.value.data || [];
           s.tongPhong = phongs.length;
@@ -33,12 +37,15 @@ const AdminDashboard: React.FC = () => {
           s.phongDaDung = s.tongPhong - s.phongTrong;
           s.tyLeLapDay = s.tongPhong > 0 ? Math.round((s.phongDaDung / s.tongPhong) * 100) : 0;
         }
+        
         if (hoaDonRes.status === 'fulfilled' && hoaDonRes.value.success) {
           s.hoaDonChuaThanhToan = hoaDonRes.value.data?.length || 0;
         }
+        
         if (baoTriRes.status === 'fulfilled' && baoTriRes.value.success) {
           s.yeuCauBaoTriChuaXuLy = baoTriRes.value.data?.length || 0;
         }
+        
         setStats(s);
       } catch (error) {
         console.error('Lỗi khi tải thống kê:', error);

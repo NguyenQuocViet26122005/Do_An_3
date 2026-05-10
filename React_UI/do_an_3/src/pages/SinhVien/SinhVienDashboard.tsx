@@ -22,7 +22,7 @@ const SinhVienDashboard: React.FC = () => {
         setLoading(true);
         
         const [hopDongRes, hoaDonRes, viPhamRes, thongBaoRes] = await Promise.allSettled([
-          hopDongService.getAll(undefined, 'HieuLuc'),
+          hopDongService.getAll(undefined, 'DangHieuLuc'),
           hoaDonService.getAll(undefined, 'ChuaThanhToan'),
           viPhamService.getAll(),
           thongBaoService.getAll(),
@@ -31,12 +31,15 @@ const SinhVienDashboard: React.FC = () => {
         if (hopDongRes.status === 'fulfilled' && hopDongRes.value.success && hopDongRes.value.data?.length > 0) {
           setCurrentContract(hopDongRes.value.data[0]);
         }
+        
         if (hoaDonRes.status === 'fulfilled' && hoaDonRes.value.success) {
           setUnpaidInvoices(hoaDonRes.value.data?.length || 0);
         }
+        
         if (viPhamRes.status === 'fulfilled' && viPhamRes.value.success) {
           setViolations(viPhamRes.value.data?.length || 0);
         }
+        
         if (thongBaoRes.status === 'fulfilled' && thongBaoRes.value.success) {
           const data = thongBaoRes.value.data || [];
           const unread = data.filter((tb: any) => !tb.daDoc);
