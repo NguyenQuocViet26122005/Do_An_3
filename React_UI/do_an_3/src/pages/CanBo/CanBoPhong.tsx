@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Modal, Form, Input, InputNumber, Select, message, Space, Popconfirm, Tag, Spin } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, ReloadOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import phongService, { Phong, Giuong } from '../../services/phongService';
 import toaNhaService, { ToaNha } from '../../services/toaNhaService';
 
@@ -177,11 +177,10 @@ const CanBoPhong: React.FC = () => {
 
   return (
     <div>
-      <div style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
+      <div style={{ marginBottom: 16 }}>
         <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
           Thêm phòng
         </Button>
-        <Button icon={<ReloadOutlined />} onClick={fetchData}>Tải lại</Button>
       </div>
       <Table columns={columns} dataSource={data} loading={loading} rowKey="maPhong" />
       

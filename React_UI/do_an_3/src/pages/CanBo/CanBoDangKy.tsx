@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Modal, Tag, Space, message, Descriptions, Form, Input, Spin } from 'antd';
-import { CheckOutlined, CloseOutlined, EyeOutlined, ReloadOutlined } from '@ant-design/icons';
+import { CheckOutlined, CloseOutlined, EyeOutlined } from '@ant-design/icons';
 import dangKyService, { DangKyPhong } from '../../services/dangKyService';
 
 const CanBoDangKy: React.FC = () => {
@@ -117,9 +117,6 @@ const CanBoDangKy: React.FC = () => {
 
   return (
     <div>
-      <div style={{ marginBottom: 16 }}>
-        <Button icon={<ReloadOutlined />} onClick={fetchData}>Tải lại</Button>
-      </div>
       <Table columns={columns} dataSource={data} loading={loading} rowKey="maDangKy" />
       
       <Modal title="Chi tiết đăng ký" open={detailVisible} onCancel={() => setDetailVisible(false)} footer={null} width={700}>
