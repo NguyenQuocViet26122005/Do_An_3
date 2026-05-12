@@ -111,7 +111,7 @@ namespace Api_Gateway.BLL
                     return ApiResponse<HopDongDTO>.ErrorResponse("Giường không thuộc phòng này");
                 }
 
-                if (giuong.TrangThai != "ConTrong" && giuong.TrangThai != "DaDangKy")
+                if (giuong.TrangThai != "ConTrong" && giuong.TrangThai != "DangSuDung")
                 {
                     await _unitOfWork.RollbackAsync();
                     return ApiResponse<HopDongDTO>.ErrorResponse("Giường không khả dụng");

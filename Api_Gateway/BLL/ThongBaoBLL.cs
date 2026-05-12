@@ -37,6 +37,7 @@ namespace Api_Gateway.BLL
                     TieuDe = t.TieuDe,
                     NoiDung = t.NoiDung,
                     LoaiThongBao = t.LoaiThongBao,
+                    LoaiNguoiNhan = t.LoaiNguoiNhan,
                     MaCanBoGui = t.MaCanBoGui,
                     TenCanBoGui = t.MaCanBoGuiNavigation?.MaNguoiDungNavigation?.HoTen,
                     NgayGui = t.NgayGui ?? DateTime.MinValue,
@@ -89,14 +90,18 @@ namespace Api_Gateway.BLL
         {
             try
             {
-                var loaiNguoiNhan = "TatCa";
-                if (dto.MaSinhVienNhan.HasValue)
+                var loaiNguoiNhan = dto.LoaiNguoiNhan;
+                if (string.IsNullOrWhiteSpace(loaiNguoiNhan))
                 {
-                    loaiNguoiNhan = "SinhVien";
-                }
-                else if (dto.MaCanBoNhan.HasValue)
-                {
-                    loaiNguoiNhan = "CanBo";
+                    loaiNguoiNhan = "TatCa";
+                    if (dto.MaSinhVienNhan.HasValue)
+                    {
+                        loaiNguoiNhan = "SinhVien";
+                    }
+                    else if (dto.MaCanBoNhan.HasValue)
+                    {
+                        loaiNguoiNhan = "CanBo";
+                    }
                 }
 
                 var thongBao = new ThongBao

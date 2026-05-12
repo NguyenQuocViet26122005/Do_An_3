@@ -6,6 +6,7 @@ namespace Api_Gateway.DTO.ThongBao
         public string TieuDe { get; set; } = string.Empty;
         public string NoiDung { get; set; } = string.Empty;
         public string? LoaiThongBao { get; set; }
+        public string? LoaiNguoiNhan { get; set; }
         public int MaCanBoGui { get; set; }
         public string? TenCanBoGui { get; set; }
         public int? MaSinhVienNhan { get; set; }

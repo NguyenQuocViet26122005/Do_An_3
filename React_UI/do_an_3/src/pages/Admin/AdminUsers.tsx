@@ -1,16 +1,32 @@
-import React, { useState } from 'react';
-import { Table, Button, message, Space, Tag, Popconfirm } from 'antd';
-import { DeleteOutlined, LockOutlined, UnlockOutlined } from '@ant-design/icons';
+import React, { useEffect, useState } from 'react';
+import { Table, Button, message, Space, Tag } from 'antd';
+import { LockOutlined, UnlockOutlined } from '@ant-design/icons';
+import { UserDTO } from '../../services/authService';
+import authService from '../../services/authService';
 
 const AdminUsers: React.FC = () => {
-  const [data, setData] = useState([
-    { maTaiKhoan: 1, tenDangNhap: 'admin', hoTen: 'Nguyễn Văn Admin', email: 'admin@ktx.edu.vn', soDienThoai: '0123456789', vaiTro: 'Admin', trangThai: true },
-    { maTaiKhoan: 2, tenDangNhap: 'canbo01', hoTen: 'Trần Thị Cán Bộ', email: 'canbo01@ktx.edu.vn', soDienThoai: '0987654321', vaiTro: 'CanBo', trangThai: true },
-    { maTaiKhoan: 3, tenDangNhap: 'canbo02', hoTen: 'Lê Văn Quản Lý', email: 'canbo02@ktx.edu.vn', soDienThoai: '0912345678', vaiTro: 'CanBo', trangThai: true },
-    { maTaiKhoan: 4, tenDangNhap: 'sv001', hoTen: 'Phạm Thị Sinh Viên', email: 'sv001@student.edu.vn', soDienThoai: '0934567890', vaiTro: 'SinhVien', trangThai: true },
-    { maTaiKhoan: 5, tenDangNhap: 'sv002', hoTen: 'Hoàng Văn Học', email: 'sv002@student.edu.vn', soDienThoai: '0945678901', vaiTro: 'SinhVien', trangThai: false },
-  ]);
-  const [loading] = useState(false);
+  const [data, setData] = useState<UserDTO[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      const res = await authService.getUsers();
+      if (res.success) {
+        setData(res.data || []);
+      } else {
+        message.error(res.message || 'Không thể tải danh sách tài khoản');
+      }
+    } catch (error: any) {
+      message.error(error?.response?.data?.message || 'Không thể tải danh sách tài khoản');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
 
   const columns = [
     { title: 'Tên đăng nhập', dataIndex: 'tenDangNhap', key: 'tenDangNhap' },
@@ -36,7 +52,7 @@ const AdminUsers: React.FC = () => {
     {
       title: 'Thao tác',
       key: 'action',
-      render: (_: any, record: any) => (
+      render: (_: any, record: UserDTO) => (
         <Space>
           <Button
             icon={record.trangThai ? <LockOutlined /> : <UnlockOutlined />}
@@ -45,24 +61,22 @@ const AdminUsers: React.FC = () => {
           >
             {record.trangThai ? 'Khóa' : 'Mở khóa'}
           </Button>
-          <Popconfirm title="Xác nhận xóa?" onConfirm={() => handleDelete(record.maTaiKhoan)}>
-            <Button danger icon={<DeleteOutlined />} size="small">Xóa</Button>
-          </Popconfirm>
         </Space>
       ),
     },
   ];
 
-  const handleToggleStatus = async (record: any) => {
-    setData(data.map(item => 
-      item.maTaiKhoan === record.maTaiKhoan ? { ...item, trangThai: !item.trangThai } : item
-    ));
-    message.success(record.trangThai ? 'Đã khóa tài khoản!' : 'Đã mở khóa tài khoản!');
-  };
-
-  const handleDelete = async (id: number) => {
-    setData(data.filter(item => item.maTaiKhoan !== id));
-    message.success('Xóa thành công!');
+  const handleToggleStatus = async (record: UserDTO) => {
+    try {
+      const newStatus = !record.trangThai;
+      await authService.setUserStatus(record.maTaiKhoan, newStatus);
+      setData(data.map(item =>
+        item.maTaiKhoan === record.maTaiKhoan ? { ...item, trangThai: newStatus } : item
+      ));
+      message.success(newStatus ? 'Đã mở khóa tài khoản!' : 'Đã khóa tài khoản!');
+    } catch (error: any) {
+      message.error(error?.response?.data?.message || 'Không thể thay đổi trạng thái');
+    }
   };
 
   return (

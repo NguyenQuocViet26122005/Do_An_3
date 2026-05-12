@@ -79,8 +79,8 @@ const AdminPhong: React.FC = () => {
       dataIndex: 'trangThai',
       key: 'trangThai',
       render: (val: string) => {
-        const color = val === 'ConTrong' ? 'green' : val === 'Day' ? 'red' : 'orange';
-        const text = val === 'ConTrong' ? 'Còn trống' : val === 'Day' ? 'Đầy' : 'Bảo trì';
+        const color = val === 'ConTrong' ? 'green' : val === 'DayPhong' ? 'red' : 'orange';
+        const text = val === 'ConTrong' ? 'Còn trống' : val === 'DayPhong' ? 'Đầy' : 'Bảo trì';
         return <Tag color={color}>{text}</Tag>;
       },
     },

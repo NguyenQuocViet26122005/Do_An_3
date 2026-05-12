@@ -19,8 +19,21 @@ namespace Api_Gateway.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin,CanBo,SinhVien")]
         public async Task<IActionResult> GetAll([FromQuery] int? maSinhVien, [FromQuery] string? trangThai)
         {
+            var vaiTro = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            // Nếu là SinhVien, chỉ được xem đăng ký của chính mình
+            if (vaiTro == "SinhVien")
+            {
+                var maActorClaim = User.FindFirst("MaActor")?.Value;
+                if (int.TryParse(maActorClaim, out int maSinhVienCuaMinh))
+                {
+                    maSinhVien = maSinhVienCuaMinh;
+                }
+            }
+
             var result = await _dangKyBLL.GetAll(maSinhVien, trangThai);
             return result.Success ? Ok(result) : BadRequest(result);
         }

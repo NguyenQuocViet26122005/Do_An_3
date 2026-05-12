@@ -18,6 +18,7 @@ namespace Api_Gateway.DTO.ThongBao
 
         public int? MaCanBoNhan { get; set; }
 
-        // Nếu cả 2 đều null thì gửi cho tất cả
+        // Nếu loaiNguoiNhan được cung cấp, ưu tiên xác định LoaiNguoiNhan; nếu null, dựa vào recipient ID
+        public string? LoaiNguoiNhan { get; set; }
     }
 }

@@ -160,7 +160,7 @@ namespace Api_Gateway.BLL
             try
             {
                 var dangKy = await _unitOfWork.DangKyPhongs.Query()
-                    .Include(d => d.MaGiuongNavigation)
+                    .Include(d => d.MaGiuongNavigation).ThenInclude(g => g!.MaPhongNavigation)
                     .FirstOrDefaultAsync(d => d.MaDangKy == maDangKy);
 
                 if (dangKy == null)
@@ -180,11 +180,24 @@ namespace Api_Gateway.BLL
                 dangKy.NgayDuyet = DateTime.Now;
                 dangKy.LyDoTuChoi = dto.LyDoTuChoi;
 
-                // Nếu duyệt thì cập nhật trạng thái giường
+                // Nếu duyệt thì cập nhật trạng thái giường và phòng, gán sinh viên
                 if (dto.TrangThai == "DaDuyet" && dangKy.MaGiuongNavigation != null)
                 {
-                    dangKy.MaGiuongNavigation.TrangThai = "DaDangKy";
-                    _unitOfWork.Giuongs.Update(dangKy.MaGiuongNavigation);
+                    var giuong = dangKy.MaGiuongNavigation;
+                    giuong.TrangThai = "DangSuDung";
+                    giuong.MaSinhVien = dangKy.MaSinhVien;
+                    _unitOfWork.Giuongs.Update(giuong);
+
+                    if (giuong.MaPhongNavigation != null)
+                    {
+                        var phong = giuong.MaPhongNavigation;
+                        phong.SoNguoiHienTai = (phong.SoNguoiHienTai ?? 0) + 1;
+                        if (phong.SoNguoiHienTai >= phong.SucChua)
+                        {
+                            phong.TrangThai = "DayPhong";
+                        }
+                        _unitOfWork.Phongs.Update(phong);
+                    }
                 }
 
                 _unitOfWork.DangKyPhongs.Update(dangKy);

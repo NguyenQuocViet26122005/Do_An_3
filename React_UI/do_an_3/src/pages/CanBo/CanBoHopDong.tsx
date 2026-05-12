@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, DatePicker, Select, message, Space, Tag, Spin, Descriptions } from 'antd';
+import { Table, Button, Modal, Form, DatePicker, Select, message, Space, Tag, Spin, Descriptions, Input, InputNumber } from 'antd';
 import { PlusOutlined, EyeOutlined, FileTextOutlined } from '@ant-design/icons';
 import hopDongService from '../../services/hopDongService';
+import sinhVienService from '../../services/sinhVienService';
+import phongService from '../../services/phongService';
 
 const CanBoHopDong: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -9,10 +11,14 @@ const CanBoHopDong: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [detailVisible, setDetailVisible] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
+  const [students, setStudents] = useState<any[]>([]);
+  const [rooms, setRooms] = useState<any[]>([]);
+  const [beds, setBeds] = useState<any[]>([]);
   const [form] = Form.useForm();
 
   useEffect(() => {
     fetchData();
+    fetchFormData();
   }, []);
 
   const fetchData = async () => {
@@ -29,12 +35,38 @@ const CanBoHopDong: React.FC = () => {
     }
   };
 
+  const fetchFormData = async () => {
+    try {
+      const [studentResponse, roomResponse] = await Promise.all([
+        sinhVienService.getAll(),
+        phongService.getAll(),
+      ]);
+      if (studentResponse.success) setStudents(studentResponse.data || []);
+      if (roomResponse.success) setRooms(roomResponse.data || []);
+    } catch (error) {
+      console.error('Lỗi khi tải dữ liệu form:', error);
+    }
+  };
+
+  const handleRoomChange = async (maPhong: number) => {
+    const room = rooms.find(r => r.maPhong === maPhong);
+    form.setFieldsValue({ maGiuong: undefined, giaThue: room?.giaPhong });
+    try {
+      const response = await phongService.getGiuong(maPhong);
+      if (response.success) {
+        setBeds((response.data || []).filter((bed: any) => bed.trangThai === 'ConTrong' || bed.trangThai === 'DangSuDung'));
+      }
+    } catch (error) {
+      message.error('Không thể tải danh sách giường');
+      setBeds([]);
+    }
+  };
+
   const columns = [
     { title: 'Số hợp đồng', dataIndex: 'soHopDong', key: 'soHopDong' },
     { title: 'Sinh viên', dataIndex: 'tenSinhVien', key: 'tenSinhVien' },
     { title: 'Mã SV', dataIndex: 'maSV', key: 'maSV' },
     { title: 'Phòng', dataIndex: 'tenPhong', key: 'tenPhong' },
-    { title: 'Học kỳ', dataIndex: 'hocKy', key: 'hocKy' },
     { title: 'Ngày bắt đầu', dataIndex: 'ngayBatDau', key: 'ngayBatDau' },
     { title: 'Ngày kết thúc', dataIndex: 'ngayKetThuc', key: 'ngayKetThuc' },
     {
@@ -118,17 +150,44 @@ const CanBoHopDong: React.FC = () => {
         width={600}
       >
         <Form form={form} layout="vertical" onFinish={handleSubmit}>
-          <Form.Item name="maSinhVien" label="Sinh viên" rules={[{ required: true }]}>
-            <Select placeholder="Chọn sinh viên" />
+          <Form.Item name="soHopDong" label="Số hợp đồng" rules={[{ required: true, message: 'Số hợp đồng bắt buộc' }]}>
+            <Input placeholder="Ví dụ: HD20251001" />
           </Form.Item>
-          <Form.Item name="maPhong" label="Phòng" rules={[{ required: true }]}>
-            <Select placeholder="Chọn phòng" />
+          <Form.Item name="maSinhVien" label="Sinh viên" rules={[{ required: true, message: 'Vui lòng chọn sinh viên' }]}>
+            <Select placeholder="Chọn sinh viên" optionFilterProp="children" showSearch>
+              {students.map(sv => (
+                <Select.Option key={sv.maSinhVien} value={sv.maSinhVien}>
+                  {sv.maSv} - {sv.hoTen} ({sv.khoa})
+                </Select.Option>
+              ))}
+            </Select>
           </Form.Item>
-          <Form.Item name="ngayBatDau" label="Ngày bắt đầu" rules={[{ required: true }]}>
+          <Form.Item name="maPhong" label="Phòng" rules={[{ required: true, message: 'Vui lòng chọn phòng' }]}>
+            <Select placeholder="Chọn phòng" onChange={handleRoomChange} optionFilterProp="children" showSearch>
+              {rooms.map(r => (
+                <Select.Option key={r.maPhong} value={r.maPhong}>
+                  {r.soPhong} - {r.tenToaNha} (Giá: {r.giaPhong?.toLocaleString('vi-VN')} VNĐ)
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item name="maGiuong" label="Giường" rules={[{ required: true, message: 'Vui lòng chọn giường' }]}>
+            <Select placeholder="Chọn giường" allowClear>
+              {beds.map(b => (
+                <Select.Option key={b.maGiuong} value={b.maGiuong}>
+                  Giường {b.soGiuong} {b.maSinhVien ? `(Đã thuê)` : ''}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item name="ngayBatDau" label="Ngày bắt đầu" rules={[{ required: true, message: 'Vui lòng chọn ngày bắt đầu' }]}>
             <DatePicker style={{ width: '100%' }} />
           </Form.Item>
-          <Form.Item name="ngayKetThuc" label="Ngày kết thúc" rules={[{ required: true }]}>
+          <Form.Item name="ngayKetThuc" label="Ngày kết thúc" rules={[{ required: true, message: 'Vui lòng chọn ngày kết thúc' }]}>
             <DatePicker style={{ width: '100%' }} />
+          </Form.Item>
+          <Form.Item name="giaThue" label="Giá thuê" rules={[{ required: true, message: 'Vui lòng nhập giá thuê' }]}>
+            <InputNumber style={{ width: '100%' }} min={0} />
           </Form.Item>
         </Form>
       </Modal>

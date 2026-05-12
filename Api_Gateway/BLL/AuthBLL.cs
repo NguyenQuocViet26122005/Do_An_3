@@ -98,6 +98,115 @@ namespace Api_Gateway.BLL
             }
         }
 
+        public async Task<ApiResponse<List<UserDTO>>> GetUsers(string? vaiTro, bool? trangThai)
+        {
+            try
+            {
+                var query = _unitOfWork.TaiKhoans.Query()
+                    .Include(t => t.NguoiDung)
+                        .ThenInclude(n => n!.Admin)
+                    .Include(t => t.NguoiDung)
+                        .ThenInclude(n => n!.CanBoKtx)
+                    .Include(t => t.NguoiDung)
+                        .ThenInclude(n => n!.SinhVien)
+                    .AsQueryable();
+
+                if (!string.IsNullOrWhiteSpace(vaiTro))
+                {
+                    query = query.Where(t => t.VaiTro == vaiTro);
+                }
+
+                if (trangThai.HasValue)
+                {
+                    query = query.Where(t => t.TrangThai == trangThai.Value);
+                }
+
+                var taiKhoans = await query
+                    .OrderBy(t => t.MaTaiKhoan)
+                    .ToListAsync();
+
+                var users = taiKhoans.Select(t =>
+                {
+                    var nguoiDung = t.NguoiDung;
+                    var dto = new UserDTO
+                    {
+                        MaTaiKhoan = t.MaTaiKhoan,
+                        TenDangNhap = t.TenDangNhap,
+                        VaiTro = t.VaiTro,
+                        TrangThai = t.TrangThai ?? false,
+                        NgayTao = t.NgayTao,
+                        MaNguoiDung = nguoiDung?.MaNguoiDung ?? 0,
+                        HoTen = nguoiDung?.HoTen ?? string.Empty,
+                        GioiTinh = nguoiDung?.GioiTinh ?? string.Empty,
+                        NgaySinh = nguoiDung?.NgaySinh ?? default,
+                        SoDienThoai = nguoiDung?.SoDienThoai ?? string.Empty,
+                        Email = nguoiDung?.Email ?? string.Empty,
+                        CCCD = nguoiDung?.Cccd ?? string.Empty,
+                        DiaChi = nguoiDung?.DiaChi
+                    };
+
+                    if (t.VaiTro == "Admin" && nguoiDung?.Admin != null)
+                    {
+                        dto.MaActor = nguoiDung.Admin.MaAdmin;
+                        dto.MaActorCode = nguoiDung.Admin.MaNv;
+                        dto.ChucVu = nguoiDung.Admin.ChucVu;
+                        dto.PhongBan = nguoiDung.Admin.PhongBan;
+                        dto.NgayVaoLam = nguoiDung.Admin.NgayVaoLam;
+                    }
+                    else if (t.VaiTro == "CanBo" && nguoiDung?.CanBoKtx != null)
+                    {
+                        dto.MaActor = nguoiDung.CanBoKtx.MaCanBo;
+                        dto.MaActorCode = nguoiDung.CanBoKtx.MaNv;
+                        dto.ChucVu = nguoiDung.CanBoKtx.ChucVu;
+                        dto.PhongBan = nguoiDung.CanBoKtx.PhongBan;
+                        dto.NgayVaoLam = nguoiDung.CanBoKtx.NgayVaoLam;
+                    }
+                    else if (t.VaiTro == "SinhVien" && nguoiDung?.SinhVien != null)
+                    {
+                        dto.MaActor = nguoiDung.SinhVien.MaSinhVien;
+                        dto.MaActorCode = nguoiDung.SinhVien.MaSv;
+                        dto.Khoa = nguoiDung.SinhVien.Khoa;
+                        dto.Nganh = nguoiDung.SinhVien.Nganh;
+                        dto.Lop = nguoiDung.SinhVien.Lop;
+                        dto.NamHoc = nguoiDung.SinhVien.NamHoc;
+                        dto.DiemTB = nguoiDung.SinhVien.DiemTb;
+                    }
+
+                    return dto;
+                }).ToList();
+
+                return ApiResponse<List<UserDTO>>.SuccessResponse(users, "Lấy danh sách tài khoản thành công");
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<List<UserDTO>>.ErrorResponse($"Lỗi: {ex.Message}");
+            }
+        }
+
+        public async Task<ApiResponse<bool>> SetUserStatus(int maTaiKhoan, bool trangThai)
+        {
+            try
+            {
+                var taiKhoan = await _unitOfWork.TaiKhoans.Query()
+                    .FirstOrDefaultAsync(t => t.MaTaiKhoan == maTaiKhoan);
+
+                if (taiKhoan == null)
+                {
+                    return ApiResponse<bool>.ErrorResponse("Tài khoản không tồn tại");
+                }
+
+                taiKhoan.TrangThai = trangThai;
+                await _unitOfWork.SaveChangesAsync();
+
+                var message = trangThai ? "Đã mở khóa tài khoản" : "Đã khóa tài khoản";
+                return ApiResponse<bool>.SuccessResponse(true, message);
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<bool>.ErrorResponse($"Lỗi: {ex.Message}");
+            }
+        }
+
         public async Task<ApiResponse<string>> Register(RegisterRequestDTO request)
         {
             await _unitOfWork.BeginTransactionAsync();

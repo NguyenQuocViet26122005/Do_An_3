@@ -102,8 +102,8 @@ const SinhVienDangKy: React.FC = () => {
       setLoading(true);
       const response = await dangKyService.create({
         maPhong: values.maPhong,
-        maGiuong: values.maGiuong, // Thêm giường đã chọn
-        hocKy: 'HK2-2024',
+        maGiuong: values.maGiuong,
+        hocKy: values.hocKy,
       });
       
       if (response.success) {
@@ -164,6 +164,10 @@ const SinhVienDangKy: React.FC = () => {
                 </Select.Option>
               ))}
             </Select>
+          </Form.Item>
+
+          <Form.Item name="hocKy" label="Học kỳ" rules={[{ required: true, message: 'Vui lòng nhập học kỳ!' }]}>
+            <Input placeholder="Ví dụ: Học kỳ 1 2025-2026" />
           </Form.Item>
 
           <Form.Item>

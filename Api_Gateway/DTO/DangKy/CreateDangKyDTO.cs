@@ -9,7 +9,8 @@ namespace Api_Gateway.DTO.DangKy
 
         public int? MaGiuong { get; set; }
 
+        [Required(ErrorMessage = "Học kỳ không được để trống")]
         [StringLength(50)]
-        public string? HocKy { get; set; }
+        public string HocKy { get; set; } = string.Empty;
     }
 }
