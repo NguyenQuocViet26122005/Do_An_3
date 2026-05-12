@@ -29,7 +29,7 @@ export interface RegisterRequest {
   ngaySinh: string;
   soDienThoai: string;
   email: string;
-  cccd: string;
+  CCCD: string;
   diaChi?: string;
   maNV?: string;
   chucVu?: string;

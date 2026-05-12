@@ -50,13 +50,15 @@ namespace Api_Gateway.BLL
                     TenToaNha = h.MaPhongNavigation?.MaToaNhaNavigation?.TenToaNha,
                     MaGiuong = h.MaGiuong,
                     SoGiuong = h.MaGiuongNavigation?.SoGiuong,
+                    HocKy = h.HocKy,
                     NgayBatDau = h.NgayBatDau,
                     NgayKetThuc = h.NgayKetThuc,
                     GiaThue = h.GiaThue,
                     TrangThai = h.TrangThai,
                     MaCanBoTao = h.MaCanBoTao,
                     TenCanBoTao = h.MaCanBoTaoNavigation?.MaNguoiDungNavigation?.HoTen,
-                    NgayTao = h.NgayTao
+                    NgayTao = h.NgayTao,
+                    SoThang = (h.NgayKetThuc.ToDateTime(TimeOnly.MinValue).Year - h.NgayBatDau.ToDateTime(TimeOnly.MinValue).Year) * 12 + h.NgayKetThuc.ToDateTime(TimeOnly.MinValue).Month - h.NgayBatDau.ToDateTime(TimeOnly.MinValue).Month
                 }).ToList();
 
                 return ApiResponse<List<HopDongDTO>>.SuccessResponse(result);
@@ -66,6 +68,8 @@ namespace Api_Gateway.BLL
                 return ApiResponse<List<HopDongDTO>>.ErrorResponse($"Lỗi: {ex.Message}");
             }
         }
+
+        private const int ThoiHanHopDongThang = 6;
 
         public async Task<ApiResponse<HopDongDTO>> Create(int maCanBo, CreateHopDongDTO dto)
         {
@@ -111,7 +115,7 @@ namespace Api_Gateway.BLL
                     return ApiResponse<HopDongDTO>.ErrorResponse("Giường không thuộc phòng này");
                 }
 
-                if (giuong.TrangThai != "ConTrong" && giuong.TrangThai != "DangSuDung")
+                if (giuong.TrangThai != "ConTrong" || giuong.MaSinhVien != null)
                 {
                     await _unitOfWork.RollbackAsync();
                     return ApiResponse<HopDongDTO>.ErrorResponse("Giường không khả dụng");
@@ -123,8 +127,9 @@ namespace Api_Gateway.BLL
                     MaSinhVien = dto.MaSinhVien,
                     MaPhong = dto.MaPhong,
                     MaGiuong = dto.MaGiuong,
+                    HocKy = dto.HocKy,
                     NgayBatDau = DateOnly.FromDateTime(dto.NgayBatDau),
-                    NgayKetThuc = DateOnly.FromDateTime(dto.NgayKetThuc),
+                    NgayKetThuc = DateOnly.FromDateTime(dto.NgayKetThuc == default ? dto.NgayBatDau.AddMonths(ThoiHanHopDongThang) : dto.NgayKetThuc),
                     GiaThue = dto.GiaThue,
                     TrangThai = "HieuLuc",
                     MaCanBoTao = maCanBo,
@@ -157,6 +162,7 @@ namespace Api_Gateway.BLL
                     MaSinhVien = hopDong.MaSinhVien,
                     MaPhong = hopDong.MaPhong,
                     MaGiuong = hopDong.MaGiuong,
+                    HocKy = hopDong.HocKy,
                     NgayBatDau = hopDong.NgayBatDau,
                     NgayKetThuc = hopDong.NgayKetThuc,
                     GiaThue = hopDong.GiaThue,

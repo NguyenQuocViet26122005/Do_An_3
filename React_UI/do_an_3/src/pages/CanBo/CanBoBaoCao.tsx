@@ -94,7 +94,7 @@ const CanBoBaoCao: React.FC = () => {
       if (hopDongRes.success) {
         const hopDongs = hopDongRes.data || [];
         setTongHopDong(hopDongs.length);
-        const hieuLuc = hopDongs.filter((h: any) => h.trangThai === 'DangHieuLuc');
+        const hieuLuc = hopDongs.filter((h: any) => h.trangThai === 'HieuLuc');
         setHopDongHieuLuc(hieuLuc.length);
         setSinhVienDangO(hieuLuc.length);
         

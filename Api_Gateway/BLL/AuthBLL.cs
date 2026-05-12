@@ -212,6 +212,12 @@ namespace Api_Gateway.BLL
             await _unitOfWork.BeginTransactionAsync();
             try
             {
+                if (request.VaiTro != "SinhVien")
+                {
+                    await _unitOfWork.RollbackAsync();
+                    return ApiResponse<string>.ErrorResponse("Chỉ sinh viên mới được đăng ký tài khoản");
+                }
+
                 // Kiểm tra tên đăng nhập đã tồn tại
                 if (await _unitOfWork.TaiKhoans.AnyAsync(t => t.TenDangNhap == request.TenDangNhap))
                 {

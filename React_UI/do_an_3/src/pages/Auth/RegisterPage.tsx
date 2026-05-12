@@ -11,7 +11,7 @@ const { Option } = Select;
 const RegisterPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [current, setCurrent] = useState(0);
-  const [vaiTro, setVaiTro] = useState('SinhVien');
+  const vaiTro = 'SinhVien';
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
@@ -21,20 +21,29 @@ const RegisterPage: React.FC = () => {
     { title: 'Thông tin bổ sung' },
   ];
 
-  const onFinish = async (values: any) => {
+  const onFinish = async () => {
     setLoading(true);
     try {
-      // Loại bỏ confirmPassword trước khi gửi
-      const { confirmPassword, ...registerData } = values;
-      
+      const allValues = form.getFieldsValue(true);
+      const { confirmPassword, ...registerData } = allValues;
+      registerData.vaiTro = 'SinhVien';
+      registerData.CCCD = registerData.cccd;
+      delete registerData.cccd;
+
       // Format ngày tháng
       if (registerData.ngaySinh) {
         registerData.ngaySinh = registerData.ngaySinh.format('YYYY-MM-DD');
       }
-      if (registerData.ngayVaoLam) {
-        registerData.ngayVaoLam = registerData.ngayVaoLam.format('YYYY-MM-DD');
+      if (registerData.namHoc === '') {
+        delete registerData.namHoc;
+      } else if (registerData.namHoc !== undefined) {
+        registerData.namHoc = Number(registerData.namHoc);
       }
-
+      if (registerData.diemTB === '') {
+        delete registerData.diemTB;
+      } else if (registerData.diemTB !== undefined) {
+        registerData.diemTB = Number(registerData.diemTB);
+      }
       console.log('Dữ liệu gửi đi:', registerData);
 
       const response = await authService.register(registerData);
@@ -47,11 +56,12 @@ const RegisterPage: React.FC = () => {
       }
     } catch (error: any) {
       console.error('Lỗi đăng ký:', error);
-      const errorMessage = error.response?.data?.message || 
-                          error.response?.data?.errors?.[0] || 
+      const errors = error.response?.data?.errors;
+      const errorMessage = error.response?.data?.message ||
+                          (Array.isArray(errors) ? errors[0] : errors ? Object.values(errors).flat()[0] : null) ||
                           error.message ||
                           'Đăng ký thất bại!';
-      message.error(errorMessage);
+      message.error(String(errorMessage));
     } finally {
       setLoading(false);
     }
@@ -70,15 +80,11 @@ const RegisterPage: React.FC = () => {
   const getFieldsForCurrentStep = () => {
     switch (current) {
       case 0:
-        return ['vaiTro', 'tenDangNhap', 'matKhau', 'confirmPassword'];
+        return ['tenDangNhap', 'matKhau', 'confirmPassword'];
       case 1:
         return ['hoTen', 'gioiTinh', 'ngaySinh', 'email', 'soDienThoai', 'cccd'];
       case 2:
-        if (vaiTro === 'SinhVien') {
-          return ['maSV'];
-        } else {
-          return ['maNV'];
-        }
+        return ['maSV'];
       default:
         return [];
     }
@@ -93,19 +99,6 @@ const RegisterPage: React.FC = () => {
       case 0:
         return (
           <>
-            <Form.Item
-              name="vaiTro"
-              label="Vai trò"
-              rules={[{ required: true }]}
-              initialValue="SinhVien"
-            >
-              <Select onChange={(value) => setVaiTro(value)}>
-                <Option value="SinhVien">Sinh viên</Option>
-                <Option value="CanBo">Cán bộ KTX</Option>
-                <Option value="Admin">Quản trị viên</Option>
-              </Select>
-            </Form.Item>
-
             <Form.Item
               name="tenDangNhap"
               label="Tên đăng nhập"
@@ -215,68 +208,42 @@ const RegisterPage: React.FC = () => {
         );
 
       case 2:
-        if (vaiTro === 'SinhVien') {
-          return (
-            <>
-              <Form.Item
-                name="maSV"
-                label="Mã sinh viên"
-                rules={[{ required: true, message: 'Vui lòng nhập mã sinh viên!' }]}
-              >
-                <Input />
-              </Form.Item>
+        return (
+          <>
+            <Form.Item
+              name="maSV"
+              label="Mã sinh viên"
+              rules={[{ required: true, message: 'Vui lòng nhập mã sinh viên!' }]}
+            >
+              <Input />
+            </Form.Item>
 
-              <Form.Item name="khoa" label="Khoa">
-                <Input />
-              </Form.Item>
+            <Form.Item name="khoa" label="Khoa">
+              <Input />
+            </Form.Item>
 
-              <Form.Item name="nganh" label="Ngành">
-                <Input />
-              </Form.Item>
+            <Form.Item name="nganh" label="Ngành">
+              <Input />
+            </Form.Item>
 
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item name="lop" label="Lớp">
-                    <Input />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="namHoc" label="Năm học">
-                    <Input type="number" />
-                  </Form.Item>
-                </Col>
-              </Row>
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item name="lop" label="Lớp">
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item name="namHoc" label="Năm học">
+                  <Input type="number" />
+                </Form.Item>
+              </Col>
+            </Row>
 
-              <Form.Item name="diemTB" label="Điểm TB">
-                <Input type="number" step="0.01" />
-              </Form.Item>
-            </>
-          );
-        } else {
-          return (
-            <>
-              <Form.Item
-                name="maNV"
-                label="Mã nhân viên"
-                rules={[{ required: true, message: 'Vui lòng nhập mã nhân viên!' }]}
-              >
-                <Input />
-              </Form.Item>
-
-              <Form.Item name="chucVu" label="Chức vụ">
-                <Input />
-              </Form.Item>
-
-              <Form.Item name="phongBan" label="Phòng ban">
-                <Input />
-              </Form.Item>
-
-              <Form.Item name="ngayVaoLam" label="Ngày vào làm">
-                <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
-              </Form.Item>
-            </>
-          );
-        }
+            <Form.Item name="diemTB" label="Điểm TB">
+              <Input type="number" step="0.01" />
+            </Form.Item>
+          </>
+        );
 
       default:
         return null;

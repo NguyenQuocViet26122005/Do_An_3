@@ -135,8 +135,8 @@ const CanBoDashboard: React.FC = () => {
                     title={item.tieuDe}
                     description={`${item.tenSinhVien} - Phòng ${item.tenPhong}`}
                   />
-                  <Tag color={item.trangThai === 'ChoDuyet' ? 'orange' : item.trangThai === 'DangXuLy' ? 'blue' : 'green'}>
-                    {item.trangThai === 'ChoDuyet' ? 'Chờ duyệt' : item.trangThai === 'DangXuLy' ? 'Đang xử lý' : 'Hoàn thành'}
+                  <Tag color={item.trangThai === 'ChoXuLy' ? 'orange' : item.trangThai === 'DangXuLy' ? 'blue' : 'green'}>
+                    {item.trangThai === 'ChoXuLy' ? 'Chờ xử lý' : item.trangThai === 'DangXuLy' ? 'Đang xử lý' : 'Hoàn thành'}
                   </Tag>
                 </List.Item>
               )}

@@ -12,6 +12,7 @@ export interface HopDong {
   tenToaNha?: string;
   maGiuong: number;
   soGiuong?: number;
+  hocKy?: string;
   ngayBatDau: string;
   ngayKetThuc: string;
   giaThue: number;
@@ -19,6 +20,7 @@ export interface HopDong {
   maCanBoTao: number;
   tenCanBoTao?: string;
   ngayTao?: string;
+  soThang?: number;
 }
 
 // Khớp với backend CreateHopDongDTO
@@ -27,6 +29,7 @@ export interface CreateHopDongDTO {
   maSinhVien: number;
   maPhong: number;
   maGiuong: number;
+  hocKy: string;
   ngayBatDau: string;
   ngayKetThuc: string;
   giaThue: number;

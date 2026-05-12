@@ -51,8 +51,8 @@ const SinhVienBaoTri: React.FC = () => {
       dataIndex: 'trangThai',
       key: 'trangThai',
       render: (val: string) => {
-        const color = val === 'ChoDuyet' ? 'orange' : val === 'DangXuLy' ? 'blue' : 'green';
-        const text = val === 'ChoDuyet' ? 'Chờ duyệt' : val === 'DangXuLy' ? 'Đang xử lý' : 'Hoàn thành';
+        const color = val === 'ChoXuLy' ? 'orange' : val === 'DangXuLy' ? 'blue' : 'green';
+        const text = val === 'ChoXuLy' ? 'Chờ xử lý' : val === 'DangXuLy' ? 'Đang xử lý' : 'Hoàn thành';
         return <Tag color={color}>{text}</Tag>;
       },
     },
@@ -152,8 +152,8 @@ const SinhVienBaoTri: React.FC = () => {
             </Descriptions.Item>
             <Descriptions.Item label="Ngày tạo">{selectedRequest.ngayTao}</Descriptions.Item>
             <Descriptions.Item label="Trạng thái">
-              <Tag color={selectedRequest.trangThai === 'ChoDuyet' ? 'orange' : selectedRequest.trangThai === 'DangXuLy' ? 'blue' : 'green'}>
-                {selectedRequest.trangThai === 'ChoDuyet' ? 'Chờ duyệt' : selectedRequest.trangThai === 'DangXuLy' ? 'Đang xử lý' : 'Hoàn thành'}
+              <Tag color={selectedRequest.trangThai === 'ChoXuLy' ? 'orange' : selectedRequest.trangThai === 'DangXuLy' ? 'blue' : 'green'}>
+                {selectedRequest.trangThai === 'ChoXuLy' ? 'Chờ xử lý' : selectedRequest.trangThai === 'DangXuLy' ? 'Đang xử lý' : 'Hoàn thành'}
               </Tag>
             </Descriptions.Item>
             <Descriptions.Item label="Mô tả" span={2}>{selectedRequest.moTa}</Descriptions.Item>

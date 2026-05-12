@@ -22,7 +22,7 @@ const SinhVienDashboard: React.FC = () => {
         setLoading(true);
         
         const [hopDongRes, hoaDonRes, viPhamRes, thongBaoRes] = await Promise.allSettled([
-          hopDongService.getAll(undefined, 'DangHieuLuc'),
+          hopDongService.getAll(user?.maActor, 'HieuLuc'),
           hoaDonService.getAll(undefined, 'ChuaThanhToan'),
           viPhamService.getAll(),
           thongBaoService.getAll(),

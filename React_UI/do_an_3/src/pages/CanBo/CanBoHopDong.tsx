@@ -54,7 +54,7 @@ const CanBoHopDong: React.FC = () => {
     try {
       const response = await phongService.getGiuong(maPhong);
       if (response.success) {
-        setBeds((response.data || []).filter((bed: any) => bed.trangThai === 'ConTrong' || bed.trangThai === 'DangSuDung'));
+        setBeds((response.data || []).filter((bed: any) => bed.trangThai === 'ConTrong' && !bed.maSinhVien));
       }
     } catch (error) {
       message.error('Không thể tải danh sách giường');
@@ -175,10 +175,13 @@ const CanBoHopDong: React.FC = () => {
             <Select placeholder="Chọn giường" allowClear>
               {beds.map(b => (
                 <Select.Option key={b.maGiuong} value={b.maGiuong}>
-                  Giường {b.soGiuong} {b.maSinhVien ? `(Đã thuê)` : ''}
+                  Giường {b.soGiuong}
                 </Select.Option>
               ))}
             </Select>
+          </Form.Item>
+          <Form.Item name="hocKy" label="Học kỳ" rules={[{ required: true, message: 'Vui lòng nhập học kỳ' }]}>
+            <Input placeholder="Ví dụ: HK1 2025-2026" />
           </Form.Item>
           <Form.Item name="ngayBatDau" label="Ngày bắt đầu" rules={[{ required: true, message: 'Vui lòng chọn ngày bắt đầu' }]}>
             <DatePicker style={{ width: '100%' }} />

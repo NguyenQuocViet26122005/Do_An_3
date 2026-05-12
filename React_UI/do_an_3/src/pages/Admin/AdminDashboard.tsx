@@ -21,7 +21,7 @@ const AdminDashboard: React.FC = () => {
           toaNhaService.getAll(),
           phongService.getAll(),
           hoaDonService.getAll(undefined, 'ChuaThanhToan'),
-          baoTriService.getAll(undefined, 'ChoDuyet'),
+          baoTriService.getAll(undefined, 'ChoXuLy'),
         ]);
         
         const s: any = {};

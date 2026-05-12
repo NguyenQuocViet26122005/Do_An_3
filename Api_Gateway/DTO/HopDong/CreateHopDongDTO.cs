@@ -17,6 +17,10 @@ namespace Api_Gateway.DTO.HopDong
         [Required(ErrorMessage = "Mã giường không được để trống")]
         public int MaGiuong { get; set; }
 
+        [Required(ErrorMessage = "Học kỳ không được để trống")]
+        [StringLength(20)]
+        public string HocKy { get; set; } = string.Empty;
+
         [Required(ErrorMessage = "Ngày bắt đầu không được để trống")]
         public DateTime NgayBatDau { get; set; }
 

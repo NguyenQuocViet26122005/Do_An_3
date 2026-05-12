@@ -180,24 +180,58 @@ namespace Api_Gateway.BLL
                 dangKy.NgayDuyet = DateTime.Now;
                 dangKy.LyDoTuChoi = dto.LyDoTuChoi;
 
-                // Nếu duyệt thì cập nhật trạng thái giường và phòng, gán sinh viên
-                if (dto.TrangThai == "DaDuyet" && dangKy.MaGiuongNavigation != null)
+                const int thoiHanHopDongThang = 6;
+
+                // Nếu duyệt thì cập nhật trạng thái giường/phòng và tạo hợp đồng
+                if (dto.TrangThai == "DaDuyet")
                 {
+                    if (dangKy.MaGiuongNavigation == null || dangKy.MaGiuongNavigation.MaPhongNavigation == null)
+                    {
+                        await _unitOfWork.RollbackAsync();
+                        return ApiResponse<DangKyPhongDTO>.ErrorResponse("Không tìm thấy giường hoặc phòng");
+                    }
+
+                    if (await _unitOfWork.HopDongs.AnyAsync(h => h.MaSinhVien == dangKy.MaSinhVien && h.TrangThai == "HieuLuc"))
+                    {
+                        await _unitOfWork.RollbackAsync();
+                        return ApiResponse<DangKyPhongDTO>.ErrorResponse("Sinh viên đã có hợp đồng đang hiệu lực");
+                    }
+
                     var giuong = dangKy.MaGiuongNavigation;
+                    if (giuong.TrangThai != "ConTrong" || giuong.MaSinhVien != null)
+                    {
+                        await _unitOfWork.RollbackAsync();
+                        return ApiResponse<DangKyPhongDTO>.ErrorResponse("Giường không còn trống");
+                    }
+
+                    var phong = giuong.MaPhongNavigation;
                     giuong.TrangThai = "DangSuDung";
                     giuong.MaSinhVien = dangKy.MaSinhVien;
                     _unitOfWork.Giuongs.Update(giuong);
 
-                    if (giuong.MaPhongNavigation != null)
+                    phong.SoNguoiHienTai = (phong.SoNguoiHienTai ?? 0) + 1;
+                    if (phong.SoNguoiHienTai >= phong.SucChua)
                     {
-                        var phong = giuong.MaPhongNavigation;
-                        phong.SoNguoiHienTai = (phong.SoNguoiHienTai ?? 0) + 1;
-                        if (phong.SoNguoiHienTai >= phong.SucChua)
-                        {
-                            phong.TrangThai = "DayPhong";
-                        }
-                        _unitOfWork.Phongs.Update(phong);
+                        phong.TrangThai = "DayPhong";
                     }
+                    _unitOfWork.Phongs.Update(phong);
+
+                    var ngayBatDau = DateTime.Today;
+                    var hopDong = new HopDong
+                    {
+                        SoHopDong = $"HD-DK-{dangKy.MaDangKy:D6}",
+                        MaSinhVien = dangKy.MaSinhVien,
+                        MaPhong = dangKy.MaPhong,
+                        MaGiuong = dangKy.MaGiuong!.Value,
+                        HocKy = dangKy.HocKy,
+                        NgayBatDau = DateOnly.FromDateTime(ngayBatDau),
+                        NgayKetThuc = DateOnly.FromDateTime(ngayBatDau.AddMonths(thoiHanHopDongThang)),
+                        GiaThue = phong.GiaPhong,
+                        TrangThai = "HieuLuc",
+                        MaCanBoTao = maCanBo,
+                        NgayTao = DateTime.Now
+                    };
+                    await _unitOfWork.HopDongs.AddAsync(hopDong);
                 }
 
                 _unitOfWork.DangKyPhongs.Update(dangKy);

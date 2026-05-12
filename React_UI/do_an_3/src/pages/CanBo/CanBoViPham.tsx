@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, InputNumber, Select, message, Space, Tag, Spin, Descriptions } from 'antd';
+import { Table, Button, Modal, Form, Input, InputNumber, Select, DatePicker, message, Space, Tag, Spin, Descriptions } from 'antd';
 import { PlusOutlined, EyeOutlined } from '@ant-design/icons';
 import viPhamService from '../../services/viPhamService';
 import sinhVienService from '../../services/sinhVienService';
@@ -68,11 +68,10 @@ const CanBoViPham: React.FC = () => {
       title: 'Trạng thái',
       dataIndex: 'trangThai',
       key: 'trangThai',
-      render: (val: string) => (
-        <Tag color={val === 'DaXuLy' ? 'green' : 'orange'}>
-          {val === 'DaXuLy' ? 'Đã xử lý' : 'Chờ duyệt'}
-        </Tag>
-      ),
+      render: (val: string) => {
+        const status = val === 'ChuaXuLy' ? 'Chờ duyệt' : val === 'DaXuLy' ? 'Đã xử lý' : val;
+        return <Tag color={status === 'Đã xử lý' ? 'green' : 'orange'}>{status}</Tag>;
+      },
     },
     {
       title: 'Thao tác',
@@ -99,7 +98,10 @@ const CanBoViPham: React.FC = () => {
 
   const handleSubmit = async (values: any) => {
     try {
-      const response = await viPhamService.create(values);
+      const response = await viPhamService.create({
+        ...values,
+        ngayViPham: values.ngayViPham.format('YYYY-MM-DD')
+      });
       if (response.success) {
         message.success('Thêm vi phạm thành công!');
         setModalVisible(false);
@@ -158,6 +160,9 @@ const CanBoViPham: React.FC = () => {
           </Form.Item>
           <Form.Item name="mucPhat" label="Tiền phạt (VNĐ)" rules={[{ required: true, message: 'Vui lòng nhập tiền phạt!' }]}>
             <InputNumber min={0} style={{ width: '100%' }} />
+          </Form.Item>
+          <Form.Item name="ngayViPham" label="Ngày vi phạm" rules={[{ required: true, message: 'Vui lòng chọn ngày vi phạm!' }]}>
+            <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
           </Form.Item>
           <Form.Item name="moTa" label="Mô tả" rules={[{ required: true, message: 'Vui lòng nhập mô tả!' }]}>
             <Input.TextArea rows={3} placeholder="Mô tả chi tiết vi phạm..." />

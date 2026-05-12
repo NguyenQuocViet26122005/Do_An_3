@@ -12,6 +12,7 @@ namespace Api_Gateway.DTO.HopDong
         public string? TenToaNha { get; set; }
         public int MaGiuong { get; set; }
         public int? SoGiuong { get; set; }
+        public string? HocKy { get; set; }
         public DateOnly NgayBatDau { get; set; }
         public DateOnly NgayKetThuc { get; set; }
         public decimal GiaThue { get; set; }
@@ -19,5 +20,6 @@ namespace Api_Gateway.DTO.HopDong
         public int MaCanBoTao { get; set; }
         public string? TenCanBoTao { get; set; }
         public DateTime? NgayTao { get; set; }
+        public int SoThang { get; set; } = 6;
     }
 }

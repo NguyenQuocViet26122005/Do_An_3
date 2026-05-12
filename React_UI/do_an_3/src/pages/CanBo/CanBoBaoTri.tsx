@@ -48,8 +48,8 @@ const CanBoBaoTri: React.FC = () => {
       dataIndex: 'trangThai',
       key: 'trangThai',
       render: (val: string) => {
-        const color = val === 'ChoDuyet' ? 'orange' : val === 'DangXuLy' ? 'blue' : 'green';
-        const text = val === 'ChoDuyet' ? 'Chờ duyệt' : val === 'DangXuLy' ? 'Đang xử lý' : 'Hoàn thành';
+        const color = val === 'ChoXuLy' ? 'orange' : val === 'DangXuLy' ? 'blue' : 'green';
+        const text = val === 'ChoXuLy' ? 'Chờ xử lý' : val === 'DangXuLy' ? 'Đang xử lý' : 'Hoàn thành';
         return <Tag color={color}>{text}</Tag>;
       },
     },
@@ -61,7 +61,7 @@ const CanBoBaoTri: React.FC = () => {
           <Button icon={<EyeOutlined />} size="small" onClick={() => handleView(record)}>
             Chi tiết
           </Button>
-          {record.trangThai !== 'DaHoanThanh' && (
+          {(record.trangThai !== 'DaHoanThanh') && (
             <Button 
               type="primary" 
               icon={<CheckOutlined />} 
@@ -134,8 +134,8 @@ const CanBoBaoTri: React.FC = () => {
             <Descriptions.Item label="Mô tả" span={2}>{selectedRecord.moTa}</Descriptions.Item>
             <Descriptions.Item label="Ngày tạo">{selectedRecord.ngayTao}</Descriptions.Item>
             <Descriptions.Item label="Trạng thái">
-              <Tag color={selectedRecord.trangThai === 'ChoDuyet' ? 'orange' : selectedRecord.trangThai === 'DangXuLy' ? 'blue' : 'green'}>
-                {selectedRecord.trangThai === 'ChoDuyet' ? 'Chờ duyệt' : selectedRecord.trangThai === 'DangXuLy' ? 'Đang xử lý' : 'Hoàn thành'}
+              <Tag color={selectedRecord.trangThai === 'ChoXuLy' ? 'orange' : selectedRecord.trangThai === 'DangXuLy' ? 'blue' : 'green'}>
+                {selectedRecord.trangThai === 'ChoXuLy' ? 'Chờ xử lý' : selectedRecord.trangThai === 'DangXuLy' ? 'Đang xử lý' : 'Hoàn thành'}
               </Tag>
             </Descriptions.Item>
             {selectedRecord.ngayXuLy && (

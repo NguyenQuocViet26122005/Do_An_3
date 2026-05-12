@@ -54,11 +54,10 @@ const SinhVienViPham: React.FC = () => {
       title: 'Trạng thái',
       dataIndex: 'trangThai',
       key: 'trangThai',
-      render: (val: string) => (
-        <Tag color={val === 'DaXuLy' ? 'green' : 'orange'}>
-          {val === 'DaXuLy' ? 'Đã xử lý' : 'Chờ duyệt'}
-        </Tag>
-      ),
+      render: (val: string) => {
+        const status = val === 'ChuaXuLy' ? 'Chờ duyệt' : val === 'DaXuLy' ? 'Đã xử lý' : val;
+        return <Tag color={status === 'Đã xử lý' ? 'green' : 'orange'}>{status}</Tag>;
+      },
     },
     {
       title: 'Thao tác',
@@ -114,8 +113,8 @@ const SinhVienViPham: React.FC = () => {
             <Descriptions.Item label="Mô tả" span={2}>{selectedViolation.moTa}</Descriptions.Item>
             <Descriptions.Item label="Ngày ghi nhận">{selectedViolation.ngayGhi}</Descriptions.Item>
             <Descriptions.Item label="Trạng thái">
-              <Tag color={selectedViolation.trangThai === 'DaXuLy' ? 'green' : 'orange'}>
-                {selectedViolation.trangThai === 'DaXuLy' ? 'Đã xử lý' : 'Chờ duyệt'}
+              <Tag color={(selectedViolation.trangThai === 'ChuaXuLy' ? 'Chờ duyệt' : selectedViolation.trangThai === 'DaXuLy' ? 'Đã xử lý' : selectedViolation.trangThai) === 'Đã xử lý' ? 'green' : 'orange'}>
+                {selectedViolation.trangThai === 'ChuaXuLy' ? 'Chờ duyệt' : selectedViolation.trangThai === 'DaXuLy' ? 'Đã xử lý' : selectedViolation.trangThai}
               </Tag>
             </Descriptions.Item>
           </Descriptions>
