@@ -1,5 +1,6 @@
 using Api_Gateway.BLL;
 using Api_Gateway.DTO.ViPham;
+using System;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -38,6 +39,7 @@ namespace Api_Gateway.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Roles = "Admin,CanBo,SinhVien")]
         public async Task<IActionResult> GetById(int id)
         {
             var result = await _viPhamBLL.GetById(id);
@@ -64,6 +66,18 @@ namespace Api_Gateway.Controllers
                 return BadRequest(result);
             }
             return CreatedAtAction(nameof(GetById), new { id = result.Data?.MaViPham }, result);
+        }
+
+        [HttpPut("{id}")]
+        [Authorize(Roles = "CanBo")]
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateViPhamDTO dto)
+        {
+            var result = await _viPhamBLL.Update(id, dto);
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+            return Ok(result);
         }
 
         [HttpPut("{id}/xuly")]

@@ -41,7 +41,7 @@ namespace Api_Gateway.BLL
                 }
 
                 // Kiểm tra trạng thái
-                if (taiKhoan.TrangThai == false)
+                if (taiKhoan.TrangThai != true)
                 {
                     return ApiResponse<LoginResponseDTO>.ErrorResponse("Tài khoản đã bị khóa");
                 }

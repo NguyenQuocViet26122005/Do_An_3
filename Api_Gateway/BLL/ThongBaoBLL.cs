@@ -26,7 +26,7 @@ namespace Api_Gateway.BLL
 
                 if (!string.IsNullOrEmpty(loaiNguoiNhan))
                 {
-                    query = query.Where(t => t.LoaiNguoiNhan == loaiNguoiNhan);
+                    query = query.Where(t => t.LoaiNguoiNhan == loaiNguoiNhan || t.LoaiNguoiNhan == "TatCa");
                 }
 
                 var thongBaos = await query.OrderByDescending(t => t.NgayGui).ToListAsync();
@@ -90,18 +90,19 @@ namespace Api_Gateway.BLL
         {
             try
             {
+                var coSV = dto.MaSinhVienNhan.HasValue;
+                var coCB = dto.MaCanBoNhan.HasValue;
+                var coLoai = !string.IsNullOrWhiteSpace(dto.LoaiNguoiNhan);
+
+                if ((coSV && coCB) || (coLoai && (coSV || coCB) && dto.LoaiNguoiNhan != "TatCa"))
+                {
+                    return ApiResponse<ThongBaoDTO>.ErrorResponse("Chỉ được chọn 1 người nhận hoặc gửi cho tất cả");
+                }
+
                 var loaiNguoiNhan = dto.LoaiNguoiNhan;
                 if (string.IsNullOrWhiteSpace(loaiNguoiNhan))
                 {
-                    loaiNguoiNhan = "TatCa";
-                    if (dto.MaSinhVienNhan.HasValue)
-                    {
-                        loaiNguoiNhan = "SinhVien";
-                    }
-                    else if (dto.MaCanBoNhan.HasValue)
-                    {
-                        loaiNguoiNhan = "CanBo";
-                    }
+                    loaiNguoiNhan = coSV ? "SinhVien" : coCB ? "CanBo" : "TatCa";
                 }
 
                 var thongBao = new ThongBao
@@ -120,15 +121,20 @@ namespace Api_Gateway.BLL
                 await _unitOfWork.ThongBaos.AddAsync(thongBao);
                 await _unitOfWork.SaveChangesAsync();
 
-                var result = new ThongBaoDTO
-                {
-                    MaThongBao = thongBao.MaThongBao,
-                    TieuDe = thongBao.TieuDe,
-                    NoiDung = thongBao.NoiDung,
-                    NgayGui = thongBao.NgayGui ?? DateTime.MinValue
-                };
-
-                return ApiResponse<ThongBaoDTO>.SuccessResponse(result, "Gửi thông báo thành công");
+                var result = await GetById(thongBao.MaThongBao);
+                return result.Success
+                    ? ApiResponse<ThongBaoDTO>.SuccessResponse(result.Data!, "Gửi thông báo thành công")
+                    : ApiResponse<ThongBaoDTO>.SuccessResponse(new ThongBaoDTO
+                    {
+                        MaThongBao = thongBao.MaThongBao,
+                        TieuDe = thongBao.TieuDe,
+                        NoiDung = thongBao.NoiDung,
+                        LoaiThongBao = thongBao.LoaiThongBao,
+                        LoaiNguoiNhan = thongBao.LoaiNguoiNhan,
+                        MaCanBoGui = thongBao.MaCanBoGui,
+                        NgayGui = thongBao.NgayGui ?? DateTime.MinValue,
+                        DaDoc = thongBao.DaDoc ?? false
+                    }, "Gửi thông báo thành công");
             }
             catch (Exception ex)
             {

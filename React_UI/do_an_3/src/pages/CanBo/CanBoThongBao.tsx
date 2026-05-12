@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, Select, message, Space, Spin, Tag } from 'antd';
+import { Table, Button, Modal, Form, Input, Select, message, Space, Spin, Tag, Popconfirm } from 'antd';
 import { PlusOutlined, EyeOutlined, DeleteOutlined } from '@ant-design/icons';
 import thongBaoService from '../../services/thongBaoService';
 
@@ -50,6 +50,8 @@ const CanBoThongBao: React.FC = () => {
         return text;
       }
     },
+    { title: 'Người gửi', dataIndex: 'tenCanBoGui', key: 'tenCanBoGui' },
+    { title: 'Nội dung', dataIndex: 'noiDung', key: 'noiDung', ellipsis: true, render: (val: string) => <span title={val}>{val}</span> },
     { title: 'Ngày gửi', dataIndex: 'ngayGui', key: 'ngayGui' },
     {
       title: 'Thao tác',
@@ -59,9 +61,16 @@ const CanBoThongBao: React.FC = () => {
           <Button icon={<EyeOutlined />} size="small" onClick={() => handleViewDetail(record)}>
             Chi tiết
           </Button>
-          <Button danger icon={<DeleteOutlined />} size="small">
-            Xóa
-          </Button>
+          <Popconfirm
+            title="Xóa thông báo này?"
+            okText="Xóa"
+            cancelText="Hủy"
+            onConfirm={() => handleDelete(record.maThongBao)}
+          >
+            <Button danger icon={<DeleteOutlined />} size="small">
+              Xóa
+            </Button>
+          </Popconfirm>
         </Space>
       ),
     },
@@ -75,6 +84,20 @@ const CanBoThongBao: React.FC = () => {
   const handleViewDetail = (record: any) => {
     setSelectedRecord(record);
     setDetailVisible(true);
+  };
+
+  const handleDelete = async (id: number) => {
+    try {
+      const response = await thongBaoService.delete(id);
+      if (response.success) {
+        message.success('Xóa thông báo thành công!');
+        fetchData();
+      } else {
+        message.error(response.message || 'Xóa thông báo thất bại');
+      }
+    } catch (error: any) {
+      message.error(error.response?.data?.message || 'Có lỗi xảy ra');
+    }
   };
 
   const handleSubmit = async (values: any) => {
@@ -154,6 +177,7 @@ const CanBoThongBao: React.FC = () => {
                 {selectedRecord.loaiThongBao === 'QuanTrong' ? 'Quan trọng' : 'Thông báo'}
               </Tag>
             </p>
+            <p><strong>Người gửi:</strong> {selectedRecord.tenCanBoGui || '—'}</p>
             <p><strong>Đối tượng:</strong> {selectedRecord.loaiNguoiNhan === 'TatCa' ? 'Tất cả' : selectedRecord.loaiNguoiNhan === 'SinhVien' ? 'Sinh viên' : 'Cán bộ'}</p>
             <p><strong>Ngày gửi:</strong> {selectedRecord.ngayGui}</p>
             <div style={{ 

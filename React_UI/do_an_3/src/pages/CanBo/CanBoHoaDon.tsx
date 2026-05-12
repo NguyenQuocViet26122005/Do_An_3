@@ -1,25 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Tag, Space, message, Descriptions, Spin } from 'antd';
-import { EyeOutlined, DollarOutlined } from '@ant-design/icons';
+import { Table, Button, Modal, Tag, Space, message, Descriptions, Spin, Form, Input, InputNumber, Select } from 'antd';
+import { EyeOutlined, DollarOutlined, PlusOutlined } from '@ant-design/icons';
 import hoaDonService from '../../services/hoaDonService';
+import hopDongService from '../../services/hopDongService';
+import sinhVienService from '../../services/sinhVienService';
 
 const CanBoHoaDon: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any[]>([]);
   const [detailVisible, setDetailVisible] = useState(false);
+  const [createVisible, setCreateVisible] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
+  const [hopDongs, setHopDongs] = useState<any[]>([]);
+  const [sinhViens, setSinhViens] = useState<any[]>([]);
+  const [form] = Form.useForm();
 
   useEffect(() => {
     fetchData();
+    fetchFormData();
   }, []);
 
   const fetchData = async () => {
     try {
       setLoading(true);
       const response = await hoaDonService.getAll();
-      if (response.success) {
-        setData(response.data);
-      }
+      if (response.success) setData(response.data);
     } catch (error) {
       console.error('Lỗi khi tải hóa đơn:', error);
     } finally {
@@ -27,53 +32,44 @@ const CanBoHoaDon: React.FC = () => {
     }
   };
 
-  const columns = [
-    { title: 'Số hóa đơn', dataIndex: 'soHoaDon', key: 'soHoaDon' },
-    { title: 'Sinh viên', dataIndex: 'tenSinhVien', key: 'tenSinhVien' },
-    { title: 'Phòng', dataIndex: 'tenPhong', key: 'tenPhong' },
-    { 
-      title: 'Tháng/Năm', 
-      key: 'thangNam',
-      render: (_: any, record: any) => `${record.thang}/${record.nam}`
-    },
-    { 
-      title: 'Tổng tiền', 
-      dataIndex: 'tongTien', 
-      key: 'tongTien', 
-      render: (val: number) => `${val?.toLocaleString('vi-VN')} VNĐ` 
-    },
-    {
-      title: 'Trạng thái',
-      dataIndex: 'trangThai',
-      key: 'trangThai',
-      render: (val: string) => (
-        <Tag color={val === 'DaThanhToan' ? 'green' : 'orange'}>
-          {val === 'DaThanhToan' ? 'Đã thanh toán' : 'Chưa thanh toán'}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Thao tác',
-      key: 'action',
-      render: (_: any, record: any) => (
-        <Space>
-          <Button icon={<EyeOutlined />} size="small" onClick={() => handleView(record)}>
-            Chi tiết
-          </Button>
-          {record.trangThai === 'ChuaThanhToan' && (
-            <Button 
-              type="primary" 
-              icon={<DollarOutlined />} 
-              size="small"
-              onClick={() => handleConfirmPayment(record)}
-            >
-              Xác nhận thanh toán
-            </Button>
-          )}
-        </Space>
-      ),
-    },
-  ];
+  const fetchFormData = async () => {
+    try {
+      const [hopDongResponse, sinhVienResponse] = await Promise.all([
+        hopDongService.getAll(),
+        sinhVienService.getAll(),
+      ]);
+      if (hopDongResponse.success) setHopDongs(hopDongResponse.data || []);
+      if (sinhVienResponse.success) setSinhViens(sinhVienResponse.data || []);
+    } catch (error) {
+      console.error('Lỗi khi tải dữ liệu form:', error);
+    }
+  };
+
+  const handleCreate = () => {
+    form.resetFields();
+    setCreateVisible(true);
+  };
+
+  const handleSubmit = async (values: any) => {
+    try {
+      const response = await hoaDonService.create({
+        ...values,
+        tienDien: values.tienDien ?? 0,
+        tienNuoc: values.tienNuoc ?? 0,
+        phiDichVu: values.phiDichVu ?? 0,
+        phiPhat: values.phiPhat ?? 0,
+      });
+      if (response.success) {
+        message.success('Tạo hóa đơn thành công!');
+        setCreateVisible(false);
+        fetchData();
+      } else {
+        message.error(response.message || 'Tạo hóa đơn thất bại');
+      }
+    } catch (error: any) {
+      message.error(error.response?.data?.message || 'Có lỗi xảy ra');
+    }
+  };
 
   const handleView = (record: any) => {
     setSelectedRecord(record);
@@ -91,32 +87,91 @@ const CanBoHoaDon: React.FC = () => {
             message.success('Xác nhận thanh toán thành công!');
             fetchData();
           }
-        } catch (error) {
+        } catch {
           message.error('Có lỗi xảy ra');
         }
       }
     });
   };
 
+  const columns = [
+    { title: 'Số hóa đơn', dataIndex: 'soHoaDon', key: 'soHoaDon' },
+    { title: 'Sinh viên', dataIndex: 'tenSinhVien', key: 'tenSinhVien' },
+    { title: 'Phòng', dataIndex: 'tenPhong', key: 'tenPhong' },
+    { title: 'Tháng/Năm', key: 'thangNam', render: (_: any, record: any) => `${record.thang}/${record.nam}` },
+    { title: 'Tổng tiền', dataIndex: 'tongTien', key: 'tongTien', render: (val: number) => `${val?.toLocaleString('vi-VN')} VNĐ` },
+    {
+      title: 'Trạng thái',
+      dataIndex: 'trangThai',
+      key: 'trangThai',
+      render: (val: string) => (
+        <Tag color={val === 'DaThanhToan' ? 'green' : 'orange'}>
+          {val === 'DaThanhToan' ? 'Đã thanh toán' : 'Chưa thanh toán'}
+        </Tag>
+      ),
+    },
+    {
+      title: 'Thao tác',
+      key: 'action',
+      render: (_: any, record: any) => (
+        <Space>
+          <Button icon={<EyeOutlined />} size="small" onClick={() => handleView(record)}>Chi tiết</Button>
+          {record.trangThai === 'ChuaThanhToan' && (
+            <Button type="primary" icon={<DollarOutlined />} size="small" onClick={() => handleConfirmPayment(record)}>
+              Xác nhận thanh toán
+            </Button>
+          )}
+        </Space>
+      ),
+    },
+  ];
+
+  const months = Array.from({ length: 12 }, (_, i) => i + 1);
+  const years = [new Date().getFullYear() - 1, new Date().getFullYear(), new Date().getFullYear() + 1];
+
   if (loading) {
-    return (
-      <div style={{ textAlign: 'center', padding: '50px' }}>
-        <Spin size="large" />
-      </div>
-    );
+    return <div style={{ textAlign: 'center', padding: '50px' }}><Spin size="large" /></div>;
   }
 
   return (
     <div>
+      <div style={{ marginBottom: 16 }}>
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>Tạo hóa đơn</Button>
+      </div>
       <Table columns={columns} dataSource={data} loading={loading} rowKey="maHoaDon" />
-      
-      <Modal
-        title="Chi tiết hóa đơn"
-        open={detailVisible}
-        onCancel={() => setDetailVisible(false)}
-        footer={null}
-        width={700}
-      >
+
+      <Modal title="Tạo hóa đơn" open={createVisible} onCancel={() => setCreateVisible(false)} onOk={() => form.submit()} width={700}>
+        <Form form={form} layout="vertical" onFinish={handleSubmit}>
+          <Form.Item name="soHoaDon" label="Số hóa đơn" rules={[{ required: true, message: 'Số hóa đơn bắt buộc' }]}>
+            <Input placeholder="Ví dụ: HD2025-001" />
+          </Form.Item>
+          <Form.Item name="maHopDong" label="Hợp đồng" rules={[{ required: true, message: 'Vui lòng chọn hợp đồng' }]}>
+            <Select placeholder="Chọn hợp đồng" showSearch optionFilterProp="children">
+              {hopDongs.map(hd => <Select.Option key={hd.maHopDong} value={hd.maHopDong}>{hd.soHopDong} - {hd.tenSinhVien || hd.maSinhVien}</Select.Option>)}
+            </Select>
+          </Form.Item>
+          <Form.Item name="maSinhVien" label="Sinh viên" rules={[{ required: true, message: 'Vui lòng chọn sinh viên' }]}>
+            <Select placeholder="Chọn sinh viên" showSearch optionFilterProp="children">
+              {sinhViens.map(sv => <Select.Option key={sv.maSinhVien} value={sv.maSinhVien}>{sv.maSV} - {sv.hoTen}</Select.Option>)}
+            </Select>
+          </Form.Item>
+          <Form.Item name="thang" label="Tháng" rules={[{ required: true, message: 'Vui lòng chọn tháng' }]}>
+            <Select placeholder="Chọn tháng">{months.map(m => <Select.Option key={m} value={m}>{m}</Select.Option>)}</Select>
+          </Form.Item>
+          <Form.Item name="nam" label="Năm" rules={[{ required: true, message: 'Vui lòng chọn năm' }]}>
+            <Select placeholder="Chọn năm">{years.map(y => <Select.Option key={y} value={y}>{y}</Select.Option>)}</Select>
+          </Form.Item>
+          <Form.Item name="tienPhong" label="Tiền phòng" rules={[{ required: true, message: 'Vui lòng nhập tiền phòng' }]}>
+            <InputNumber min={0} style={{ width: '100%' }} />
+          </Form.Item>
+          <Form.Item name="tienDien" label="Tiền điện"><InputNumber min={0} style={{ width: '100%' }} /></Form.Item>
+          <Form.Item name="tienNuoc" label="Tiền nước"><InputNumber min={0} style={{ width: '100%' }} /></Form.Item>
+          <Form.Item name="phiDichVu" label="Phí dịch vụ"><InputNumber min={0} style={{ width: '100%' }} /></Form.Item>
+          <Form.Item name="phiPhat" label="Phí phạt"><InputNumber min={0} style={{ width: '100%' }} /></Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal title="Chi tiết hóa đơn" open={detailVisible} onCancel={() => setDetailVisible(false)} footer={null} width={700}>
         {selectedRecord && (
           <Descriptions bordered column={2}>
             <Descriptions.Item label="Số hóa đơn" span={2}>{selectedRecord.soHoaDon}</Descriptions.Item>
@@ -128,22 +183,9 @@ const CanBoHoaDon: React.FC = () => {
             <Descriptions.Item label="Tiền điện">{selectedRecord.tienDien?.toLocaleString('vi-VN')} VNĐ</Descriptions.Item>
             <Descriptions.Item label="Tiền nước">{selectedRecord.tienNuoc?.toLocaleString('vi-VN')} VNĐ</Descriptions.Item>
             <Descriptions.Item label="Phí dịch vụ">{selectedRecord.phiDichVu?.toLocaleString('vi-VN')} VNĐ</Descriptions.Item>
-            <Descriptions.Item label="Tổng tiền" span={2}>
-              <strong style={{ fontSize: '18px', color: '#f5222d' }}>
-                {selectedRecord.tongTien?.toLocaleString('vi-VN')} VNĐ
-              </strong>
-            </Descriptions.Item>
-            <Descriptions.Item label="Trạng thái" span={2}>
-              <Tag color={selectedRecord.trangThai === 'DaThanhToan' ? 'green' : 'orange'}>
-                {selectedRecord.trangThai === 'DaThanhToan' ? 'Đã thanh toán' : 'Chưa thanh toán'}
-              </Tag>
-            </Descriptions.Item>
-            {selectedRecord.trangThai === 'DaThanhToan' && (
-              <>
-                <Descriptions.Item label="Ngày thanh toán">{selectedRecord.ngayThanhToan}</Descriptions.Item>
-                <Descriptions.Item label="Phương thức">{selectedRecord.phuongThucThanhToan}</Descriptions.Item>
-              </>
-            )}
+            <Descriptions.Item label="Tổng tiền" span={2}><strong style={{ fontSize: '18px', color: '#f5222d' }}>{selectedRecord.tongTien?.toLocaleString('vi-VN')} VNĐ</strong></Descriptions.Item>
+            <Descriptions.Item label="Trạng thái" span={2}><Tag color={selectedRecord.trangThai === 'DaThanhToan' ? 'green' : 'orange'}>{selectedRecord.trangThai === 'DaThanhToan' ? 'Đã thanh toán' : 'Chưa thanh toán'}</Tag></Descriptions.Item>
+            {selectedRecord.trangThai === 'DaThanhToan' && <><Descriptions.Item label="Ngày thanh toán">{selectedRecord.ngayThanhToan}</Descriptions.Item><Descriptions.Item label="Phương thức">{selectedRecord.phuongThucThanhToan}</Descriptions.Item></>}
           </Descriptions>
         )}
       </Modal>

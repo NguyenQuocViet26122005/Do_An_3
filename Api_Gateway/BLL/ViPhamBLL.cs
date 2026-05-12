@@ -130,16 +130,70 @@ namespace Api_Gateway.BLL
                 await _unitOfWork.ViPhams.AddAsync(viPham);
                 await _unitOfWork.SaveChangesAsync();
 
+                var result = await GetById(viPham.MaViPham);
+                return result.Success
+                    ? ApiResponse<ViPhamDTO>.SuccessResponse(result.Data!, "Ghi nhận vi phạm thành công")
+                    : ApiResponse<ViPhamDTO>.SuccessResponse(new ViPhamDTO
+                    {
+                        MaViPham = viPham.MaViPham,
+                        MaSinhVien = viPham.MaSinhVien,
+                        TenViPham = viPham.TenViPham,
+                        MucDo = viPham.MucDo,
+                        MoTa = viPham.MoTa,
+                        MucPhat = viPham.MucPhat ?? 0,
+                        NgayViPham = DateOnly.FromDateTime(viPham.NgayViPham ?? DateTime.Now),
+                        TrangThai = viPham.TrangThai,
+                        MaCanBoGhi = viPham.MaCanBoGhi,
+                        NgayGhi = viPham.NgayGhi ?? DateTime.Now
+                    }, "Ghi nhận vi phạm thành công");
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<ViPhamDTO>.ErrorResponse($"Lỗi: {ex.Message}");
+            }
+        }
+
+        public async Task<ApiResponse<ViPhamDTO>> Update(int id, UpdateViPhamDTO dto)
+        {
+            try
+            {
+                var viPham = await _unitOfWork.ViPhams.GetByIdAsync(id);
+                if (viPham == null)
+                {
+                    return ApiResponse<ViPhamDTO>.ErrorResponse("Không tìm thấy vi phạm");
+                }
+
+                var sinhVien = await _unitOfWork.SinhViens.GetByIdAsync(dto.MaSinhVien);
+                if (sinhVien == null)
+                {
+                    return ApiResponse<ViPhamDTO>.ErrorResponse("Không tìm thấy sinh viên");
+                }
+
+                viPham.MaSinhVien = dto.MaSinhVien;
+                viPham.TenViPham = dto.TenViPham;
+                viPham.MucDo = dto.MucDo ?? "Trung bình";
+                viPham.MoTa = dto.MoTa;
+                viPham.MucPhat = dto.MucPhat;
+                viPham.NgayViPham = dto.NgayViPham;
+
+                _unitOfWork.ViPhams.Update(viPham);
+                await _unitOfWork.SaveChangesAsync();
+
                 var result = new ViPhamDTO
                 {
                     MaViPham = viPham.MaViPham,
                     MaSinhVien = viPham.MaSinhVien,
                     TenViPham = viPham.TenViPham,
+                    MucDo = viPham.MucDo,
+                    MoTa = viPham.MoTa,
                     MucPhat = viPham.MucPhat ?? 0,
-                    TrangThai = viPham.TrangThai
+                    NgayViPham = viPham.NgayViPham.HasValue ? DateOnly.FromDateTime(viPham.NgayViPham.Value) : DateOnly.MinValue,
+                    TrangThai = viPham.TrangThai,
+                    MaCanBoGhi = viPham.MaCanBoGhi,
+                    NgayGhi = viPham.NgayGhi ?? DateTime.MinValue
                 };
 
-                return ApiResponse<ViPhamDTO>.SuccessResponse(result, "Ghi nhận vi phạm thành công");
+                return ApiResponse<ViPhamDTO>.SuccessResponse(result, "Cập nhật vi phạm thành công");
             }
             catch (Exception ex)
             {
@@ -151,24 +205,44 @@ namespace Api_Gateway.BLL
         {
             try
             {
-                var viPham = await _unitOfWork.ViPhams.GetByIdAsync(maViPham);
+                var viPham = await _unitOfWork.ViPhams.Query()
+                    .Include(v => v.MaSinhVienNavigation)
+                        .ThenInclude(s => s!.MaNguoiDungNavigation)
+                    .Include(v => v.MaCanBoGhiNavigation)
+                        .ThenInclude(c => c!.MaNguoiDungNavigation)
+                    .FirstOrDefaultAsync(v => v.MaViPham == maViPham);
+
                 if (viPham == null)
                 {
                     return ApiResponse<ViPhamDTO>.ErrorResponse("Không tìm thấy vi phạm");
                 }
 
                 viPham.TrangThai = trangThai;
-                if (!string.IsNullOrEmpty(ghiChu))
+                if (!string.IsNullOrWhiteSpace(ghiChu))
                 {
-                    viPham.MoTa = viPham.MoTa + "\n[Ghi chú xử lý]: " + ghiChu;
+                    viPham.MoTa = string.IsNullOrWhiteSpace(viPham.MoTa)
+                        ? ghiChu
+                        : $"{viPham.MoTa}\n[Ghi chú xử lý]: {ghiChu}";
                 }
+
                 _unitOfWork.ViPhams.Update(viPham);
                 await _unitOfWork.SaveChangesAsync();
 
                 var result = new ViPhamDTO
                 {
                     MaViPham = viPham.MaViPham,
-                    TrangThai = viPham.TrangThai
+                    MaSinhVien = viPham.MaSinhVien,
+                    TenSinhVien = viPham.MaSinhVienNavigation?.MaNguoiDungNavigation?.HoTen,
+                    MaSV = viPham.MaSinhVienNavigation?.MaSv,
+                    TenViPham = viPham.TenViPham,
+                    MucDo = viPham.MucDo,
+                    MoTa = viPham.MoTa,
+                    MucPhat = viPham.MucPhat ?? 0,
+                    NgayViPham = viPham.NgayViPham.HasValue ? DateOnly.FromDateTime(viPham.NgayViPham.Value) : DateOnly.MinValue,
+                    TrangThai = viPham.TrangThai,
+                    MaCanBoGhi = viPham.MaCanBoGhi,
+                    TenCanBoGhi = viPham.MaCanBoGhiNavigation?.MaNguoiDungNavigation?.HoTen,
+                    NgayGhi = viPham.NgayGhi ?? DateTime.MinValue
                 };
 
                 return ApiResponse<ViPhamDTO>.SuccessResponse(result, "Xử lý vi phạm thành công");

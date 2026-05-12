@@ -18,7 +18,7 @@ export interface ViPham {
   ngayGhi: string;
 }
 
-// Khớp với backend CreateViPhamDTO
+// Khớp với backend CreateViPhamDTO / UpdateViPhamDTO
 export interface CreateViPhamDTO {
   maSinhVien: number;
   tenViPham: string;
@@ -28,12 +28,15 @@ export interface CreateViPhamDTO {
   ngayViPham: string;
 }
 
+export interface UpdateViPhamDTO extends CreateViPhamDTO {}
+
 const viPhamService = {
   getAll: async (maSinhVien?: number, trangThai?: string) => {
     const params = new URLSearchParams();
-    if (maSinhVien) params.append('maSinhVien', maSinhVien.toString());
+    if (maSinhVien !== undefined && maSinhVien !== null) params.append('maSinhVien', maSinhVien.toString());
     if (trangThai) params.append('trangThai', trangThai);
-    const response = await api.get(`/vipham?${params.toString()}`);
+    const query = params.toString();
+    const response = await api.get(query ? `/vipham?${query}` : '/vipham');
     return response.data;
   },
 
@@ -44,6 +47,11 @@ const viPhamService = {
 
   create: async (data: CreateViPhamDTO) => {
     const response = await api.post('/vipham', data);
+    return response.data;
+  },
+
+  update: async (id: number, data: UpdateViPhamDTO) => {
+    const response = await api.put(`/vipham/${id}`, data);
     return response.data;
   },
 

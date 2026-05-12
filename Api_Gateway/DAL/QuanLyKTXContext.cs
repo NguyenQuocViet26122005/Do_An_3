@@ -91,7 +91,7 @@ public partial class QuanLyKTXContext : DbContext
             entity.HasKey(e => e.MaDangKy).HasName("PK__DangKyPh__BA90F02D244CF7A1");
 
             entity.Property(e => e.NgayDangKy).HasDefaultValueSql("(getdate())");
-            entity.Property(e => e.TrangThai).HasDefaultValue("ChoDuyet");
+            entity.Property(e => e.TrangThai).HasDefaultValue("ChuaXuLy");
 
             entity.HasOne(d => d.MaCanBoDuyetNavigation).WithMany(p => p.DangKyPhongs).HasConstraintName("FK__DangKyPho__MaCan__6C190EBB");
 
@@ -246,7 +246,7 @@ public partial class QuanLyKTXContext : DbContext
             entity.Property(e => e.MucPhat).HasDefaultValue(0m);
             entity.Property(e => e.NgayGhi).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.NgayViPham).HasDefaultValueSql("(getdate())");
-            entity.Property(e => e.TrangThai).HasDefaultValue("ChoDuyet");
+            entity.Property(e => e.TrangThai).HasDefaultValue("ChuaXuLy");
 
             entity.HasOne(d => d.MaCanBoGhiNavigation).WithMany(p => p.ViPhams)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -262,7 +262,7 @@ public partial class QuanLyKTXContext : DbContext
             entity.HasKey(e => e.MaYeuCau).HasName("PK__YeuCauBa__CFA5DF4E197D47EB");
 
             entity.Property(e => e.NgayTao).HasDefaultValueSql("(getdate())");
-            entity.Property(e => e.TrangThai).HasDefaultValue("ChoDuyet");
+            entity.Property(e => e.TrangThai).HasDefaultValue("ChuaXuLy");
 
             entity.HasOne(d => d.MaCanBoXuLyNavigation).WithMany(p => p.YeuCauBaoTris).HasConstraintName("FK__YeuCauBao__MaCan__17036CC0");
 

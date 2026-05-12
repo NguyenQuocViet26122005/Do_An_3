@@ -21,15 +21,14 @@ namespace Api_Gateway.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] string? loaiNguoiNhan = null)
         {
-            // Lọc theo vai trò người dùng
             var vaiTro = User.FindFirst(ClaimTypes.Role)?.Value;
             if (vaiTro == "SinhVien")
             {
                 loaiNguoiNhan = "SinhVien";
             }
-            else if (vaiTro == "CanBo")
+            else
             {
-                loaiNguoiNhan = "CanBo";
+                loaiNguoiNhan = null;
             }
 
             var result = await _thongBaoBLL.GetAll(loaiNguoiNhan);
@@ -66,6 +65,7 @@ namespace Api_Gateway.Controllers
         }
 
         [HttpPut("{id}/dadoc")]
+        [Authorize(Roles = "Admin,CanBo,SinhVien")]
         public async Task<IActionResult> DanhDauDaDoc(int id)
         {
             var result = await _thongBaoBLL.DanhDauDaDoc(id);

@@ -141,7 +141,12 @@ namespace Api_Gateway.BLL
                     return ApiResponse<HoaDonDTO>.ErrorResponse("Không tìm thấy hợp đồng");
                 }
 
-                if (await _unitOfWork.HoaDons.AnyAsync(h => h.MaSinhVien == dto.MaSinhVien && h.Thang == dto.Thang && h.Nam == dto.Nam))
+                if (hopDong.MaSinhVien != dto.MaSinhVien)
+                {
+                    return ApiResponse<HoaDonDTO>.ErrorResponse("Hợp đồng không thuộc sinh viên này");
+                }
+
+                if (await _unitOfWork.HoaDons.AnyAsync(h => h.MaHopDong == dto.MaHopDong && h.Thang == dto.Thang && h.Nam == dto.Nam))
                 {
                     return ApiResponse<HoaDonDTO>.ErrorResponse("Hóa đơn tháng này đã tồn tại");
                 }
@@ -175,6 +180,8 @@ namespace Api_Gateway.BLL
                 {
                     MaHoaDon = hoaDon.MaHoaDon,
                     SoHoaDon = hoaDon.SoHoaDon,
+                    MaHopDong = hoaDon.MaHopDong,
+                    MaSinhVien = hoaDon.MaSinhVien,
                     Thang = hoaDon.Thang,
                     Nam = hoaDon.Nam,
                     TongTien = hoaDon.TongTien,
