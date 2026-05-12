@@ -42,17 +42,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
     if (user?.vaiTro === 'Admin') {
       return [
-        ...commonItems,
-        {
-          key: 'toanha',
-          icon: <HomeOutlined />,
-          label: 'Quản lý tòa nhà',
-        },
-        {
-          key: 'phong',
-          icon: <HomeOutlined />,
-          label: 'Quản lý phòng',
-        },
         {
           key: 'users',
           icon: <UserOutlined />,
@@ -188,10 +177,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     if (key === 'logout') {
       logout();
       navigate('/login');
-    } else if (key === 'profile') {
-      const basePath = user?.vaiTro === 'Admin' ? '/admin' : 
-                       user?.vaiTro === 'CanBo' ? '/canbo' : '/sinhvien';
+      return;
+    }
+
+    const basePath = user?.vaiTro === 'Admin' ? '/admin' :
+                     user?.vaiTro === 'CanBo' ? '/canbo' : '/sinhvien';
+
+    if (key === 'profile') {
       navigate(`${basePath}/profile`);
+    } else if (key === 'settings') {
+      navigate(`${basePath}/settings`);
     }
   };
 

@@ -5,11 +5,9 @@ import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/Common/ProtectedRoute';
 import LoginPage from './pages/Auth/LoginPage';
 import RegisterPage from './pages/Auth/RegisterPage';
-import AdminDashboard from './pages/Admin/AdminDashboard';
-import AdminToaNha from './pages/Admin/AdminToaNha';
-import AdminPhong from './pages/Admin/AdminPhong';
 import AdminUsers from './pages/Admin/AdminUsers';
-import AdminBaoCao from './pages/Admin/AdminBaoCao';
+import AdminProfile from './pages/Admin/AdminProfile';
+import AdminSettings from './pages/Admin/AdminSettings';
 import CanBoDashboard from './pages/CanBo/CanBoDashboard';
 import CanBoToaNha from './pages/CanBo/CanBoToaNha';
 import CanBoPhong from './pages/CanBo/CanBoPhong';
@@ -20,6 +18,8 @@ import CanBoViPham from './pages/CanBo/CanBoViPham';
 import CanBoBaoTri from './pages/CanBo/CanBoBaoTri';
 import CanBoThongBao from './pages/CanBo/CanBoThongBao';
 import CanBoBaoCao from './pages/CanBo/CanBoBaoCao';
+import CanBoProfile from './pages/CanBo/CanBoProfile';
+import CanBoSettings from './pages/CanBo/CanBoSettings';
 import SinhVienDashboard from './pages/SinhVien/SinhVienDashboard';
 import SinhVienPhong from './pages/SinhVien/SinhVienPhong';
 import SinhVienDangKy from './pages/SinhVien/SinhVienDangKy';
@@ -28,6 +28,8 @@ import SinhVienHoaDon from './pages/SinhVien/SinhVienHoaDon';
 import SinhVienViPham from './pages/SinhVien/SinhVienViPham';
 import SinhVienBaoTri from './pages/SinhVien/SinhVienBaoTri';
 import SinhVienThongBao from './pages/SinhVien/SinhVienThongBao';
+import SinhVienProfile from './pages/SinhVien/SinhVienProfile';
+import SinhVienSettings from './pages/SinhVien/SinhVienSettings';
 import './App.css';
 
 function App() {
@@ -40,11 +42,9 @@ function App() {
             <Route path="/register" element={<RegisterPage />} />
             
             {/* Admin Routes */}
-            <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['Admin']}><AdminDashboard /></ProtectedRoute>} />
-            <Route path="/admin/toanha" element={<ProtectedRoute allowedRoles={['Admin']}><AdminToaNha /></ProtectedRoute>} />
-            <Route path="/admin/phong" element={<ProtectedRoute allowedRoles={['Admin']}><AdminPhong /></ProtectedRoute>} />
             <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['Admin']}><AdminUsers /></ProtectedRoute>} />
-            <Route path="/admin/baocao" element={<ProtectedRoute allowedRoles={['Admin']}><AdminBaoCao /></ProtectedRoute>} />
+            <Route path="/admin/profile" element={<ProtectedRoute allowedRoles={['Admin']}><AdminProfile /></ProtectedRoute>} />
+            <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={['Admin']}><AdminSettings /></ProtectedRoute>} />
             
             {/* CanBo Routes */}
             <Route path="/canbo/dashboard" element={<ProtectedRoute allowedRoles={['CanBo']}><CanBoDashboard /></ProtectedRoute>} />
@@ -57,6 +57,8 @@ function App() {
             <Route path="/canbo/baotri" element={<ProtectedRoute allowedRoles={['CanBo']}><CanBoBaoTri /></ProtectedRoute>} />
             <Route path="/canbo/thongbao" element={<ProtectedRoute allowedRoles={['CanBo']}><CanBoThongBao /></ProtectedRoute>} />
             <Route path="/canbo/baocao" element={<ProtectedRoute allowedRoles={['CanBo']}><CanBoBaoCao /></ProtectedRoute>} />
+            <Route path="/canbo/profile" element={<ProtectedRoute allowedRoles={['CanBo']}><CanBoProfile /></ProtectedRoute>} />
+            <Route path="/canbo/settings" element={<ProtectedRoute allowedRoles={['CanBo']}><CanBoSettings /></ProtectedRoute>} />
             
             {/* SinhVien Routes */}
             <Route path="/sinhvien/dashboard" element={<ProtectedRoute allowedRoles={['SinhVien']}><SinhVienDashboard /></ProtectedRoute>} />
@@ -67,6 +69,8 @@ function App() {
             <Route path="/sinhvien/vipham" element={<ProtectedRoute allowedRoles={['SinhVien']}><SinhVienViPham /></ProtectedRoute>} />
             <Route path="/sinhvien/baotri" element={<ProtectedRoute allowedRoles={['SinhVien']}><SinhVienBaoTri /></ProtectedRoute>} />
             <Route path="/sinhvien/thongbao" element={<ProtectedRoute allowedRoles={['SinhVien']}><SinhVienThongBao /></ProtectedRoute>} />
+            <Route path="/sinhvien/profile" element={<ProtectedRoute allowedRoles={['SinhVien']}><SinhVienProfile /></ProtectedRoute>} />
+            <Route path="/sinhvien/settings" element={<ProtectedRoute allowedRoles={['SinhVien']}><SinhVienSettings /></ProtectedRoute>} />
             
             <Route path="/" element={<Navigate to="/login" replace />} />
           </Routes>

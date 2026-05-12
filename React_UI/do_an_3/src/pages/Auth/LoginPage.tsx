@@ -29,7 +29,7 @@ const LoginPage: React.FC = () => {
         // Navigate based on role
         switch (response.data.vaiTro) {
           case 'Admin':
-            navigate('/admin/dashboard');
+            navigate('/admin/users');
             break;
           case 'CanBo':
             navigate('/canbo/dashboard');
@@ -60,14 +60,6 @@ const LoginPage: React.FC = () => {
           <Text type="secondary">Đăng nhập vào hệ thống</Text>
         </div>
 
-        <Card size="small" style={{ marginBottom: 16, background: '#e6f7ff', border: '1px solid #91d5ff' }}>
-          <Text strong style={{ color: '#0050b3' }}>📋 Tài khoản mẫu:</Text>
-          <div style={{ marginTop: 8, fontSize: 13 }}>
-            <div>• <strong>Admin:</strong> admin / 123456</div>
-            <div>• <strong>Cán bộ KTX:</strong> canbo01 / 123456</div>
-            <div>• <strong>Sinh viên:</strong> sinhvien01 / 123456</div>
-          </div>
-        </Card>
 
         <Form
           name="login"
@@ -79,9 +71,10 @@ const LoginPage: React.FC = () => {
             name="tenDangNhap"
             rules={[{ required: true, message: 'Vui lòng nhập tên đăng nhập!' }]}
           >
-            <Input 
-              prefix={<UserOutlined />} 
-              placeholder="Tên đăng nhập" 
+            <Input
+              prefix={<UserOutlined />}
+              placeholder="Tên đăng nhập"
+              autoComplete="new-password"
             />
           </Form.Item>
 
@@ -92,6 +85,7 @@ const LoginPage: React.FC = () => {
             <Input.Password
               prefix={<LockOutlined />}
               placeholder="Mật khẩu"
+              autoComplete="new-password"
             />
           </Form.Item>
 
