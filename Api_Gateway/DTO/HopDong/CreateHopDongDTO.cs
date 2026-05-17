@@ -24,8 +24,9 @@ namespace Api_Gateway.DTO.HopDong
         [Required(ErrorMessage = "Ngày bắt đầu không được để trống")]
         public DateTime NgayBatDau { get; set; }
 
-        [Required(ErrorMessage = "Ngày kết thúc không được để trống")]
-        public DateTime NgayKetThuc { get; set; }
+        [Required(ErrorMessage = "Thời hạn hợp đồng không được để trống")]
+        [Range(1, 120, ErrorMessage = "Thời hạn hợp đồng phải từ 1 đến 120 tháng")]
+        public int SoThang { get; set; }
 
         [Required(ErrorMessage = "Giá thuê không được để trống")]
         public decimal GiaThue { get; set; }

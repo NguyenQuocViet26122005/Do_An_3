@@ -71,6 +71,7 @@ const SinhVienDangKy: React.FC = () => {
       render: (val: number) => val ? `Giường ${val}` : '-'
     },
     { title: 'Học kỳ', dataIndex: 'hocKy', key: 'hocKy' },
+    { title: 'Thời hạn', dataIndex: 'soThang', key: 'soThang', render: (val: number) => `${val} tháng` },
     { title: 'Ngày đăng ký', dataIndex: 'ngayDangKy', key: 'ngayDangKy' },
     {
       title: 'Trạng thái',
@@ -104,6 +105,7 @@ const SinhVienDangKy: React.FC = () => {
         maPhong: values.maPhong,
         maGiuong: values.maGiuong,
         hocKy: values.hocKy,
+        soThang: values.soThang,
       });
       
       if (response.success) {
@@ -168,6 +170,15 @@ const SinhVienDangKy: React.FC = () => {
 
           <Form.Item name="hocKy" label="Học kỳ" rules={[{ required: true, message: 'Vui lòng nhập học kỳ!' }]}>
             <Input placeholder="Ví dụ: Học kỳ 1 2025-2026" />
+          </Form.Item>
+
+          <Form.Item name="soThang" label="Thời hạn hợp đồng" rules={[{ required: true, message: 'Vui lòng chọn thời hạn!' }]}>
+            <Select placeholder="Chọn thời hạn">
+              <Select.Option value={6}>6 tháng</Select.Option>
+              <Select.Option value={12}>1 năm</Select.Option>
+              <Select.Option value={24}>2 năm</Select.Option>
+              <Select.Option value={36}>3 năm</Select.Option>
+            </Select>
           </Form.Item>
 
           <Form.Item>

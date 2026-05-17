@@ -12,6 +12,7 @@ export interface DangKyPhong {
   maGiuong?: number;
   soGiuong?: number;
   hocKy?: string;
+  soThang: number;
   ngayDangKy?: string;
   trangThai?: string;
   maCanBoDuyet?: number;
@@ -25,6 +26,7 @@ export interface CreateDangKyDTO {
   maPhong: number;
   maGiuong?: number;
   hocKy?: string;
+  soThang: number;
 }
 
 // Khớp với backend DuyetDangKyDTO

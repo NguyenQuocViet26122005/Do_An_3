@@ -110,7 +110,6 @@ const CanBoHopDong: React.FC = () => {
       const submitData = {
         ...values,
         ngayBatDau: values.ngayBatDau?.format('YYYY-MM-DD'),
-        ngayKetThuc: values.ngayKetThuc?.format('YYYY-MM-DD'),
       };
       const response = await hopDongService.create(submitData);
       if (response.success) {
@@ -186,8 +185,13 @@ const CanBoHopDong: React.FC = () => {
           <Form.Item name="ngayBatDau" label="Ngày bắt đầu" rules={[{ required: true, message: 'Vui lòng chọn ngày bắt đầu' }]}>
             <DatePicker style={{ width: '100%' }} />
           </Form.Item>
-          <Form.Item name="ngayKetThuc" label="Ngày kết thúc" rules={[{ required: true, message: 'Vui lòng chọn ngày kết thúc' }]}>
-            <DatePicker style={{ width: '100%' }} />
+          <Form.Item name="soThang" label="Thời hạn hợp đồng" rules={[{ required: true, message: 'Vui lòng chọn thời hạn' }]}>
+            <Select placeholder="Chọn thời hạn">
+              <Select.Option value={6}>6 tháng</Select.Option>
+              <Select.Option value={12}>1 năm</Select.Option>
+              <Select.Option value={24}>2 năm</Select.Option>
+              <Select.Option value={36}>3 năm</Select.Option>
+            </Select>
           </Form.Item>
           <Form.Item name="giaThue" label="Giá thuê" rules={[{ required: true, message: 'Vui lòng nhập giá thuê' }]}>
             <InputNumber style={{ width: '100%' }} min={0} />

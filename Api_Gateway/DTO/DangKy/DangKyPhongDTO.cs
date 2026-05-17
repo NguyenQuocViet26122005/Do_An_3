@@ -12,6 +12,7 @@ namespace Api_Gateway.DTO.DangKy
         public int? MaGiuong { get; set; }
         public int? SoGiuong { get; set; }
         public string? HocKy { get; set; }
+        public int SoThang { get; set; }
         public DateTime? NgayDangKy { get; set; }
         public string? TrangThai { get; set; }
         public int? MaCanBoDuyet { get; set; }

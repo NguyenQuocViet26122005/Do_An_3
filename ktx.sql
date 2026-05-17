@@ -145,6 +145,7 @@ CREATE TABLE DangKyPhong (
     MaPhong INT NOT NULL,
     MaGiuong INT NULL,
     HocKy NVARCHAR(20) NOT NULL,
+    SoThang INT NOT NULL DEFAULT 6,
     NgayDangKy DATETIME DEFAULT GETDATE(),
     TrangThai NVARCHAR(20) DEFAULT N'ChuaXuLy',
     MaCanBoDuyet INT NULL,
@@ -155,6 +156,11 @@ CREATE TABLE DangKyPhong (
     FOREIGN KEY (MaGiuong) REFERENCES Giuong(MaGiuong),
     FOREIGN KEY (MaCanBoDuyet) REFERENCES CanBoKTX(MaCanBo)
 );
+
+IF COL_LENGTH('DangKyPhong', 'SoThang') IS NULL
+BEGIN
+    ALTER TABLE DangKyPhong ADD SoThang INT NOT NULL DEFAULT 6;
+END;
 
 -- =============================================
 -- 5. HỢP ĐỒNG (nối với SinhVien & CanBoKTX)
@@ -424,10 +430,10 @@ UPDATE Giuong SET TrangThai = N'DangSuDung', MaSinhVien = @MaSinhVien2 WHERE MaG
 UPDATE Giuong SET TrangThai = N'DangSuDung', MaSinhVien = @MaSinhVien3 WHERE MaGiuong = @MaGiuongSV3;
 UPDATE Phong SET SoNguoiHienTai = 1 WHERE MaPhong IN (@MaPhongA101, @MaPhongA102, @MaPhongA201);
 
-INSERT INTO DangKyPhong (MaSinhVien, MaPhong, MaGiuong, HocKy, TrangThai, MaCanBoDuyet, NgayDuyet) VALUES
-(@MaSinhVien1, @MaPhongA101, @MaGiuongSV1, N'Học kỳ 1 2025-2026', N'DaDuyet', @MaCanBo1, GETDATE()),
-(@MaSinhVien2, @MaPhongA102, @MaGiuongSV2, N'Học kỳ 1 2025-2026', N'DaDuyet', @MaCanBo1, GETDATE()),
-(@MaSinhVien3, @MaPhongA201, @MaGiuongSV3, N'Học kỳ 1 2025-2026', N'ChoDuyet', NULL, NULL);
+INSERT INTO DangKyPhong (MaSinhVien, MaPhong, MaGiuong, HocKy, SoThang, TrangThai, MaCanBoDuyet, NgayDuyet) VALUES
+(@MaSinhVien1, @MaPhongA101, @MaGiuongSV1, N'Học kỳ 1 2025-2026', 6, N'DaDuyet', @MaCanBo1, GETDATE()),
+(@MaSinhVien2, @MaPhongA102, @MaGiuongSV2, N'Học kỳ 1 2025-2026', 12, N'DaDuyet', @MaCanBo1, GETDATE()),
+(@MaSinhVien3, @MaPhongA201, @MaGiuongSV3, N'Học kỳ 1 2025-2026', 6, N'ChoDuyet', NULL, NULL);
 
 INSERT INTO HopDong (SoHopDong, MaSinhVien, MaPhong, MaGiuong, HocKy, NgayBatDau, NgayKetThuc, GiaThue, TrangThai, MaCanBoTao) VALUES
 (N'HD2025001', @MaSinhVien1, @MaPhongA101, @MaGiuongSV1, N'Học kỳ 1 2025-2026', '2025-09-01', '2026-01-31', 500000, N'HieuLuc', @MaCanBo1);

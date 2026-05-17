@@ -20,6 +20,6 @@ namespace Api_Gateway.DTO.HopDong
         public int MaCanBoTao { get; set; }
         public string? TenCanBoTao { get; set; }
         public DateTime? NgayTao { get; set; }
-        public int SoThang { get; set; } = 6;
+        public int SoThang { get; set; }
     }
 }

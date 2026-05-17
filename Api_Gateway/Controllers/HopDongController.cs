@@ -55,5 +55,30 @@ namespace Api_Gateway.Controllers
             var result = await _hopDongBLL.Create(maCanBo, dto);
             return result.Success ? Ok(result) : BadRequest(result);
         }
+
+        [HttpPut("{id}/gia-han")]
+        [Authorize(Roles = "CanBo,SinhVien")]
+        public async Task<IActionResult> GiaHan(int id, [FromBody] GiaHanHopDongDTO dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            int? maSinhVien = null;
+            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+            if (role == "SinhVien")
+            {
+                var maActorClaim = User.FindFirst("MaActor")?.Value;
+                if (string.IsNullOrEmpty(maActorClaim) || !int.TryParse(maActorClaim, out int currentSinhVien))
+                {
+                    return Unauthorized(new { message = "Không xác định được sinh viên" });
+                }
+                maSinhVien = currentSinhVien;
+            }
+
+            var result = await _hopDongBLL.GiaHan(id, dto, maSinhVien);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
     }
 }

@@ -91,6 +91,7 @@ public partial class QuanLyKTXContext : DbContext
             entity.HasKey(e => e.MaDangKy).HasName("PK__DangKyPh__BA90F02D244CF7A1");
 
             entity.Property(e => e.NgayDangKy).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.SoThang).HasDefaultValue(6);
             entity.Property(e => e.TrangThai).HasDefaultValue("ChuaXuLy");
 
             entity.HasOne(d => d.MaCanBoDuyetNavigation).WithMany(p => p.DangKyPhongs).HasConstraintName("FK__DangKyPho__MaCan__6C190EBB");

@@ -22,6 +22,8 @@ public partial class DangKyPhong
     [StringLength(20)]
     public string HocKy { get; set; } = null!;
 
+    public int SoThang { get; set; }
+
     [Column(TypeName = "datetime")]
     public DateTime? NgayDangKy { get; set; }
 

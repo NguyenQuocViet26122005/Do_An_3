@@ -50,6 +50,7 @@ namespace Api_Gateway.BLL
                     MaGiuong = d.MaGiuong,
                     SoGiuong = d.MaGiuongNavigation?.SoGiuong,
                     HocKy = d.HocKy,
+                    SoThang = d.SoThang,
                     NgayDangKy = d.NgayDangKy,
                     TrangThai = d.TrangThai,
                     MaCanBoDuyet = d.MaCanBoDuyet,
@@ -128,6 +129,7 @@ namespace Api_Gateway.BLL
                     MaPhong = dto.MaPhong,
                     MaGiuong = maGiuong,
                     HocKy = dto.HocKy,
+                    SoThang = dto.SoThang,
                     NgayDangKy = DateTime.Now,
                     TrangThai = "ChoDuyet"
                 };
@@ -142,6 +144,7 @@ namespace Api_Gateway.BLL
                     MaPhong = dangKy.MaPhong,
                     MaGiuong = dangKy.MaGiuong,
                     HocKy = dangKy.HocKy,
+                    SoThang = dangKy.SoThang,
                     NgayDangKy = dangKy.NgayDangKy,
                     TrangThai = dangKy.TrangThai
                 };
@@ -179,8 +182,6 @@ namespace Api_Gateway.BLL
                 dangKy.MaCanBoDuyet = maCanBo;
                 dangKy.NgayDuyet = DateTime.Now;
                 dangKy.LyDoTuChoi = dto.LyDoTuChoi;
-
-                const int thoiHanHopDongThang = 6;
 
                 // Nếu duyệt thì cập nhật trạng thái giường/phòng và tạo hợp đồng
                 if (dto.TrangThai == "DaDuyet")
@@ -225,7 +226,7 @@ namespace Api_Gateway.BLL
                         MaGiuong = dangKy.MaGiuong!.Value,
                         HocKy = dangKy.HocKy,
                         NgayBatDau = DateOnly.FromDateTime(ngayBatDau),
-                        NgayKetThuc = DateOnly.FromDateTime(ngayBatDau.AddMonths(thoiHanHopDongThang)),
+                        NgayKetThuc = DateOnly.FromDateTime(ngayBatDau.AddMonths(dangKy.SoThang)),
                         GiaThue = phong.GiaPhong,
                         TrangThai = "HieuLuc",
                         MaCanBoTao = maCanBo,

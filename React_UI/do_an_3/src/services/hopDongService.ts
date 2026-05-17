@@ -31,8 +31,12 @@ export interface CreateHopDongDTO {
   maGiuong: number;
   hocKy: string;
   ngayBatDau: string;
-  ngayKetThuc: string;
+  soThang: number;
   giaThue: number;
+}
+
+export interface GiaHanHopDongDTO {
+  soThangGiaHan: number;
 }
 
 const hopDongService = {
@@ -51,6 +55,11 @@ const hopDongService = {
 
   create: async (data: CreateHopDongDTO) => {
     const response = await api.post('/hopdong', data);
+    return response.data;
+  },
+
+  giaHan: async (id: number, data: GiaHanHopDongDTO) => {
+    const response = await api.put(`/hopdong/${id}/gia-han`, data);
     return response.data;
   },
 };

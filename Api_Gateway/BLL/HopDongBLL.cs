@@ -38,28 +38,7 @@ namespace Api_Gateway.BLL
 
                 var hopDongs = await query.OrderByDescending(h => h.NgayTao).ToListAsync();
 
-                var result = hopDongs.Select(h => new HopDongDTO
-                {
-                    MaHopDong = h.MaHopDong,
-                    SoHopDong = h.SoHopDong,
-                    MaSinhVien = h.MaSinhVien,
-                    TenSinhVien = h.MaSinhVienNavigation?.MaNguoiDungNavigation?.HoTen,
-                    MaSV = h.MaSinhVienNavigation?.MaSv,
-                    MaPhong = h.MaPhong,
-                    TenPhong = h.MaPhongNavigation?.SoPhong,
-                    TenToaNha = h.MaPhongNavigation?.MaToaNhaNavigation?.TenToaNha,
-                    MaGiuong = h.MaGiuong,
-                    SoGiuong = h.MaGiuongNavigation?.SoGiuong,
-                    HocKy = h.HocKy,
-                    NgayBatDau = h.NgayBatDau,
-                    NgayKetThuc = h.NgayKetThuc,
-                    GiaThue = h.GiaThue,
-                    TrangThai = h.TrangThai,
-                    MaCanBoTao = h.MaCanBoTao,
-                    TenCanBoTao = h.MaCanBoTaoNavigation?.MaNguoiDungNavigation?.HoTen,
-                    NgayTao = h.NgayTao,
-                    SoThang = (h.NgayKetThuc.ToDateTime(TimeOnly.MinValue).Year - h.NgayBatDau.ToDateTime(TimeOnly.MinValue).Year) * 12 + h.NgayKetThuc.ToDateTime(TimeOnly.MinValue).Month - h.NgayBatDau.ToDateTime(TimeOnly.MinValue).Month
-                }).ToList();
+                var result = hopDongs.Select(ToDto).ToList();
 
                 return ApiResponse<List<HopDongDTO>>.SuccessResponse(result);
             }
@@ -69,7 +48,36 @@ namespace Api_Gateway.BLL
             }
         }
 
-        private const int ThoiHanHopDongThang = 6;
+        private static int TinhSoThang(DateOnly ngayBatDau, DateOnly ngayKetThuc)
+        {
+            return (ngayKetThuc.ToDateTime(TimeOnly.MinValue).Year - ngayBatDau.ToDateTime(TimeOnly.MinValue).Year) * 12 + ngayKetThuc.ToDateTime(TimeOnly.MinValue).Month - ngayBatDau.ToDateTime(TimeOnly.MinValue).Month;
+        }
+
+        private static HopDongDTO ToDto(HopDong hopDong)
+        {
+            return new HopDongDTO
+            {
+                MaHopDong = hopDong.MaHopDong,
+                SoHopDong = hopDong.SoHopDong,
+                MaSinhVien = hopDong.MaSinhVien,
+                TenSinhVien = hopDong.MaSinhVienNavigation?.MaNguoiDungNavigation?.HoTen,
+                MaSV = hopDong.MaSinhVienNavigation?.MaSv,
+                MaPhong = hopDong.MaPhong,
+                TenPhong = hopDong.MaPhongNavigation?.SoPhong,
+                TenToaNha = hopDong.MaPhongNavigation?.MaToaNhaNavigation?.TenToaNha,
+                MaGiuong = hopDong.MaGiuong,
+                SoGiuong = hopDong.MaGiuongNavigation?.SoGiuong,
+                HocKy = hopDong.HocKy,
+                NgayBatDau = hopDong.NgayBatDau,
+                NgayKetThuc = hopDong.NgayKetThuc,
+                GiaThue = hopDong.GiaThue,
+                TrangThai = hopDong.TrangThai,
+                MaCanBoTao = hopDong.MaCanBoTao,
+                TenCanBoTao = hopDong.MaCanBoTaoNavigation?.MaNguoiDungNavigation?.HoTen,
+                NgayTao = hopDong.NgayTao,
+                SoThang = TinhSoThang(hopDong.NgayBatDau, hopDong.NgayKetThuc)
+            };
+        }
 
         public async Task<ApiResponse<HopDongDTO>> Create(int maCanBo, CreateHopDongDTO dto)
         {
@@ -129,7 +137,7 @@ namespace Api_Gateway.BLL
                     MaGiuong = dto.MaGiuong,
                     HocKy = dto.HocKy,
                     NgayBatDau = DateOnly.FromDateTime(dto.NgayBatDau),
-                    NgayKetThuc = DateOnly.FromDateTime(dto.NgayKetThuc == default ? dto.NgayBatDau.AddMonths(ThoiHanHopDongThang) : dto.NgayKetThuc),
+                    NgayKetThuc = DateOnly.FromDateTime(dto.NgayBatDau.AddMonths(dto.SoThang)),
                     GiaThue = dto.GiaThue,
                     TrangThai = "HieuLuc",
                     MaCanBoTao = maCanBo,
@@ -155,26 +163,45 @@ namespace Api_Gateway.BLL
 
                 await _unitOfWork.CommitAsync();
 
-                var result = new HopDongDTO
-                {
-                    MaHopDong = hopDong.MaHopDong,
-                    SoHopDong = hopDong.SoHopDong,
-                    MaSinhVien = hopDong.MaSinhVien,
-                    MaPhong = hopDong.MaPhong,
-                    MaGiuong = hopDong.MaGiuong,
-                    HocKy = hopDong.HocKy,
-                    NgayBatDau = hopDong.NgayBatDau,
-                    NgayKetThuc = hopDong.NgayKetThuc,
-                    GiaThue = hopDong.GiaThue,
-                    TrangThai = hopDong.TrangThai,
-                    NgayTao = hopDong.NgayTao
-                };
-
-                return ApiResponse<HopDongDTO>.SuccessResponse(result, "Tạo hợp đồng thành công");
+                return ApiResponse<HopDongDTO>.SuccessResponse(ToDto(hopDong), "Tạo hợp đồng thành công");
             }
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackAsync();
+                return ApiResponse<HopDongDTO>.ErrorResponse($"Lỗi: {ex.Message}");
+            }
+        }
+
+        public async Task<ApiResponse<HopDongDTO>> GiaHan(int maHopDong, GiaHanHopDongDTO dto, int? maSinhVien = null)
+        {
+            try
+            {
+                var hopDong = await _unitOfWork.HopDongs.Query()
+                    .Include(h => h.MaSinhVienNavigation).ThenInclude(s => s!.MaNguoiDungNavigation)
+                    .Include(h => h.MaPhongNavigation).ThenInclude(p => p!.MaToaNhaNavigation)
+                    .Include(h => h.MaGiuongNavigation)
+                    .Include(h => h.MaCanBoTaoNavigation).ThenInclude(c => c!.MaNguoiDungNavigation)
+                    .FirstOrDefaultAsync(h => h.MaHopDong == maHopDong);
+
+                if (hopDong == null)
+                {
+                    return ApiResponse<HopDongDTO>.ErrorResponse("Không tìm thấy hợp đồng");
+                }
+
+                if (maSinhVien.HasValue && hopDong.MaSinhVien != maSinhVien.Value)
+                {
+                    return ApiResponse<HopDongDTO>.ErrorResponse("Không có quyền gia hạn hợp đồng này");
+                }
+
+                hopDong.NgayKetThuc = DateOnly.FromDateTime(hopDong.NgayKetThuc.ToDateTime(TimeOnly.MinValue).AddMonths(dto.SoThangGiaHan));
+                hopDong.TrangThai = "HieuLuc";
+                _unitOfWork.HopDongs.Update(hopDong);
+                await _unitOfWork.SaveChangesAsync();
+
+                return ApiResponse<HopDongDTO>.SuccessResponse(ToDto(hopDong), "Gia hạn hợp đồng thành công");
+            }
+            catch (Exception ex)
+            {
                 return ApiResponse<HopDongDTO>.ErrorResponse($"Lỗi: {ex.Message}");
             }
         }
