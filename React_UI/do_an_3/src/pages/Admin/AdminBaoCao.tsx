@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Statistic, Table, Button, DatePicker, Form, Select, Spin, message } from 'antd';
 import { FileTextOutlined, DollarOutlined, UserOutlined, HomeOutlined } from '@ant-design/icons';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import toaNhaService from '../../services/toaNhaService';
 import phongService from '../../services/phongService';
 import { ToaNha } from '../../services/toaNhaService';
 
 const { RangePicker } = DatePicker;
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
 const AdminBaoCao: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -111,7 +114,24 @@ const AdminBaoCao: React.FC = () => {
       </Row>
 
       <Card title="Thống kê theo tòa nhà">
-        <Table columns={toaNhaColumns} dataSource={toaNhas} rowKey="maToaNha" pagination={false} />
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={toaNhas}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="tenToaNha" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="tongSoPhong" fill="#1890ff" name="Tổng phòng" />
+            <Bar dataKey="soPhongTrong" fill="#52c41a" name="Phòng trống" />
+          </BarChart>
+        </ResponsiveContainer>
+        <Table 
+          columns={toaNhaColumns} 
+          dataSource={toaNhas} 
+          rowKey="maToaNha" 
+          pagination={false}
+          style={{ marginTop: 16 }}
+        />
       </Card>
     </div>
   );

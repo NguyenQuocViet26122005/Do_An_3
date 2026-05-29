@@ -5,6 +5,10 @@ import {
   ToolOutlined, FileTextOutlined, CheckCircleOutlined, 
   TeamOutlined, BankOutlined, ThunderboltOutlined, DropboxOutlined
 } from '@ant-design/icons';
+import { 
+  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, 
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
+} from 'recharts';
 import phongService from '../../services/phongService';
 import toaNhaService from '../../services/toaNhaService';
 import sinhVienService from '../../services/sinhVienService';
@@ -18,6 +22,9 @@ import dayjs from 'dayjs';
 
 const { TabPane } = Tabs;
 const { RangePicker } = DatePicker;
+
+// Colors for charts
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658'];
 
 const CanBoBaoCao: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -314,11 +321,47 @@ const CanBoBaoCao: React.FC = () => {
           </Row>
 
           <Card title="Thống kê vi phạm theo mức độ">
+            <Row gutter={16}>
+              <Col xs={24} lg={12}>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={viPhamTheoMucDo}
+                      dataKey="soLuong"
+                      nameKey="mucDo"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      label={(entry: any) => `${entry.mucDo}: ${entry.soLuong}`}
+                    >
+                      {viPhamTheoMucDo.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </Col>
+              <Col xs={24} lg={12}>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={viPhamTheoMucDo}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="mucDo" />
+                    <YAxis />
+                    <Tooltip formatter={(value: any) => `${Number(value).toLocaleString()} đ`} />
+                    <Legend />
+                    <Bar dataKey="tongPhat" fill="#ff4d4f" name="Tổng tiền phạt" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Col>
+            </Row>
             <Table 
               columns={viPhamColumns} 
               dataSource={viPhamTheoMucDo} 
               rowKey="mucDo" 
               pagination={false}
+              style={{ marginTop: 16 }}
             />
             <div style={{ marginTop: 16, textAlign: 'right' }}>
               <Button type="primary" icon={<FileTextOutlined />} style={{ marginRight: 8 }}>
@@ -377,11 +420,22 @@ const CanBoBaoCao: React.FC = () => {
           </Row>
 
           <Card title="Doanh thu theo tháng">
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={doanhThuTheoThang}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="thang" />
+                <YAxis />
+                <Tooltip formatter={(value: any) => `${Number(value).toLocaleString()} đ`} />
+                <Legend />
+                <Line type="monotone" dataKey="doanhThu" stroke="#52c41a" strokeWidth={2} name="Doanh thu" />
+              </LineChart>
+            </ResponsiveContainer>
             <Table 
               columns={doanhThuColumns} 
               dataSource={doanhThuTheoThang} 
               rowKey="thang" 
               pagination={false}
+              style={{ marginTop: 16 }}
             />
             <div style={{ marginTop: 16, textAlign: 'right' }}>
               <Button type="primary" icon={<FileTextOutlined />} style={{ marginRight: 8 }}>
@@ -438,11 +492,22 @@ const CanBoBaoCao: React.FC = () => {
           </Row>
 
           <Card title="Sinh viên theo tòa nhà" style={{ marginBottom: 16 }}>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={sinhVienTheoToaNha}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="toaNha" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="soLuong" fill="#1890ff" name="Số lượng sinh viên" />
+              </BarChart>
+            </ResponsiveContainer>
             <Table 
               columns={sinhVienToaNhaColumns} 
               dataSource={sinhVienTheoToaNha} 
               rowKey="toaNha" 
               pagination={false}
+              style={{ marginTop: 16 }}
             />
             <div style={{ marginTop: 16, textAlign: 'right' }}>
               <Button type="primary" icon={<FileTextOutlined />} style={{ marginRight: 8 }}>
@@ -511,11 +576,23 @@ const CanBoBaoCao: React.FC = () => {
           </Row>
 
           <Card title="Chi phí điện nước theo tháng">
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={dienNuocTheoThang}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="thang" />
+                <YAxis />
+                <Tooltip formatter={(value: any) => `${Number(value).toLocaleString()} đ`} />
+                <Legend />
+                <Bar dataKey="tienDien" fill="#faad14" name="Tiền điện" stackId="a" />
+                <Bar dataKey="tienNuoc" fill="#1890ff" name="Tiền nước" stackId="a" />
+              </BarChart>
+            </ResponsiveContainer>
             <Table 
               columns={dienNuocColumns} 
               dataSource={dienNuocTheoThang} 
               rowKey="thang" 
               pagination={false}
+              style={{ marginTop: 16 }}
             />
             <div style={{ marginTop: 16, textAlign: 'right' }}>
               <Button type="primary" icon={<FileTextOutlined />} style={{ marginRight: 8 }}>

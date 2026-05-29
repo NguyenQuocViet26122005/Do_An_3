@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Row, Col, Statistic, Typography, Spin } from 'antd';
 import { UserOutlined, HomeOutlined, FileTextOutlined } from '@ant-design/icons';
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import toaNhaService from '../../services/toaNhaService';
 import phongService from '../../services/phongService';
 import hoaDonService from '../../services/hoaDonService';
 import baoTriService from '../../services/baoTriService';
 
 const { Title } = Typography;
+
+const COLORS = ['#52c41a', '#ff4d4f'];
 
 const AdminDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -80,9 +83,33 @@ const AdminDashboard: React.FC = () => {
       <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
         <Col xs={24} lg={12}>
           <Card title="Thống kê phòng">
-            <p><strong>Phòng trống:</strong> {stats.phongTrong || 0}</p>
-            <p><strong>Phòng đã đầy:</strong> {stats.phongDaDung || 0}</p>
-            <p><strong>Tỷ lệ lấp đầy:</strong> {stats.tyLeLapDay || 0}%</p>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={[
+                    { name: 'Phòng trống', value: stats.phongTrong || 0 },
+                    { name: 'Phòng đã dùng', value: stats.phongDaDung || 0 }
+                  ]}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={(entry) => `${entry.name}: ${entry.value}`}
+                  outerRadius={80}
+                  dataKey="value"
+                >
+                  {[0, 1].map((index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+            <div style={{ marginTop: 16 }}>
+              <p><strong>Phòng trống:</strong> {stats.phongTrong || 0}</p>
+              <p><strong>Phòng đã đầy:</strong> {stats.phongDaDung || 0}</p>
+              <p><strong>Tỷ lệ lấp đầy:</strong> {stats.tyLeLapDay || 0}%</p>
+            </div>
           </Card>
         </Col>
         <Col xs={24} lg={12}>
