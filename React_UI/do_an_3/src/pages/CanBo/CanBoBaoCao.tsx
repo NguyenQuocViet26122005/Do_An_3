@@ -5,10 +5,19 @@ import {
   ToolOutlined, FileTextOutlined, CheckCircleOutlined, 
   TeamOutlined, BankOutlined, ThunderboltOutlined, DropboxOutlined
 } from '@ant-design/icons';
-import { 
-  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, 
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
-} from 'recharts';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Bar, Line, Pie } from 'react-chartjs-2';
 import phongService from '../../services/phongService';
 import toaNhaService from '../../services/toaNhaService';
 import sinhVienService from '../../services/sinhVienService';
@@ -20,11 +29,21 @@ import dangKyService from '../../services/dangKyService';
 import { ToaNha } from '../../services/toaNhaService';
 import dayjs from 'dayjs';
 
+// Register ChartJS components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
 const { TabPane } = Tabs;
 const { RangePicker } = DatePicker;
-
-// Colors for charts
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658'];
 
 const CanBoBaoCao: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -116,6 +135,7 @@ const CanBoBaoCao: React.FC = () => {
           soLuong: toaNhaMap[toa]
         }));
         setSinhVienTheoToaNha(toaNhaStats);
+        console.log('Sinh viên theo tòa nhà:', toaNhaStats);
       }
 
       // Hóa đơn & Doanh thu
@@ -143,6 +163,7 @@ const CanBoBaoCao: React.FC = () => {
           doanhThu: thangMap[thang]
         }));
         setDoanhThuTheoThang(thangStats);
+        console.log('Doanh thu data:', thangStats);
         
         // Tổng điện nước
         const tienDien = hoaDons.reduce((sum: number, h: any) => sum + (h.tienDien || 0), 0);
@@ -161,6 +182,7 @@ const CanBoBaoCao: React.FC = () => {
           dienNuocMap[key].tienNuoc += (hd.tienNuoc || 0);
         });
         setDienNuocTheoThang(Object.values(dienNuocMap));
+        console.log('Điện nước data:', Object.values(dienNuocMap));
       }
 
       // Vi phạm
@@ -182,6 +204,7 @@ const CanBoBaoCao: React.FC = () => {
           mucDoMap[mucDo].tongPhat += (vp.mucPhat || 0);
         });
         setViPhamTheoMucDo(Object.values(mucDoMap));
+        console.log('Vi phạm theo mức độ:', Object.values(mucDoMap));
       }
 
     } catch (error) {
@@ -321,41 +344,57 @@ const CanBoBaoCao: React.FC = () => {
           </Row>
 
           <Card title="Thống kê vi phạm theo mức độ">
-            <Row gutter={16}>
-              <Col xs={24} lg={12}>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
+            {viPhamTheoMucDo.length > 0 ? (
+              <Row gutter={16}>
+                <Col xs={24} lg={12}>
+                  <div style={{ height: 300 }}>
                     <Pie
-                      data={viPhamTheoMucDo}
-                      dataKey="soLuong"
-                      nameKey="mucDo"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      label={(entry: any) => `${entry.mucDo}: ${entry.soLuong}`}
-                    >
-                      {viPhamTheoMucDo.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </Col>
-              <Col xs={24} lg={12}>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={viPhamTheoMucDo}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="mucDo" />
-                    <YAxis />
-                    <Tooltip formatter={(value: any) => `${Number(value).toLocaleString()} đ`} />
-                    <Legend />
-                    <Bar dataKey="tongPhat" fill="#ff4d4f" name="Tổng tiền phạt" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </Col>
-            </Row>
+                      data={{
+                        labels: viPhamTheoMucDo.map(v => v.mucDo),
+                        datasets: [{
+                          data: viPhamTheoMucDo.map(v => v.soLuong),
+                          backgroundColor: ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'],
+                        }]
+                      }}
+                      options={{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                          legend: { position: 'bottom' },
+                          title: { display: true, text: 'Số lượng vi phạm theo mức độ' }
+                        }
+                      }}
+                    />
+                  </div>
+                </Col>
+                <Col xs={24} lg={12}>
+                  <div style={{ height: 300 }}>
+                    <Bar
+                      data={{
+                        labels: viPhamTheoMucDo.map(v => v.mucDo),
+                        datasets: [{
+                          label: 'Tổng tiền phạt (đ)',
+                          data: viPhamTheoMucDo.map(v => v.tongPhat),
+                          backgroundColor: '#ff4d4f',
+                        }]
+                      }}
+                      options={{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                          legend: { position: 'bottom' },
+                          title: { display: true, text: 'Tổng tiền phạt theo mức độ' }
+                        }
+                      }}
+                    />
+                  </div>
+                </Col>
+              </Row>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '50px', color: '#999' }}>
+                Chưa có dữ liệu vi phạm
+              </div>
+            )}
             <Table 
               columns={viPhamColumns} 
               dataSource={viPhamTheoMucDo} 
@@ -420,16 +459,34 @@ const CanBoBaoCao: React.FC = () => {
           </Row>
 
           <Card title="Doanh thu theo tháng">
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={doanhThuTheoThang}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="thang" />
-                <YAxis />
-                <Tooltip formatter={(value: any) => `${Number(value).toLocaleString()} đ`} />
-                <Legend />
-                <Line type="monotone" dataKey="doanhThu" stroke="#52c41a" strokeWidth={2} name="Doanh thu" />
-              </LineChart>
-            </ResponsiveContainer>
+            {doanhThuTheoThang.length > 0 ? (
+              <div style={{ height: 300 }}>
+                <Line
+                  data={{
+                    labels: doanhThuTheoThang.map(d => d.thang),
+                    datasets: [{
+                      label: 'Doanh thu (đ)',
+                      data: doanhThuTheoThang.map(d => d.doanhThu),
+                      borderColor: '#52c41a',
+                      backgroundColor: 'rgba(82, 196, 26, 0.1)',
+                      tension: 0.4,
+                    }]
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: { position: 'bottom' },
+                      title: { display: true, text: 'Biểu đồ doanh thu theo tháng' }
+                    }
+                  }}
+                />
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '50px', color: '#999' }}>
+                Chưa có dữ liệu doanh thu
+              </div>
+            )}
             <Table 
               columns={doanhThuColumns} 
               dataSource={doanhThuTheoThang} 
@@ -492,16 +549,32 @@ const CanBoBaoCao: React.FC = () => {
           </Row>
 
           <Card title="Sinh viên theo tòa nhà" style={{ marginBottom: 16 }}>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={sinhVienTheoToaNha}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="toaNha" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="soLuong" fill="#1890ff" name="Số lượng sinh viên" />
-              </BarChart>
-            </ResponsiveContainer>
+            {sinhVienTheoToaNha.length > 0 ? (
+              <div style={{ height: 300 }}>
+                <Bar
+                  data={{
+                    labels: sinhVienTheoToaNha.map(s => s.toaNha),
+                    datasets: [{
+                      label: 'Số lượng sinh viên',
+                      data: sinhVienTheoToaNha.map(s => s.soLuong),
+                      backgroundColor: '#1890ff',
+                    }]
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: { position: 'bottom' },
+                      title: { display: true, text: 'Sinh viên theo tòa nhà' }
+                    }
+                  }}
+                />
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '50px', color: '#999' }}>
+                Chưa có dữ liệu sinh viên
+              </div>
+            )}
             <Table 
               columns={sinhVienToaNhaColumns} 
               dataSource={sinhVienTheoToaNha} 
@@ -576,17 +649,43 @@ const CanBoBaoCao: React.FC = () => {
           </Row>
 
           <Card title="Chi phí điện nước theo tháng">
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={dienNuocTheoThang}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="thang" />
-                <YAxis />
-                <Tooltip formatter={(value: any) => `${Number(value).toLocaleString()} đ`} />
-                <Legend />
-                <Bar dataKey="tienDien" fill="#faad14" name="Tiền điện" stackId="a" />
-                <Bar dataKey="tienNuoc" fill="#1890ff" name="Tiền nước" stackId="a" />
-              </BarChart>
-            </ResponsiveContainer>
+            {dienNuocTheoThang.length > 0 ? (
+              <div style={{ height: 300 }}>
+                <Bar
+                  data={{
+                    labels: dienNuocTheoThang.map(d => d.thang),
+                    datasets: [
+                      {
+                        label: 'Tiền điện (đ)',
+                        data: dienNuocTheoThang.map(d => d.tienDien),
+                        backgroundColor: '#faad14',
+                      },
+                      {
+                        label: 'Tiền nước (đ)',
+                        data: dienNuocTheoThang.map(d => d.tienNuoc),
+                        backgroundColor: '#1890ff',
+                      }
+                    ]
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: { position: 'bottom' },
+                      title: { display: true, text: 'Chi phí điện nước theo tháng' }
+                    },
+                    scales: {
+                      x: { stacked: true },
+                      y: { stacked: true }
+                    }
+                  }}
+                />
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '50px', color: '#999' }}>
+                Chưa có dữ liệu điện nước
+              </div>
+            )}
             <Table 
               columns={dienNuocColumns} 
               dataSource={dienNuocTheoThang} 

@@ -114,17 +114,19 @@ const AdminBaoCao: React.FC = () => {
       </Row>
 
       <Card title="Thống kê theo tòa nhà">
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={toaNhas}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="tenToaNha" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="tongSoPhong" fill="#1890ff" name="Tổng phòng" />
-            <Bar dataKey="soPhongTrong" fill="#52c41a" name="Phòng trống" />
-          </BarChart>
-        </ResponsiveContainer>
+        <div style={{ width: '100%', height: 300 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={toaNhas}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="tenToaNha" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="tongSoPhong" fill="#1890ff" name="Tổng phòng" />
+              <Bar dataKey="soPhongTrong" fill="#52c41a" name="Phòng trống" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
         <Table 
           columns={toaNhaColumns} 
           dataSource={toaNhas} 
