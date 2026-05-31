@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Descriptions, Tag, Spin, Select, Space, message } from 'antd';
-import { EyeOutlined, FileTextOutlined, ReloadOutlined } from '@ant-design/icons';
+import { Table, Button, Modal, Descriptions, Tag, Spin, message } from 'antd';
+import { EyeOutlined, FileTextOutlined } from '@ant-design/icons';
 import hopDongService from '../../services/hopDongService';
 import { useAuth } from '../../contexts/AuthContext';
+import { exportContractToPDF } from '../../utils/exportUtils';
 
 const SinhVienHopDong: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [contracts, setContracts] = useState<any[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedContract, setSelectedContract] = useState<any>(null);
-  const [renewVisible, setRenewVisible] = useState(false);
-  const [renewMonths, setRenewMonths] = useState<number>(6);
 
   const { user } = useAuth();
   const maSinhVien = user?.maActor || 0;
@@ -59,14 +58,9 @@ const SinhVienHopDong: React.FC = () => {
       title: 'Thao tác',
       key: 'action',
       render: (_: any, record: any) => (
-        <Space>
-          <Button icon={<EyeOutlined />} onClick={() => handleView(record)}>
-            Chi tiết
-          </Button>
-          <Button icon={<ReloadOutlined />} onClick={() => handleOpenRenew(record)}>
-            Gia hạn
-          </Button>
-        </Space>
+        <Button icon={<EyeOutlined />} onClick={() => handleView(record)}>
+          Chi tiết
+        </Button>
       ),
     },
   ];
@@ -76,29 +70,20 @@ const SinhVienHopDong: React.FC = () => {
     setModalVisible(true);
   };
 
-  const handleOpenRenew = (contract: any) => {
-    setSelectedContract(contract);
-    setRenewMonths(6);
-    setRenewVisible(true);
-  };
-
-  const handleRenew = async () => {
+  const handlePrintContract = () => {
     if (!selectedContract) return;
-    try {
-      setLoading(true);
-      const response = await hopDongService.giaHan(selectedContract.maHopDong, { soThangGiaHan: renewMonths });
-      if (response.success) {
-        message.success('Gia hạn hợp đồng thành công!');
-        setRenewVisible(false);
-        await fetchContracts();
-      } else {
-        message.error(response.message || 'Gia hạn thất bại');
-      }
-    } catch (error: any) {
-      message.error(error.response?.data?.message || 'Có lỗi xảy ra khi gia hạn');
-    } finally {
-      setLoading(false);
-    }
+    exportContractToPDF({
+      soHopDong: selectedContract.soHopDong,
+      tenSinhVien: selectedContract.tenSinhVien,
+      maSV: selectedContract.maSV,
+      tenPhong: selectedContract.tenPhong,
+      soGiuong: selectedContract.soGiuong,
+      hocKy: selectedContract.hocKy,
+      ngayBatDau: selectedContract.ngayBatDau,
+      ngayKetThuc: selectedContract.ngayKetThuc,
+      giaThue: selectedContract.giaThue
+    });
+    message.success('Đã xuất hợp đồng ra PDF');
   };
 
   if (loading) {
@@ -118,7 +103,7 @@ const SinhVienHopDong: React.FC = () => {
         open={modalVisible}
         onCancel={() => setModalVisible(false)}
         footer={[
-          <Button key="print" type="primary" icon={<FileTextOutlined />}>
+          <Button key="print" type="primary" icon={<FileTextOutlined />} onClick={handlePrintContract}>
             In hợp đồng
           </Button>,
         ]}
@@ -147,23 +132,6 @@ const SinhVienHopDong: React.FC = () => {
             </Descriptions.Item>
           </Descriptions>
         )}
-      </Modal>
-
-      <Modal
-        title="Gia hạn hợp đồng"
-        open={renewVisible}
-        onCancel={() => setRenewVisible(false)}
-        onOk={handleRenew}
-        okText="Gia hạn"
-        cancelText="Hủy"
-      >
-        <div style={{ marginBottom: 8 }}>Chọn thời hạn gia hạn:</div>
-        <Select value={renewMonths} onChange={setRenewMonths} style={{ width: '100%' }}>
-          <Select.Option value={6}>6 tháng</Select.Option>
-          <Select.Option value={12}>1 năm</Select.Option>
-          <Select.Option value={24}>2 năm</Select.Option>
-          <Select.Option value={36}>3 năm</Select.Option>
-        </Select>
       </Modal>
     </div>
   );

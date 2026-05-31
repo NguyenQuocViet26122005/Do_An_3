@@ -57,7 +57,7 @@ namespace Api_Gateway.Controllers
         }
 
         [HttpPut("{id}/gia-han")]
-        [Authorize(Roles = "CanBo,SinhVien")]
+        [Authorize(Roles = "CanBo")]
         public async Task<IActionResult> GiaHan(int id, [FromBody] GiaHanHopDongDTO dto)
         {
             if (!ModelState.IsValid)

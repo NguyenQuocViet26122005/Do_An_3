@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Modal, Form, DatePicker, Select, message, Space, Tag, Spin, Descriptions, Input, InputNumber } from 'antd';
-import { PlusOutlined, EyeOutlined, FileTextOutlined } from '@ant-design/icons';
+import { PlusOutlined, EyeOutlined, FileTextOutlined, ReloadOutlined } from '@ant-design/icons';
 import hopDongService from '../../services/hopDongService';
 import sinhVienService from '../../services/sinhVienService';
 import phongService from '../../services/phongService';
+import { exportContractToPDF } from '../../utils/exportUtils';
 
 const CanBoHopDong: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [detailVisible, setDetailVisible] = useState(false);
+  const [renewVisible, setRenewVisible] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
   const [students, setStudents] = useState<any[]>([]);
   const [rooms, setRooms] = useState<any[]>([]);
   const [beds, setBeds] = useState<any[]>([]);
+  const [renewMonths, setRenewMonths] = useState<number>(6);
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -87,7 +90,10 @@ const CanBoHopDong: React.FC = () => {
           <Button icon={<EyeOutlined />} size="small" onClick={() => handleViewDetail(record)}>
             Chi tiết
           </Button>
-          <Button icon={<FileTextOutlined />} size="small">
+          <Button icon={<ReloadOutlined />} size="small" onClick={() => handleOpenRenew(record)}>
+            Gia hạn
+          </Button>
+          <Button icon={<FileTextOutlined />} size="small" onClick={() => handlePrintContract(record)}>
             In hợp đồng
           </Button>
         </Space>
@@ -103,6 +109,46 @@ const CanBoHopDong: React.FC = () => {
   const handleViewDetail = (record: any) => {
     setSelectedRecord(record);
     setDetailVisible(true);
+  };
+
+  const handleOpenRenew = (record: any) => {
+    setSelectedRecord(record);
+    setRenewMonths(6);
+    setRenewVisible(true);
+  };
+
+  const handleRenew = async () => {
+    if (!selectedRecord) return;
+    try {
+      setLoading(true);
+      const response = await hopDongService.giaHan(selectedRecord.maHopDong, { soThangGiaHan: renewMonths });
+      if (response.success) {
+        message.success('Gia hạn hợp đồng thành công!');
+        setRenewVisible(false);
+        await fetchData();
+      } else {
+        message.error(response.message || 'Gia hạn thất bại');
+      }
+    } catch (error: any) {
+      message.error(error.response?.data?.message || 'Có lỗi xảy ra khi gia hạn');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePrintContract = (record: any) => {
+    exportContractToPDF({
+      soHopDong: record.soHopDong,
+      tenSinhVien: record.tenSinhVien,
+      maSV: record.maSV,
+      tenPhong: record.tenPhong,
+      soGiuong: record.soGiuong,
+      hocKy: record.hocKy,
+      ngayBatDau: record.ngayBatDau,
+      ngayKetThuc: record.ngayKetThuc,
+      giaThue: record.giaThue
+    });
+    message.success('Đã xuất hợp đồng ra PDF');
   };
 
   const handleSubmit = async (values: any) => {
@@ -228,6 +274,31 @@ const CanBoHopDong: React.FC = () => {
             </Descriptions.Item>
           </Descriptions>
         )}
+      </Modal>
+
+      <Modal
+        title="Gia hạn hợp đồng"
+        open={renewVisible}
+        onCancel={() => setRenewVisible(false)}
+        onOk={handleRenew}
+        okText="Gia hạn"
+        cancelText="Hủy"
+      >
+        {selectedRecord && (
+          <div style={{ marginBottom: 16 }}>
+            <p><strong>Hợp đồng:</strong> {selectedRecord.soHopDong}</p>
+            <p><strong>Sinh viên:</strong> {selectedRecord.tenSinhVien}</p>
+            <p><strong>Phòng:</strong> {selectedRecord.tenPhong}</p>
+            <p><strong>Ngày kết thúc hiện tại:</strong> {selectedRecord.ngayKetThuc}</p>
+          </div>
+        )}
+        <div style={{ marginBottom: 8 }}>Chọn thời hạn gia hạn:</div>
+        <Select value={renewMonths} onChange={setRenewMonths} style={{ width: '100%' }}>
+          <Select.Option value={6}>6 tháng</Select.Option>
+          <Select.Option value={12}>1 năm</Select.Option>
+          <Select.Option value={24}>2 năm</Select.Option>
+          <Select.Option value={36}>3 năm</Select.Option>
+        </Select>
       </Modal>
     </div>
   );

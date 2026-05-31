@@ -28,6 +28,7 @@ import baoTriService from '../../services/baoTriService';
 import dangKyService from '../../services/dangKyService';
 import { ToaNha } from '../../services/toaNhaService';
 import dayjs from 'dayjs';
+import { exportToExcel, exportTableToPDF } from '../../utils/exportUtils';
 
 // Register ChartJS components
 ChartJS.register(
@@ -403,10 +404,39 @@ const CanBoBaoCao: React.FC = () => {
               style={{ marginTop: 16 }}
             />
             <div style={{ marginTop: 16, textAlign: 'right' }}>
-              <Button type="primary" icon={<FileTextOutlined />} style={{ marginRight: 8 }}>
+              <Button 
+                type="primary" 
+                icon={<FileTextOutlined />} 
+                style={{ marginRight: 8 }}
+                onClick={() => {
+                  const excelData = viPhamTheoMucDo.map(v => ({
+                    'Mức độ': v.mucDo,
+                    'Số lượng': v.soLuong,
+                    'Tổng tiền phạt': v.tongPhat
+                  }));
+                  exportToExcel(excelData, 'BaoCao_ViPham', 'Vi phạm');
+                  message.success('Đã xuất file Excel');
+                }}
+              >
                 Xuất Excel
               </Button>
-              <Button icon={<FileTextOutlined />}>
+              <Button 
+                icon={<FileTextOutlined />}
+                onClick={() => {
+                  const pdfData = viPhamTheoMucDo.map(v => [
+                    v.mucDo,
+                    v.soLuong.toString(),
+                    `${v.tongPhat.toLocaleString()} đ`
+                  ]);
+                  exportTableToPDF(
+                    'BÁO CÁO VI PHẠM',
+                    ['Mức độ', 'Số lượng', 'Tổng tiền phạt'],
+                    pdfData,
+                    'BaoCao_ViPham'
+                  );
+                  message.success('Đã xuất file PDF');
+                }}
+              >
                 Xuất PDF
               </Button>
             </div>
@@ -495,10 +525,37 @@ const CanBoBaoCao: React.FC = () => {
               style={{ marginTop: 16 }}
             />
             <div style={{ marginTop: 16, textAlign: 'right' }}>
-              <Button type="primary" icon={<FileTextOutlined />} style={{ marginRight: 8 }}>
+              <Button 
+                type="primary" 
+                icon={<FileTextOutlined />} 
+                style={{ marginRight: 8 }}
+                onClick={() => {
+                  const excelData = doanhThuTheoThang.map(d => ({
+                    'Tháng/Năm': d.thang,
+                    'Doanh thu': d.doanhThu
+                  }));
+                  exportToExcel(excelData, 'BaoCao_DoanhThu', 'Doanh thu');
+                  message.success('Đã xuất file Excel');
+                }}
+              >
                 Xuất Excel
               </Button>
-              <Button icon={<FileTextOutlined />}>
+              <Button 
+                icon={<FileTextOutlined />}
+                onClick={() => {
+                  const pdfData = doanhThuTheoThang.map(d => [
+                    d.thang,
+                    `${d.doanhThu.toLocaleString()} đ`
+                  ]);
+                  exportTableToPDF(
+                    'BÁO CÁO DOANH THU KTX',
+                    ['Tháng/Năm', 'Doanh thu'],
+                    pdfData,
+                    'BaoCao_DoanhThu'
+                  );
+                  message.success('Đã xuất file PDF');
+                }}
+              >
                 Xuất PDF
               </Button>
             </div>
@@ -583,10 +640,37 @@ const CanBoBaoCao: React.FC = () => {
               style={{ marginTop: 16 }}
             />
             <div style={{ marginTop: 16, textAlign: 'right' }}>
-              <Button type="primary" icon={<FileTextOutlined />} style={{ marginRight: 8 }}>
+              <Button 
+                type="primary" 
+                icon={<FileTextOutlined />} 
+                style={{ marginRight: 8 }}
+                onClick={() => {
+                  const excelData = sinhVienTheoToaNha.map(s => ({
+                    'Tòa nhà': s.toaNha,
+                    'Số lượng sinh viên': s.soLuong
+                  }));
+                  exportToExcel(excelData, 'BaoCao_SinhVien', 'Sinh viên');
+                  message.success('Đã xuất file Excel');
+                }}
+              >
                 Xuất Excel
               </Button>
-              <Button icon={<FileTextOutlined />}>
+              <Button 
+                icon={<FileTextOutlined />}
+                onClick={() => {
+                  const pdfData = sinhVienTheoToaNha.map(s => [
+                    s.toaNha,
+                    s.soLuong.toString()
+                  ]);
+                  exportTableToPDF(
+                    'BÁO CÁO SINH VIÊN CƯ TRÚ',
+                    ['Tòa nhà', 'Số lượng sinh viên'],
+                    pdfData,
+                    'BaoCao_SinhVien'
+                  );
+                  message.success('Đã xuất file PDF');
+                }}
+              >
                 Xuất PDF
               </Button>
             </div>
@@ -694,10 +778,41 @@ const CanBoBaoCao: React.FC = () => {
               style={{ marginTop: 16 }}
             />
             <div style={{ marginTop: 16, textAlign: 'right' }}>
-              <Button type="primary" icon={<FileTextOutlined />} style={{ marginRight: 8 }}>
+              <Button 
+                type="primary" 
+                icon={<FileTextOutlined />} 
+                style={{ marginRight: 8 }}
+                onClick={() => {
+                  const excelData = dienNuocTheoThang.map(d => ({
+                    'Tháng/Năm': d.thang,
+                    'Tiền điện': d.tienDien,
+                    'Tiền nước': d.tienNuoc,
+                    'Tổng': d.tienDien + d.tienNuoc
+                  }));
+                  exportToExcel(excelData, 'BaoCao_DienNuoc', 'Điện nước');
+                  message.success('Đã xuất file Excel');
+                }}
+              >
                 Xuất Excel
               </Button>
-              <Button icon={<FileTextOutlined />}>
+              <Button 
+                icon={<FileTextOutlined />}
+                onClick={() => {
+                  const pdfData = dienNuocTheoThang.map(d => [
+                    d.thang,
+                    `${d.tienDien.toLocaleString()} đ`,
+                    `${d.tienNuoc.toLocaleString()} đ`,
+                    `${(d.tienDien + d.tienNuoc).toLocaleString()} đ`
+                  ]);
+                  exportTableToPDF(
+                    'BÁO CÁO CHI PHÍ ĐIỆN NƯỚC',
+                    ['Tháng/Năm', 'Tiền điện', 'Tiền nước', 'Tổng'],
+                    pdfData,
+                    'BaoCao_DienNuoc'
+                  );
+                  message.success('Đã xuất file PDF');
+                }}
+              >
                 Xuất PDF
               </Button>
             </div>

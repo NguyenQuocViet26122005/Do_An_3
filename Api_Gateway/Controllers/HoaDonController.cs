@@ -67,7 +67,7 @@ namespace Api_Gateway.Controllers
         }
 
         [HttpPut("{id}/thanhtoan")]
-        [Authorize(Roles = "CanBo")]
+        [Authorize(Roles = "CanBo,SinhVien")]
         public async Task<IActionResult> ThanhToan(int id, [FromBody] ThanhToanRequest request)
         {
             var result = await _hoaDonBLL.ThanhToan(id, request.PhuongThucThanhToan, request.MaGiaoDich);
