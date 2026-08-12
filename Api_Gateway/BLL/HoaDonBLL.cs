@@ -135,15 +135,33 @@ namespace Api_Gateway.BLL
                     return ApiResponse<HoaDonDTO>.ErrorResponse("Số hóa đơn đã tồn tại");
                 }
 
-                var hopDong = await _unitOfWork.HopDongs.GetByIdAsync(dto.MaHopDong);
+                var hopDong = await _unitOfWork.HopDongs.Query()
+                    .Include(h => h.MaSinhVienNavigation)
+                        .ThenInclude(sv => sv!.MaNguoiDungNavigation)
+                    .Include(h => h.MaPhongNavigation)
+                    .FirstOrDefaultAsync(h => h.MaHopDong == dto.MaHopDong);
+
                 if (hopDong == null)
                 {
                     return ApiResponse<HoaDonDTO>.ErrorResponse("Không tìm thấy hợp đồng");
                 }
 
+                // Kiểm tra trạng thái hợp đồng
+                if (hopDong.TrangThai != "HieuLuc")
+                {
+                    return ApiResponse<HoaDonDTO>.ErrorResponse($"Hợp đồng không còn hiệu lực (trạng thái: {hopDong.TrangThai})");
+                }
+
                 if (hopDong.MaSinhVien != dto.MaSinhVien)
                 {
                     return ApiResponse<HoaDonDTO>.ErrorResponse("Hợp đồng không thuộc sinh viên này");
+                }
+
+                // KIỂM TRA TIỀN PHÒNG KHỚP VỚI HỢP ĐỒNG
+                if (dto.TienPhong != hopDong.GiaThue)
+                {
+                    return ApiResponse<HoaDonDTO>.ErrorResponse(
+                        $"Tiền phòng không khớp với hợp đồng. Giá thuê trong hợp đồng là {hopDong.GiaThue:N0} VNĐ, bạn nhập {dto.TienPhong:N0} VNĐ");
                 }
 
                 if (await _unitOfWork.HoaDons.AnyAsync(h => h.MaHopDong == dto.MaHopDong && h.Thang == dto.Thang && h.Nam == dto.Nam))

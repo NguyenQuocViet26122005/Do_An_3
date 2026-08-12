@@ -80,5 +80,13 @@ namespace Api_Gateway.Controllers
             var result = await _hopDongBLL.GiaHan(id, dto, maSinhVien);
             return result.Success ? Ok(result) : BadRequest(result);
         }
+
+        [HttpPut("{id}/cham-dut")]
+        [Authorize(Roles = "Admin,CanBo")]
+        public async Task<IActionResult> ChamDut(int id)
+        {
+            var result = await _hopDongBLL.ChamDut(id);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
     }
 }

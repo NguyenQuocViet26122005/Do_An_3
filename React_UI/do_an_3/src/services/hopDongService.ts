@@ -62,6 +62,11 @@ const hopDongService = {
     const response = await api.put(`/hopdong/${id}/gia-han`, data);
     return response.data;
   },
+
+  chamDut: async (id: number) => {
+    const response = await api.put(`/hopdong/${id}/cham-dut`);
+    return response.data;
+  },
 };
 
 export default hopDongService;

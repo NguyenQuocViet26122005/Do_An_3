@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, DatePicker, Select, message, Space, Tag, Spin, Descriptions, Input, InputNumber } from 'antd';
-import { PlusOutlined, EyeOutlined, FileTextOutlined, ReloadOutlined } from '@ant-design/icons';
+import { Table, Button, Modal, Form, DatePicker, Select, message, Space, Tag, Spin, Descriptions, Input, InputNumber, Popconfirm } from 'antd';
+import { PlusOutlined, EyeOutlined, FileTextOutlined, ReloadOutlined, StopOutlined } from '@ant-design/icons';
 import hopDongService from '../../services/hopDongService';
 import sinhVienService from '../../services/sinhVienService';
 import phongService from '../../services/phongService';
@@ -76,11 +76,23 @@ const CanBoHopDong: React.FC = () => {
       title: 'Trạng thái',
       dataIndex: 'trangThai',
       key: 'trangThai',
-      render: (val: string) => (
-        <Tag color={val === 'HieuLuc' ? 'green' : 'red'}>
-          {val === 'HieuLuc' ? 'Hiệu lực' : 'Hết hạn'}
-        </Tag>
-      ),
+      render: (val: string) => {
+        let color = 'default';
+        let text = val;
+        
+        if (val === 'HieuLuc') {
+          color = 'green';
+          text = 'Hiệu lực';
+        } else if (val === 'HetHan') {
+          color = 'red';
+          text = 'Hết hạn';
+        } else if (val === 'ChamDut') {
+          color = 'orange';
+          text = 'Đã chấm dứt';
+        }
+        
+        return <Tag color={color}>{text}</Tag>;
+      },
     },
     {
       title: 'Thao tác',
@@ -90,9 +102,25 @@ const CanBoHopDong: React.FC = () => {
           <Button icon={<EyeOutlined />} size="small" onClick={() => handleViewDetail(record)}>
             Chi tiết
           </Button>
-          <Button icon={<ReloadOutlined />} size="small" onClick={() => handleOpenRenew(record)}>
-            Gia hạn
-          </Button>
+          {record.trangThai === 'HieuLuc' && (
+            <>
+              <Button icon={<ReloadOutlined />} size="small" onClick={() => handleOpenRenew(record)}>
+                Gia hạn
+              </Button>
+              <Popconfirm
+                title="Chấm dứt hợp đồng"
+                description="Bạn có chắc chắn muốn chấm dứt hợp đồng này? Giường sẽ được giải phóng."
+                onConfirm={() => handleTerminate(record.maHopDong)}
+                okText="Chấm dứt"
+                cancelText="Hủy"
+                okButtonProps={{ danger: true }}
+              >
+                <Button danger icon={<StopOutlined />} size="small">
+                  Chấm dứt
+                </Button>
+              </Popconfirm>
+            </>
+          )}
           <Button icon={<FileTextOutlined />} size="small" onClick={() => handlePrintContract(record)}>
             In hợp đồng
           </Button>
@@ -131,6 +159,23 @@ const CanBoHopDong: React.FC = () => {
       }
     } catch (error: any) {
       message.error(error.response?.data?.message || 'Có lỗi xảy ra khi gia hạn');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTerminate = async (maHopDong: number) => {
+    try {
+      setLoading(true);
+      const response = await hopDongService.chamDut(maHopDong);
+      if (response.success) {
+        message.success('Chấm dứt hợp đồng thành công! Giường đã được giải phóng.');
+        await fetchData();
+      } else {
+        message.error(response.message || 'Chấm dứt thất bại');
+      }
+    } catch (error: any) {
+      message.error(error.response?.data?.message || 'Có lỗi xảy ra khi chấm dứt hợp đồng');
     } finally {
       setLoading(false);
     }

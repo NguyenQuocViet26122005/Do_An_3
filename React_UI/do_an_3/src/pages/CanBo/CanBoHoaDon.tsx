@@ -47,7 +47,65 @@ const CanBoHoaDon: React.FC = () => {
 
   const handleCreate = () => {
     form.resetFields();
+    // Đặt mặc định tháng và năm hiện tại
+    const now = new Date();
+    form.setFieldsValue({
+      thang: now.getMonth() + 1,
+      nam: now.getFullYear(),
+    });
     setCreateVisible(true);
+  };
+
+  const generateSoHoaDon = (hopDong: any, thang?: number, nam?: number) => {
+    const month = thang || new Date().getMonth() + 1;
+    const year = nam || new Date().getFullYear();
+    // Format: HD + Năm + Tháng + Số hợp đồng
+    // Ví dụ: HD202608000006 (Năm 2026, Tháng 08, Hợp đồng 000006)
+    const hopDongNumber = String(hopDong.maHopDong).padStart(6, '0');
+    return `HD${year}${String(month).padStart(2, '0')}${hopDongNumber}`;
+  };
+
+  const handleHopDongChange = (maHopDong: number) => {
+    // Tìm hợp đồng được chọn
+    const selectedHopDong = hopDongs.find(hd => hd.maHopDong === maHopDong);
+    
+    console.log('🔍 DEBUG - Selected Hop Dong:', selectedHopDong);
+    console.log('🔍 DEBUG - Gia Thue:', selectedHopDong?.giaThue);
+    
+    if (selectedHopDong) {
+      const currentMonth = form.getFieldValue('thang') || new Date().getMonth() + 1;
+      const currentYear = form.getFieldValue('nam') || new Date().getFullYear();
+      
+      // Tự động tạo số hóa đơn
+      const soHoaDon = generateSoHoaDon(selectedHopDong, currentMonth, currentYear);
+      
+      // Tự động điền tất cả thông tin
+      form.setFieldsValue({
+        soHoaDon: soHoaDon,
+        maSinhVien: selectedHopDong.maSinhVien,
+        tienPhong: selectedHopDong.giaThue,
+        tienDien: 0,
+        tienNuoc: 0,
+        phiDichVu: 0,
+        phiPhat: 0,
+      });
+      
+      console.log('✅ DEBUG - Form values after set:', form.getFieldsValue());
+    }
+  };
+
+  const handleThangNamChange = () => {
+    // Khi thay đổi tháng/năm, cập nhật lại số hóa đơn
+    const maHopDong = form.getFieldValue('maHopDong');
+    if (maHopDong) {
+      const selectedHopDong = hopDongs.find(hd => hd.maHopDong === maHopDong);
+      if (selectedHopDong) {
+        const thang = form.getFieldValue('thang');
+        const nam = form.getFieldValue('nam');
+        const soHoaDon = generateSoHoaDon(selectedHopDong, thang, nam);
+        form.setFieldsValue({ soHoaDon });
+      }
+    }
   };
 
   const handleSubmit = async (values: any) => {
@@ -142,32 +200,73 @@ const CanBoHoaDon: React.FC = () => {
 
       <Modal title="Tạo hóa đơn" open={createVisible} onCancel={() => setCreateVisible(false)} onOk={() => form.submit()} width={700}>
         <Form form={form} layout="vertical" onFinish={handleSubmit}>
-          <Form.Item name="soHoaDon" label="Số hóa đơn" rules={[{ required: true, message: 'Số hóa đơn bắt buộc' }]}>
-            <Input placeholder="Ví dụ: HD2025-001" />
+          <Form.Item 
+            name="soHoaDon" 
+            label={
+              <span>
+                Số hóa đơn <span style={{ color: '#999', fontSize: '12px' }}>(Tự động tạo)</span>
+              </span>
+            }
+            rules={[{ required: true, message: 'Vui lòng chọn hợp đồng trước' }]}
+          >
+            <Input disabled placeholder="Sẽ tự động tạo khi chọn hợp đồng" />
           </Form.Item>
           <Form.Item name="maHopDong" label="Hợp đồng" rules={[{ required: true, message: 'Vui lòng chọn hợp đồng' }]}>
-            <Select placeholder="Chọn hợp đồng" showSearch optionFilterProp="children">
-              {hopDongs.map(hd => <Select.Option key={hd.maHopDong} value={hd.maHopDong}>{hd.soHopDong} - {hd.tenSinhVien || hd.maSinhVien}</Select.Option>)}
+            <Select 
+              placeholder="Chọn hợp đồng" 
+              showSearch 
+              optionFilterProp="children"
+              onChange={handleHopDongChange}
+            >
+              {hopDongs.filter(hd => hd.trangThai === 'HieuLuc').map(hd => (
+                <Select.Option key={hd.maHopDong} value={hd.maHopDong}>
+                  {hd.soHopDong} - {hd.tenSinhVien} - {hd.tenPhong} ({hd.giaThue?.toLocaleString('vi-VN')} VNĐ/tháng)
+                </Select.Option>
+              ))}
             </Select>
           </Form.Item>
           <Form.Item name="maSinhVien" label="Sinh viên" rules={[{ required: true, message: 'Vui lòng chọn sinh viên' }]}>
-            <Select placeholder="Chọn sinh viên" showSearch optionFilterProp="children">
+            <Select placeholder="Tự động điền từ hợp đồng" disabled showSearch optionFilterProp="children">
               {sinhViens.map(sv => <Select.Option key={sv.maSinhVien} value={sv.maSinhVien}>{sv.maSV} - {sv.hoTen}</Select.Option>)}
             </Select>
           </Form.Item>
           <Form.Item name="thang" label="Tháng" rules={[{ required: true, message: 'Vui lòng chọn tháng' }]}>
-            <Select placeholder="Chọn tháng">{months.map(m => <Select.Option key={m} value={m}>{m}</Select.Option>)}</Select>
+            <Select placeholder="Chọn tháng" onChange={handleThangNamChange}>
+              {months.map(m => <Select.Option key={m} value={m}>Tháng {m}</Select.Option>)}
+            </Select>
           </Form.Item>
           <Form.Item name="nam" label="Năm" rules={[{ required: true, message: 'Vui lòng chọn năm' }]}>
-            <Select placeholder="Chọn năm">{years.map(y => <Select.Option key={y} value={y}>{y}</Select.Option>)}</Select>
+            <Select placeholder="Chọn năm" onChange={handleThangNamChange}>
+              {years.map(y => <Select.Option key={y} value={y}>Năm {y}</Select.Option>)}
+            </Select>
           </Form.Item>
-          <Form.Item name="tienPhong" label="Tiền phòng" rules={[{ required: true, message: 'Vui lòng nhập tiền phòng' }]}>
-            <InputNumber min={0} style={{ width: '100%' }} />
+          <Form.Item 
+            name="tienPhong" 
+            label={
+              <span>
+                Tiền phòng <span style={{ color: '#999', fontSize: '12px' }}>(Tự động từ hợp đồng)</span>
+              </span>
+            }
+            rules={[{ required: true, message: 'Vui lòng chọn hợp đồng trước' }]}
+          >
+            <InputNumber 
+              min={0} 
+              style={{ width: '100%' }} 
+              placeholder="Tự động điền từ hợp đồng"
+            />
           </Form.Item>
-          <Form.Item name="tienDien" label="Tiền điện"><InputNumber min={0} style={{ width: '100%' }} /></Form.Item>
-          <Form.Item name="tienNuoc" label="Tiền nước"><InputNumber min={0} style={{ width: '100%' }} /></Form.Item>
-          <Form.Item name="phiDichVu" label="Phí dịch vụ"><InputNumber min={0} style={{ width: '100%' }} /></Form.Item>
-          <Form.Item name="phiPhat" label="Phí phạt"><InputNumber min={0} style={{ width: '100%' }} /></Form.Item>
+          <Form.Item name="tienDien" label="Tiền điện">
+            <InputNumber min={0} style={{ width: '100%' }} placeholder="0" />
+          </Form.Item>
+          <Form.Item name="tienNuoc" label="Tiền nước">
+            <InputNumber min={0} style={{ width: '100%' }} placeholder="0" />
+          </Form.Item>
+          <Form.Item name="phiDichVu" label="Phí dịch vụ">
+            <InputNumber min={0} style={{ width: '100%' }} placeholder="0" />
+          </Form.Item>
+          <Form.Item name="phiPhat" label="Phí phạt">
+            <InputNumber min={0} style={{ width: '100%' }} placeholder="0" />
+          </Form.Item>
         </Form>
       </Modal>
 

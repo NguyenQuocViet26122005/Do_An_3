@@ -205,5 +205,77 @@ namespace Api_Gateway.BLL
                 return ApiResponse<HopDongDTO>.ErrorResponse($"Lỗi: {ex.Message}");
             }
         }
+
+        public async Task<ApiResponse<HopDongDTO>> ChamDut(int maHopDong)
+        {
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                var hopDong = await _unitOfWork.HopDongs.Query()
+                    .Include(h => h.MaSinhVienNavigation).ThenInclude(s => s!.MaNguoiDungNavigation)
+                    .Include(h => h.MaPhongNavigation).ThenInclude(p => p!.MaToaNhaNavigation)
+                    .Include(h => h.MaGiuongNavigation)
+                    .Include(h => h.MaCanBoTaoNavigation).ThenInclude(c => c!.MaNguoiDungNavigation)
+                    .FirstOrDefaultAsync(h => h.MaHopDong == maHopDong);
+
+                if (hopDong == null)
+                {
+                    await _unitOfWork.RollbackAsync();
+                    return ApiResponse<HopDongDTO>.ErrorResponse("Không tìm thấy hợp đồng");
+                }
+
+                if (hopDong.TrangThai == "ChamDut")
+                {
+                    await _unitOfWork.RollbackAsync();
+                    return ApiResponse<HopDongDTO>.ErrorResponse("Hợp đồng đã được chấm dứt trước đó");
+                }
+
+                // KIỂM TRA HÓA ĐƠN CHƯA THANH TOÁN
+                var hoaDonChuaThanhToan = await _unitOfWork.HoaDons.Query()
+                    .Where(hd => hd.MaHopDong == maHopDong && hd.TrangThai == "ChuaThanhToan")
+                    .CountAsync();
+
+                if (hoaDonChuaThanhToan > 0)
+                {
+                    await _unitOfWork.RollbackAsync();
+                    return ApiResponse<HopDongDTO>.ErrorResponse(
+                        $"Không thể chấm dứt hợp đồng. Còn {hoaDonChuaThanhToan} hóa đơn chưa thanh toán. Vui lòng thanh toán hoặc xử lý hóa đơn trước.");
+                }
+
+                // Đổi trạng thái hợp đồng
+                hopDong.TrangThai = "ChamDut";
+                _unitOfWork.HopDongs.Update(hopDong);
+
+                // Giải phóng giường
+                var giuong = await _unitOfWork.Giuongs.GetByIdAsync(hopDong.MaGiuong);
+                if (giuong != null)
+                {
+                    giuong.TrangThai = "ConTrong";
+                    giuong.MaSinhVien = null;
+                    _unitOfWork.Giuongs.Update(giuong);
+                }
+
+                // Cập nhật phòng
+                var phong = await _unitOfWork.Phongs.GetByIdAsync(hopDong.MaPhong);
+                if (phong != null && phong.SoNguoiHienTai > 0)
+                {
+                    phong.SoNguoiHienTai = (phong.SoNguoiHienTai ?? 0) - 1;
+                    if (phong.SoNguoiHienTai < phong.SucChua)
+                    {
+                        phong.TrangThai = "ConTrong";
+                    }
+                    _unitOfWork.Phongs.Update(phong);
+                }
+
+                await _unitOfWork.CommitAsync();
+
+                return ApiResponse<HopDongDTO>.SuccessResponse(ToDto(hopDong), "Chấm dứt hợp đồng thành công");
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackAsync();
+                return ApiResponse<HopDongDTO>.ErrorResponse($"Lỗi: {ex.Message}");
+            }
+        }
     }
 }
