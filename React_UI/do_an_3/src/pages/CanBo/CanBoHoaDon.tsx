@@ -3,17 +3,16 @@ import { Table, Button, Modal, Tag, Space, message, Descriptions, Spin, Form, In
 import { EyeOutlined, DollarOutlined, PlusOutlined } from '@ant-design/icons';
 import hoaDonService from '../../services/hoaDonService';
 import hopDongService from '../../services/hopDongService';
-import sinhVienService from '../../services/sinhVienService';
 
 const CanBoHoaDon: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any[]>([]);
   const [detailVisible, setDetailVisible] = useState(false);
-  const [createVisible, setCreateVisible] = useState(false);
+  const [createTheoPhongVisible, setCreateTheoPhongVisible] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
-  const [hopDongs, setHopDongs] = useState<any[]>([]);
-  const [sinhViens, setSinhViens] = useState<any[]>([]);
-  const [form] = Form.useForm();
+  const [hoaDonCungPhong, setHoaDonCungPhong] = useState<any[]>([]);
+  const [phongs, setPhongs] = useState<any[]>([]);
+  const [formPhong] = Form.useForm();
 
   useEffect(() => {
     fetchData();
@@ -34,92 +33,44 @@ const CanBoHoaDon: React.FC = () => {
 
   const fetchFormData = async () => {
     try {
-      const [hopDongResponse, sinhVienResponse] = await Promise.all([
-        hopDongService.getAll(),
-        sinhVienService.getAll(),
-      ]);
-      if (hopDongResponse.success) setHopDongs(hopDongResponse.data || []);
-      if (sinhVienResponse.success) setSinhViens(sinhVienResponse.data || []);
+      const hopDongResponse = await hopDongService.getAll();
+      
+      // Lấy danh sách phòng (từ hợp đồng)
+      const phongUnique = new Map();
+      hopDongResponse.data?.forEach((hd: any) => {
+        if (hd.maPhong && !phongUnique.has(hd.maPhong)) {
+          phongUnique.set(hd.maPhong, {
+            maPhong: hd.maPhong,
+            tenPhong: hd.tenPhong,
+            tenToaNha: hd.tenToaNha
+          });
+        }
+      });
+      setPhongs(Array.from(phongUnique.values()));
     } catch (error) {
       console.error('Lỗi khi tải dữ liệu form:', error);
     }
   };
 
-  const handleCreate = () => {
-    form.resetFields();
-    // Đặt mặc định tháng và năm hiện tại
+  const handleCreateTheoPhong = () => {
+    formPhong.resetFields();
     const now = new Date();
-    form.setFieldsValue({
+    formPhong.setFieldsValue({
       thang: now.getMonth() + 1,
       nam: now.getFullYear(),
+      giaDien: 3500,
+      giaNuoc: 10000,
+      phiDichVuMoiNguoi: 30000,
     });
-    setCreateVisible(true);
+    setCreateTheoPhongVisible(true);
   };
 
-  const generateSoHoaDon = (hopDong: any, thang?: number, nam?: number) => {
-    const month = thang || new Date().getMonth() + 1;
-    const year = nam || new Date().getFullYear();
-    // Format: HD + Năm + Tháng + Số hợp đồng
-    // Ví dụ: HD202608000006 (Năm 2026, Tháng 08, Hợp đồng 000006)
-    const hopDongNumber = String(hopDong.maHopDong).padStart(6, '0');
-    return `HD${year}${String(month).padStart(2, '0')}${hopDongNumber}`;
-  };
-
-  const handleHopDongChange = (maHopDong: number) => {
-    // Tìm hợp đồng được chọn
-    const selectedHopDong = hopDongs.find(hd => hd.maHopDong === maHopDong);
-    
-    console.log('🔍 DEBUG - Selected Hop Dong:', selectedHopDong);
-    console.log('🔍 DEBUG - Gia Thue:', selectedHopDong?.giaThue);
-    
-    if (selectedHopDong) {
-      const currentMonth = form.getFieldValue('thang') || new Date().getMonth() + 1;
-      const currentYear = form.getFieldValue('nam') || new Date().getFullYear();
-      
-      // Tự động tạo số hóa đơn
-      const soHoaDon = generateSoHoaDon(selectedHopDong, currentMonth, currentYear);
-      
-      // Tự động điền tất cả thông tin
-      form.setFieldsValue({
-        soHoaDon: soHoaDon,
-        maSinhVien: selectedHopDong.maSinhVien,
-        tienPhong: selectedHopDong.giaThue,
-        tienDien: 0,
-        tienNuoc: 0,
-        phiDichVu: 0,
-        phiPhat: 0,
-      });
-      
-      console.log('✅ DEBUG - Form values after set:', form.getFieldsValue());
-    }
-  };
-
-  const handleThangNamChange = () => {
-    // Khi thay đổi tháng/năm, cập nhật lại số hóa đơn
-    const maHopDong = form.getFieldValue('maHopDong');
-    if (maHopDong) {
-      const selectedHopDong = hopDongs.find(hd => hd.maHopDong === maHopDong);
-      if (selectedHopDong) {
-        const thang = form.getFieldValue('thang');
-        const nam = form.getFieldValue('nam');
-        const soHoaDon = generateSoHoaDon(selectedHopDong, thang, nam);
-        form.setFieldsValue({ soHoaDon });
-      }
-    }
-  };
-
-  const handleSubmit = async (values: any) => {
+  const handleSubmitTheoPhong = async (values: any) => {
     try {
-      const response = await hoaDonService.create({
-        ...values,
-        tienDien: values.tienDien ?? 0,
-        tienNuoc: values.tienNuoc ?? 0,
-        phiDichVu: values.phiDichVu ?? 0,
-        phiPhat: values.phiPhat ?? 0,
-      });
+      const response = await hoaDonService.createTheoPhong(values);
       if (response.success) {
-        message.success('Tạo hóa đơn thành công!');
-        setCreateVisible(false);
+        message.success(response.message || `Đã tạo ${response.data?.length || 0} hóa đơn thành công!`, 5);
+        setCreateTheoPhongVisible(false);
         fetchData();
       } else {
         message.error(response.message || 'Tạo hóa đơn thất bại');
@@ -131,6 +82,15 @@ const CanBoHoaDon: React.FC = () => {
 
   const handleView = (record: any) => {
     setSelectedRecord(record);
+    
+    // Lọc tất cả hóa đơn trong cùng phòng (theo MaPhong), cùng tháng/năm
+    const hoaDonCungPhongVaThang = data.filter(hd => 
+      hd.maPhong === record.maPhong && 
+      hd.thang === record.thang && 
+      hd.nam === record.nam
+    );
+    
+    setHoaDonCungPhong(hoaDonCungPhongVaThang);
     setDetailVisible(true);
   };
 
@@ -194,99 +154,192 @@ const CanBoHoaDon: React.FC = () => {
   return (
     <div>
       <div style={{ marginBottom: 16 }}>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>Tạo hóa đơn</Button>
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleCreateTheoPhong}>Tạo hóa đơn theo phòng</Button>
       </div>
       <Table columns={columns} dataSource={data} loading={loading} rowKey="maHoaDon" />
 
-      <Modal title="Tạo hóa đơn" open={createVisible} onCancel={() => setCreateVisible(false)} onOk={() => form.submit()} width={700}>
-        <Form form={form} layout="vertical" onFinish={handleSubmit}>
-          <Form.Item 
-            name="soHoaDon" 
-            label={
-              <span>
-                Số hóa đơn <span style={{ color: '#999', fontSize: '12px' }}>(Tự động tạo)</span>
-              </span>
-            }
-            rules={[{ required: true, message: 'Vui lòng chọn hợp đồng trước' }]}
-          >
-            <Input disabled placeholder="Sẽ tự động tạo khi chọn hợp đồng" />
-          </Form.Item>
-          <Form.Item name="maHopDong" label="Hợp đồng" rules={[{ required: true, message: 'Vui lòng chọn hợp đồng' }]}>
-            <Select 
-              placeholder="Chọn hợp đồng" 
-              showSearch 
-              optionFilterProp="children"
-              onChange={handleHopDongChange}
-            >
-              {hopDongs.filter(hd => hd.trangThai === 'HieuLuc').map(hd => (
-                <Select.Option key={hd.maHopDong} value={hd.maHopDong}>
-                  {hd.soHopDong} - {hd.tenSinhVien} - {hd.tenPhong} ({hd.giaThue?.toLocaleString('vi-VN')} VNĐ/tháng)
+      <Modal 
+        title={`Chi tiết hóa đơn - ${selectedRecord?.tenToaNha || ''} ${selectedRecord?.tenPhong || ''} (Tháng ${selectedRecord?.thang}/${selectedRecord?.nam})`}
+        open={detailVisible} 
+        onCancel={() => setDetailVisible(false)} 
+        footer={null} 
+        width={900}
+      >
+        {selectedRecord && (
+          <div>
+            {/* Thông tin chung của phòng */}
+            <div style={{ background: '#f5f5f5', padding: '12px', borderRadius: '8px', marginBottom: '16px' }}>
+              <h4 style={{ marginTop: 0 }}>📍 Thông tin phòng</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', fontSize: '14px' }}>
+                <div><strong>Tòa nhà - Phòng:</strong> {selectedRecord.tenToaNha} - {selectedRecord.tenPhong}</div>
+                <div><strong>Tháng/Năm:</strong> {selectedRecord.thang}/{selectedRecord.nam}</div>
+                <div><strong>Tổng sinh viên:</strong> {hoaDonCungPhong.length} người</div>
+              </div>
+            </div>
+
+            {/* Danh sách hóa đơn từng sinh viên */}
+            <h4>👥 Hóa đơn của từng sinh viên:</h4>
+            {hoaDonCungPhong.map((hd, index) => (
+              <div 
+                key={hd.maHoaDon} 
+                style={{ 
+                  border: hd.maHoaDon === selectedRecord.maHoaDon ? '2px solid #1890ff' : '1px solid #d9d9d9',
+                  borderRadius: '8px', 
+                  padding: '12px', 
+                  marginBottom: '12px',
+                  background: hd.maHoaDon === selectedRecord.maHoaDon ? '#e6f7ff' : 'white'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <h4 style={{ margin: 0 }}>
+                    {index + 1}. {hd.tenSinhVien} ({hd.maSV})
+                    {hd.maHoaDon === selectedRecord.maHoaDon && <span style={{ color: '#1890ff', marginLeft: '8px' }}>← Đang xem</span>}
+                  </h4>
+                  <Tag color={hd.trangThai === 'DaThanhToan' ? 'green' : 'orange'}>
+                    {hd.trangThai === 'DaThanhToan' ? 'Đã thanh toán' : 'Chưa thanh toán'}
+                  </Tag>
+                </div>
+                
+                <Descriptions size="small" column={3} bordered>
+                  <Descriptions.Item label="Số HĐ" span={3}>{hd.soHoaDon}</Descriptions.Item>
+                  <Descriptions.Item label="Tiền phòng">{hd.tienPhong?.toLocaleString('vi-VN')} VNĐ</Descriptions.Item>
+                  <Descriptions.Item label="Tiền điện">{hd.tienDien?.toLocaleString('vi-VN')} VNĐ</Descriptions.Item>
+                  <Descriptions.Item label="Tiền nước">{hd.tienNuoc?.toLocaleString('vi-VN')} VNĐ</Descriptions.Item>
+                  <Descriptions.Item label="Phí dịch vụ">{hd.phiDichVu?.toLocaleString('vi-VN')} VNĐ</Descriptions.Item>
+                  <Descriptions.Item label="Phí phạt">{hd.phiPhat?.toLocaleString('vi-VN')} VNĐ</Descriptions.Item>
+                  <Descriptions.Item label="Tổng cộng">
+                    <strong style={{ fontSize: '16px', color: '#f5222d' }}>
+                      {hd.tongTien?.toLocaleString('vi-VN')} VNĐ
+                    </strong>
+                  </Descriptions.Item>
+                </Descriptions>
+
+                {hd.trangThai === 'DaThanhToan' && (
+                  <div style={{ marginTop: '8px', fontSize: '12px', color: '#52c41a' }}>
+                    ✓ Đã thanh toán: {new Date(hd.ngayThanhToan).toLocaleDateString('vi-VN')} - {hd.phuongThucThanhToan}
+                  </div>
+                )}
+              </div>
+            ))}
+
+            {/* Tổng kết */}
+            <div style={{ background: '#fff7e6', padding: '12px', borderRadius: '8px', border: '1px solid #ffd666' }}>
+              <h4 style={{ marginTop: 0 }}>💰 Tổng kết {selectedRecord.tenToaNha} - Phòng {selectedRecord.tenPhong}</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                <div><strong>Tổng tiền tất cả SV:</strong> {hoaDonCungPhong.reduce((sum, hd) => sum + hd.tongTien, 0).toLocaleString('vi-VN')} VNĐ</div>
+                <div>
+                  <strong>Đã thu:</strong> {hoaDonCungPhong.filter(hd => hd.trangThai === 'DaThanhToan').reduce((sum, hd) => sum + hd.tongTien, 0).toLocaleString('vi-VN')} VNĐ
+                </div>
+                <div><strong>Số SV đã thanh toán:</strong> {hoaDonCungPhong.filter(hd => hd.trangThai === 'DaThanhToan').length}/{hoaDonCungPhong.length}</div>
+                <div>
+                  <strong>Còn phải thu:</strong> {hoaDonCungPhong.filter(hd => hd.trangThai === 'ChuaThanhToan').reduce((sum, hd) => sum + hd.tongTien, 0).toLocaleString('vi-VN')} VNĐ
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Modal tạo hóa đơn theo phòng */}
+      <Modal 
+        title="🏠 Tạo hóa đơn theo phòng" 
+        open={createTheoPhongVisible} 
+        onCancel={() => setCreateTheoPhongVisible(false)} 
+        onOk={() => formPhong.submit()} 
+        width={800}
+        okText="Tạo hóa đơn"
+        cancelText="Hủy"
+      >
+        <Form form={formPhong} layout="vertical" onFinish={handleSubmitTheoPhong}>
+          <Form.Item name="maPhong" label="Chọn phòng" rules={[{ required: true, message: 'Vui lòng chọn phòng' }]}>
+            <Select placeholder="Chọn phòng" showSearch optionFilterProp="children">
+              {phongs.map(p => (
+                <Select.Option key={p.maPhong} value={p.maPhong}>
+                  {p.tenToaNha} - {p.tenPhong}
                 </Select.Option>
               ))}
             </Select>
           </Form.Item>
-          <Form.Item name="maSinhVien" label="Sinh viên" rules={[{ required: true, message: 'Vui lòng chọn sinh viên' }]}>
-            <Select placeholder="Tự động điền từ hợp đồng" disabled showSearch optionFilterProp="children">
-              {sinhViens.map(sv => <Select.Option key={sv.maSinhVien} value={sv.maSinhVien}>{sv.maSV} - {sv.hoTen}</Select.Option>)}
-            </Select>
-          </Form.Item>
-          <Form.Item name="thang" label="Tháng" rules={[{ required: true, message: 'Vui lòng chọn tháng' }]}>
-            <Select placeholder="Chọn tháng" onChange={handleThangNamChange}>
-              {months.map(m => <Select.Option key={m} value={m}>Tháng {m}</Select.Option>)}
-            </Select>
-          </Form.Item>
-          <Form.Item name="nam" label="Năm" rules={[{ required: true, message: 'Vui lòng chọn năm' }]}>
-            <Select placeholder="Chọn năm" onChange={handleThangNamChange}>
-              {years.map(y => <Select.Option key={y} value={y}>Năm {y}</Select.Option>)}
-            </Select>
-          </Form.Item>
-          <Form.Item 
-            name="tienPhong" 
-            label={
-              <span>
-                Tiền phòng <span style={{ color: '#999', fontSize: '12px' }}>(Tự động từ hợp đồng)</span>
-              </span>
-            }
-            rules={[{ required: true, message: 'Vui lòng chọn hợp đồng trước' }]}
-          >
-            <InputNumber 
-              min={0} 
-              style={{ width: '100%' }} 
-              placeholder="Tự động điền từ hợp đồng"
-            />
-          </Form.Item>
-          <Form.Item name="tienDien" label="Tiền điện">
-            <InputNumber min={0} style={{ width: '100%' }} placeholder="0" />
-          </Form.Item>
-          <Form.Item name="tienNuoc" label="Tiền nước">
-            <InputNumber min={0} style={{ width: '100%' }} placeholder="0" />
-          </Form.Item>
-          <Form.Item name="phiDichVu" label="Phí dịch vụ">
-            <InputNumber min={0} style={{ width: '100%' }} placeholder="0" />
-          </Form.Item>
-          <Form.Item name="phiPhat" label="Phí phạt">
-            <InputNumber min={0} style={{ width: '100%' }} placeholder="0" />
-          </Form.Item>
-        </Form>
-      </Modal>
 
-      <Modal title="Chi tiết hóa đơn" open={detailVisible} onCancel={() => setDetailVisible(false)} footer={null} width={700}>
-        {selectedRecord && (
-          <Descriptions bordered column={2}>
-            <Descriptions.Item label="Số hóa đơn" span={2}>{selectedRecord.soHoaDon}</Descriptions.Item>
-            <Descriptions.Item label="Sinh viên">{selectedRecord.tenSinhVien}</Descriptions.Item>
-            <Descriptions.Item label="Mã SV">{selectedRecord.maSV}</Descriptions.Item>
-            <Descriptions.Item label="Phòng">{selectedRecord.tenPhong}</Descriptions.Item>
-            <Descriptions.Item label="Tháng/Năm">{selectedRecord.thang}/{selectedRecord.nam}</Descriptions.Item>
-            <Descriptions.Item label="Tiền phòng">{selectedRecord.tienPhong?.toLocaleString('vi-VN')} VNĐ</Descriptions.Item>
-            <Descriptions.Item label="Tiền điện">{selectedRecord.tienDien?.toLocaleString('vi-VN')} VNĐ</Descriptions.Item>
-            <Descriptions.Item label="Tiền nước">{selectedRecord.tienNuoc?.toLocaleString('vi-VN')} VNĐ</Descriptions.Item>
-            <Descriptions.Item label="Phí dịch vụ">{selectedRecord.phiDichVu?.toLocaleString('vi-VN')} VNĐ</Descriptions.Item>
-            <Descriptions.Item label="Tổng tiền" span={2}><strong style={{ fontSize: '18px', color: '#f5222d' }}>{selectedRecord.tongTien?.toLocaleString('vi-VN')} VNĐ</strong></Descriptions.Item>
-            <Descriptions.Item label="Trạng thái" span={2}><Tag color={selectedRecord.trangThai === 'DaThanhToan' ? 'green' : 'orange'}>{selectedRecord.trangThai === 'DaThanhToan' ? 'Đã thanh toán' : 'Chưa thanh toán'}</Tag></Descriptions.Item>
-            {selectedRecord.trangThai === 'DaThanhToan' && <><Descriptions.Item label="Ngày thanh toán">{selectedRecord.ngayThanhToan}</Descriptions.Item><Descriptions.Item label="Phương thức">{selectedRecord.phuongThucThanhToan}</Descriptions.Item></>}
-          </Descriptions>
-        )}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <Form.Item name="thang" label="Tháng" rules={[{ required: true }]}>
+              <Select>
+                {months.map(m => <Select.Option key={m} value={m}>Tháng {m}</Select.Option>)}
+              </Select>
+            </Form.Item>
+            <Form.Item name="nam" label="Năm" rules={[{ required: true }]}>
+              <Select>
+                {years.map(y => <Select.Option key={y} value={y}>Năm {y}</Select.Option>)}
+              </Select>
+            </Form.Item>
+          </div>
+
+          <div style={{ background: '#f0f2f5', padding: '16px', borderRadius: '8px', marginBottom: '16px' }}>
+            <h4 style={{ marginTop: 0 }}>⚡ Chỉ số điện</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+              <Form.Item name="chiSoDienCu" label="Chỉ số cũ (kWh)" rules={[{ required: true }]}>
+                <InputNumber min={0} style={{ width: '100%' }} placeholder="120" />
+              </Form.Item>
+              <Form.Item name="chiSoDienMoi" label="Chỉ số mới (kWh)" rules={[{ required: true }]}>
+                <InputNumber min={0} style={{ width: '100%' }} placeholder="150" />
+              </Form.Item>
+              <Form.Item name="giaDien" label="Giá điện (VNĐ/kWh)" rules={[{ required: true }]}>
+                <InputNumber min={0} style={{ width: '100%' }} />
+              </Form.Item>
+            </div>
+            <Form.Item noStyle shouldUpdate>
+              {() => {
+                const cu = formPhong.getFieldValue('chiSoDienCu') || 0;
+                const moi = formPhong.getFieldValue('chiSoDienMoi') || 0;
+                const gia = formPhong.getFieldValue('giaDien') || 3500;
+                const tieu = moi - cu;
+                const tong = tieu * gia;
+                return tieu >= 0 && (
+                  <div style={{ fontSize: '13px', color: '#666' }}>
+                    Tiêu thụ: <strong>{tieu} kWh</strong> × {gia.toLocaleString()} = <strong style={{ color: '#1890ff' }}>{tong.toLocaleString()} VNĐ</strong> (sẽ chia đều cho sinh viên)
+                  </div>
+                );
+              }}
+            </Form.Item>
+          </div>
+
+          <div style={{ background: '#f0f2f5', padding: '16px', borderRadius: '8px', marginBottom: '16px' }}>
+            <h4 style={{ marginTop: 0 }}>💧 Chỉ số nước</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+              <Form.Item name="chiSoNuocCu" label="Chỉ số cũ (m³)" rules={[{ required: true }]}>
+                <InputNumber min={0} style={{ width: '100%' }} placeholder="30" />
+              </Form.Item>
+              <Form.Item name="chiSoNuocMoi" label="Chỉ số mới (m³)" rules={[{ required: true }]}>
+                <InputNumber min={0} style={{ width: '100%' }} placeholder="39" />
+              </Form.Item>
+              <Form.Item name="giaNuoc" label="Giá nước (VNĐ/m³)" rules={[{ required: true }]}>
+                <InputNumber min={0} style={{ width: '100%' }} />
+              </Form.Item>
+            </div>
+            <Form.Item noStyle shouldUpdate>
+              {() => {
+                const cu = formPhong.getFieldValue('chiSoNuocCu') || 0;
+                const moi = formPhong.getFieldValue('chiSoNuocMoi') || 0;
+                const gia = formPhong.getFieldValue('giaNuoc') || 10000;
+                const tieu = moi - cu;
+                const tong = tieu * gia;
+                return tieu >= 0 && (
+                  <div style={{ fontSize: '13px', color: '#666' }}>
+                    Tiêu thụ: <strong>{tieu} m³</strong> × {gia.toLocaleString()} = <strong style={{ color: '#1890ff' }}>{tong.toLocaleString()} VNĐ</strong> (sẽ chia đều cho sinh viên)
+                  </div>
+                );
+              }}
+            </Form.Item>
+          </div>
+
+          <Form.Item name="phiDichVuMoiNguoi" label="Phí dịch vụ (mỗi người/tháng)" rules={[{ required: true }]}>
+            <InputNumber min={0} style={{ width: '100%' }} addonAfter="VNĐ" />
+          </Form.Item>
+
+          <div style={{ background: '#e6f7ff', padding: '12px', borderRadius: '8px', border: '1px solid #91d5ff' }}>
+            <strong>💡 Lưu ý:</strong> Hệ thống sẽ tự động tạo hóa đơn cho TẤT CẢ sinh viên trong phòng và chia đều tiền điện/nước theo số người.
+          </div>
+        </Form>
       </Modal>
     </div>
   );

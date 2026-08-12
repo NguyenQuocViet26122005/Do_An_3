@@ -65,6 +65,22 @@ const hoaDonService = {
     });
     return response.data;
   },
+
+  createTheoPhong: async (data: {
+    maPhong: number;
+    thang: number;
+    nam: number;
+    chiSoDienCu: number;
+    chiSoDienMoi: number;
+    giaDien: number;
+    chiSoNuocCu: number;
+    chiSoNuocMoi: number;
+    giaNuoc: number;
+    phiDichVuMoiNguoi: number;
+  }) => {
+    const response = await api.post('/hoadon/theo-phong', data);
+    return response.data;
+  },
 };
 
 export default hoaDonService;

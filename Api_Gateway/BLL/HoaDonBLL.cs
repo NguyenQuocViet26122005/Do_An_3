@@ -50,7 +50,9 @@ namespace Api_Gateway.BLL
                     MaSinhVien = h.MaSinhVien,
                     TenSinhVien = h.MaSinhVienNavigation?.MaNguoiDungNavigation?.HoTen,
                     MaSV = h.MaSinhVienNavigation?.MaSv,
+                    MaPhong = h.MaHopDongNavigation?.MaPhong,
                     TenPhong = h.MaHopDongNavigation?.MaPhongNavigation?.SoPhong,
+                    TenToaNha = h.MaHopDongNavigation?.MaPhongNavigation?.MaToaNhaNavigation?.TenToaNha,
                     Thang = h.Thang,
                     Nam = h.Nam,
                     TienPhong = h.TienPhong ?? 0,
@@ -61,9 +63,16 @@ namespace Api_Gateway.BLL
                     TongTien = h.TongTien,
                     TrangThai = h.TrangThai,
                     NgayPhatHanh = h.NgayPhatHanh?.ToDateTime(TimeOnly.MinValue) ?? DateTime.MinValue,
+                    HanThanhToan = h.HanThanhToan,
                     NgayThanhToan = h.NgayThanhToan,
                     MaCanBoTao = h.MaCanBoTao,
-                    TenCanBoTao = h.MaCanBoTaoNavigation?.MaNguoiDungNavigation?.HoTen
+                    TenCanBoTao = h.MaCanBoTaoNavigation?.MaNguoiDungNavigation?.HoTen,
+                    ChiSoDienCu = h.ChiSoDienCu,
+                    ChiSoDienMoi = h.ChiSoDienMoi,
+                    ChiSoNuocCu = h.ChiSoNuocCu,
+                    ChiSoNuocMoi = h.ChiSoNuocMoi,
+                    PhuongThucThanhToan = h.PhuongThucThanhToan,
+                    MaGiaoDich = h.MaGiaoDich
                 }).ToList();
 
                 return ApiResponse<List<HoaDonDTO>>.SuccessResponse(result);
@@ -102,7 +111,9 @@ namespace Api_Gateway.BLL
                     MaSinhVien = hoaDon.MaSinhVien,
                     TenSinhVien = hoaDon.MaSinhVienNavigation?.MaNguoiDungNavigation?.HoTen,
                     MaSV = hoaDon.MaSinhVienNavigation?.MaSv,
+                    MaPhong = hoaDon.MaHopDongNavigation?.MaPhong,
                     TenPhong = hoaDon.MaHopDongNavigation?.MaPhongNavigation?.SoPhong,
+                    TenToaNha = hoaDon.MaHopDongNavigation?.MaPhongNavigation?.MaToaNhaNavigation?.TenToaNha,
                     Thang = hoaDon.Thang,
                     Nam = hoaDon.Nam,
                     TienPhong = hoaDon.TienPhong ?? 0,
@@ -113,9 +124,16 @@ namespace Api_Gateway.BLL
                     TongTien = hoaDon.TongTien,
                     TrangThai = hoaDon.TrangThai,
                     NgayPhatHanh = hoaDon.NgayPhatHanh?.ToDateTime(TimeOnly.MinValue) ?? DateTime.MinValue,
+                    HanThanhToan = hoaDon.HanThanhToan,
                     NgayThanhToan = hoaDon.NgayThanhToan,
                     MaCanBoTao = hoaDon.MaCanBoTao,
-                    TenCanBoTao = hoaDon.MaCanBoTaoNavigation?.MaNguoiDungNavigation?.HoTen
+                    TenCanBoTao = hoaDon.MaCanBoTaoNavigation?.MaNguoiDungNavigation?.HoTen,
+                    ChiSoDienCu = hoaDon.ChiSoDienCu,
+                    ChiSoDienMoi = hoaDon.ChiSoDienMoi,
+                    ChiSoNuocCu = hoaDon.ChiSoNuocCu,
+                    ChiSoNuocMoi = hoaDon.ChiSoNuocMoi,
+                    PhuongThucThanhToan = hoaDon.PhuongThucThanhToan,
+                    MaGiaoDich = hoaDon.MaGiaoDich
                 };
 
                 return ApiResponse<HoaDonDTO>.SuccessResponse(result);
@@ -169,7 +187,26 @@ namespace Api_Gateway.BLL
                     return ApiResponse<HoaDonDTO>.ErrorResponse("Hóa đơn tháng này đã tồn tại");
                 }
 
-                var tongTien = dto.TienPhong + dto.TienDien + dto.TienNuoc + dto.PhiDichVu + dto.PhiPhat;
+                // ===== LOGIC CHIA ĐỀU ĐIỆN NƯỚC THEO SỐ NGƯỜI =====
+                decimal tienDienThucTe = dto.TienDien;
+                decimal tienNuocThucTe = dto.TienNuoc;
+
+                if (dto.ChiaTheoPhong)
+                {
+                    // Lấy số người đang ở trong phòng
+                    var soNguoiO = hopDong.MaPhongNavigation?.SoNguoiHienTai ?? 1;
+                    
+                    if (soNguoiO <= 0)
+                    {
+                        return ApiResponse<HoaDonDTO>.ErrorResponse("Phòng không có người ở, không thể tạo hóa đơn");
+                    }
+
+                    // Chia đều tiền điện và nước
+                    tienDienThucTe = Math.Round(dto.TienDien / soNguoiO, 0); // Làm tròn đến đơn vị VNĐ
+                    tienNuocThucTe = Math.Round(dto.TienNuoc / soNguoiO, 0);
+                }
+
+                var tongTien = dto.TienPhong + tienDienThucTe + tienNuocThucTe + dto.PhiDichVu + dto.PhiPhat;
 
                 var hoaDon = new HoaDon
                 {
@@ -181,8 +218,8 @@ namespace Api_Gateway.BLL
                     NgayPhatHanh = DateOnly.FromDateTime(DateTime.Now),
                     HanThanhToan = DateOnly.FromDateTime(DateTime.Now.AddDays(15)),
                     TienPhong = dto.TienPhong,
-                    TienDien = dto.TienDien,
-                    TienNuoc = dto.TienNuoc,
+                    TienDien = tienDienThucTe,      // Đã chia đều nếu ChiaTheoPhong = true
+                    TienNuoc = tienNuocThucTe,      // Đã chia đều nếu ChiaTheoPhong = true
                     PhiDichVu = dto.PhiDichVu,
                     PhiPhat = dto.PhiPhat,
                     TongTien = tongTien,
@@ -249,6 +286,157 @@ namespace Api_Gateway.BLL
             catch (Exception ex)
             {
                 return ApiResponse<HoaDonDTO>.ErrorResponse($"Lỗi: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Tạo hóa đơn cho TẤT CẢ sinh viên trong phòng
+        /// Tự động chia đều tiền điện nước theo số người
+        /// </summary>
+        public async Task<ApiResponse<List<HoaDonDTO>>> CreateTheoPhong(
+            int maCanBo,
+            int maPhong,
+            int thang,
+            int nam,
+            decimal chiSoDienCu,
+            decimal chiSoDienMoi,
+            decimal giaDien,
+            decimal chiSoNuocCu,
+            decimal chiSoNuocMoi,
+            decimal giaNuoc,
+            decimal phiDichVuMoiNguoi)
+        {
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                // 1. Kiểm tra chỉ số
+                if (chiSoDienMoi < chiSoDienCu)
+                {
+                    await _unitOfWork.RollbackAsync();
+                    return ApiResponse<List<HoaDonDTO>>.ErrorResponse("Chỉ số điện mới phải >= chỉ số cũ");
+                }
+
+                if (chiSoNuocMoi < chiSoNuocCu)
+                {
+                    await _unitOfWork.RollbackAsync();
+                    return ApiResponse<List<HoaDonDTO>>.ErrorResponse("Chỉ số nước mới phải >= chỉ số cũ");
+                }
+
+                // 2. Lấy danh sách hợp đồng hiệu lực trong phòng
+                var hopDongs = await _unitOfWork.HopDongs.Query()
+                    .Include(h => h.MaSinhVienNavigation).ThenInclude(s => s!.MaNguoiDungNavigation)
+                    .Include(h => h.MaPhongNavigation).ThenInclude(p => p!.MaToaNhaNavigation)
+                    .Where(h => h.MaPhong == maPhong && h.TrangThai == "HieuLuc")
+                    .ToListAsync();
+
+                if (!hopDongs.Any())
+                {
+                    await _unitOfWork.RollbackAsync();
+                    return ApiResponse<List<HoaDonDTO>>.ErrorResponse("Không có sinh viên nào đang ở phòng này");
+                }
+
+                var soNguoiO = hopDongs.Count;
+                var phong = hopDongs.First().MaPhongNavigation;
+
+                // 3. Tính toán tiền điện nước
+                var soDienTieuThu = chiSoDienMoi - chiSoDienCu;
+                var soNuocTieuThu = chiSoNuocMoi - chiSoNuocCu;
+                var tongTienDien = soDienTieuThu * giaDien;
+                var tongTienNuoc = soNuocTieuThu * giaNuoc;
+
+                // Chia đều cho số người
+                var tienDienMoiNguoi = Math.Round(tongTienDien / soNguoiO, 0);
+                var tienNuocMoiNguoi = Math.Round(tongTienNuoc / soNguoiO, 0);
+
+                // 4. Tạo hóa đơn cho từng sinh viên
+                var danhSachHoaDon = new List<HoaDonDTO>();
+
+                foreach (var hopDong in hopDongs)
+                {
+                    // Kiểm tra đã có hóa đơn tháng này chưa
+                    if (await _unitOfWork.HoaDons.AnyAsync(h =>
+                        h.MaHopDong == hopDong.MaHopDong &&
+                        h.Thang == thang &&
+                        h.Nam == nam))
+                    {
+                        continue; // Skip nếu đã có
+                    }
+
+                    var soHoaDon = $"HD{nam}{thang:D2}{phong?.SoPhong}{hopDong.MaSinhVien}";
+                    var tongTien = hopDong.GiaThue + tienDienMoiNguoi + tienNuocMoiNguoi + phiDichVuMoiNguoi;
+
+                    var hoaDon = new HoaDon
+                    {
+                        SoHoaDon = soHoaDon,
+                        MaHopDong = hopDong.MaHopDong,
+                        MaSinhVien = hopDong.MaSinhVien,
+                        Thang = thang,
+                        Nam = nam,
+                        NgayPhatHanh = DateOnly.FromDateTime(DateTime.Now),
+                        HanThanhToan = DateOnly.FromDateTime(DateTime.Now.AddDays(15)),
+                        TienPhong = hopDong.GiaThue,
+                        TienDien = tienDienMoiNguoi,
+                        TienNuoc = tienNuocMoiNguoi,
+                        PhiDichVu = phiDichVuMoiNguoi,
+                        PhiPhat = 0,
+                        TongTien = tongTien,
+                        ChiSoDienCu = chiSoDienCu,
+                        ChiSoDienMoi = chiSoDienMoi,
+                        ChiSoNuocCu = chiSoNuocCu,
+                        ChiSoNuocMoi = chiSoNuocMoi,
+                        TrangThai = "ChuaThanhToan",
+                        MaCanBoTao = maCanBo,
+                        NgayTao = DateTime.Now
+                    };
+
+                    await _unitOfWork.HoaDons.AddAsync(hoaDon);
+                }
+
+                // QUAN TRỌNG: Phải SaveChanges trước khi Commit để MaHoaDon được generate
+                await _unitOfWork.SaveChangesAsync();
+                
+                // Sau khi save, cập nhật lại danh sách DTO với MaHoaDon đã có
+                danhSachHoaDon.Clear();
+                foreach (var hopDong in hopDongs)
+                {
+                    var hoaDonVuaTao = await _unitOfWork.HoaDons.Query()
+                        .FirstOrDefaultAsync(h => 
+                            h.MaHopDong == hopDong.MaHopDong && 
+                            h.Thang == thang && 
+                            h.Nam == nam);
+                    
+                    if (hoaDonVuaTao != null)
+                    {
+                        danhSachHoaDon.Add(new HoaDonDTO
+                        {
+                            MaHoaDon = hoaDonVuaTao.MaHoaDon,
+                            SoHoaDon = hoaDonVuaTao.SoHoaDon,
+                            MaSinhVien = hoaDonVuaTao.MaSinhVien,
+                            TenSinhVien = hopDong.MaSinhVienNavigation?.MaNguoiDungNavigation?.HoTen,
+                            Thang = thang,
+                            Nam = nam,
+                            TienPhong = hoaDonVuaTao.TienPhong ?? 0,
+                            TienDien = hoaDonVuaTao.TienDien ?? 0,
+                            TienNuoc = hoaDonVuaTao.TienNuoc ?? 0,
+                            PhiDichVu = hoaDonVuaTao.PhiDichVu ?? 0,
+                            TongTien = hoaDonVuaTao.TongTien,
+                            TrangThai = "ChuaThanhToan"
+                        });
+                    }
+                }
+
+                await _unitOfWork.CommitAsync();
+
+                var tenToaNha = phong?.MaToaNhaNavigation?.TenToaNha ?? "";
+                return ApiResponse<List<HoaDonDTO>>.SuccessResponse(
+                    danhSachHoaDon,
+                    $"✅ Đã tạo {danhSachHoaDon.Count} hóa đơn cho {danhSachHoaDon.Count} sinh viên tại {tenToaNha} - Phòng {phong?.SoPhong} (Tháng {thang}/{nam})"
+                );
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackAsync();
+                return ApiResponse<List<HoaDonDTO>>.ErrorResponse($"Lỗi: {ex.Message}");
             }
         }
     }

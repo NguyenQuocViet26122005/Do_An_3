@@ -31,5 +31,11 @@ namespace Api_Gateway.DTO.HoaDon
         public decimal PhiDichVu { get; set; } = 0;
 
         public decimal PhiPhat { get; set; } = 0;
+
+        /// <summary>
+        /// Nếu true: TienDien và TienNuoc là TỔNG của phòng, sẽ tự động chia đều cho số người đang ở
+        /// Nếu false: TienDien và TienNuoc là số tiền của RIÊNG sinh viên này
+        /// </summary>
+        public bool ChiaTheoPhong { get; set; } = false;
     }
 }

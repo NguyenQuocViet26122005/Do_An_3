@@ -1,0 +1,230 @@
+### =============================================
+### TEST API CHIA ĐỀU ĐIỆN NƯỚC
+### =============================================
+
+@baseUrl = https://localhost:7123
+@token = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+### =============================================
+### 1. ĐĂNG NHẬP CÁCH BỘ
+### =============================================
+
+POST {{baseUrl}}/api/Auth/login
+Content-Type: application/json
+
+{
+  "tenDangNhap": "canbo01",
+  "matKhau": "123456"
+}
+
+### =============================================
+### 2. TẠO HÓA ĐƠN - CÁCH CŨ (KHÔNG CHIA)
+### Truyền số tiền đã tính sẵn cho từng người
+### =============================================
+
+POST {{baseUrl}}/api/HoaDon
+Content-Type: application/json
+Authorization: {{token}}
+
+{
+  "soHoaDon": "HD202501001",
+  "maHopDong": 1,
+  "maSinhVien": 1,
+  "thang": 1,
+  "nam": 2025,
+  "tienPhong": 500000,
+  "tienDien": 26250,      // Đã tính: 105000 ÷ 4 = 26250
+  "tienNuoc": 33750,      // Đã tính: 135000 ÷ 4 = 33750
+  "phiDichVu": 30000,
+  "phiPhat": 0,
+  "chiaTheoPhong": false  // KHÔNG chia tự động
+}
+
+### Kết quả mong đợi:
+### TienDien = 26250 (giữ nguyên)
+### TienNuoc = 33750 (giữ nguyên)
+### TongTien = 590000
+
+
+### =============================================
+### 3. TẠO HÓA ĐƠN - CÁCH MỚI (CHIA TỰ ĐỘNG) ✅
+### Truyền TỔNG tiền điện nước của phòng
+### Backend tự động chia cho số người đang ở
+### =============================================
+
+POST {{baseUrl}}/api/HoaDon
+Content-Type: application/json
+Authorization: {{token}}
+
+{
+  "soHoaDon": "HD202501002",
+  "maHopDong": 2,
+  "maSinhVien": 2,
+  "thang": 1,
+  "nam": 2025,
+  "tienPhong": 500000,
+  "tienDien": 105000,     // TỔNG tiền điện phòng (30 kWh × 3500)
+  "tienNuoc": 135000,     // TỔNG tiền nước phòng (9 m³ × 15000)
+  "phiDichVu": 30000,
+  "phiPhat": 0,
+  "chiaTheoPhong": true   // ✅ CHIA TỰ ĐỘNG
+}
+
+### Kết quả mong đợi (phòng có 4 người):
+### TienDien = 26250 (105000 ÷ 4)
+### TienNuoc = 33750 (135000 ÷ 4)
+### TongTien = 590000
+
+
+### =============================================
+### 4. TẠO HÓA ĐƠN CHO TẤT CẢ SINH VIÊN TRONG PHÒNG
+### Ví dụ: Phòng A101 có 4 sinh viên
+### =============================================
+
+### SV1
+POST {{baseUrl}}/api/HoaDon
+Content-Type: application/json
+Authorization: {{token}}
+
+{
+  "soHoaDon": "HD202501A101_SV1",
+  "maHopDong": 1,
+  "maSinhVien": 1,
+  "thang": 1,
+  "nam": 2025,
+  "tienPhong": 500000,
+  "tienDien": 105000,
+  "tienNuoc": 135000,
+  "phiDichVu": 30000,
+  "chiaTheoPhong": true
+}
+
+###
+
+### SV2
+POST {{baseUrl}}/api/HoaDon
+Content-Type: application/json
+Authorization: {{token}}
+
+{
+  "soHoaDon": "HD202501A101_SV2",
+  "maHopDong": 2,
+  "maSinhVien": 2,
+  "thang": 1,
+  "nam": 2025,
+  "tienPhong": 500000,
+  "tienDien": 105000,
+  "tienNuoc": 135000,
+  "phiDichVu": 30000,
+  "chiaTheoPhong": true
+}
+
+###
+
+### SV3
+POST {{baseUrl}}/api/HoaDon
+Content-Type: application/json
+Authorization: {{token}}
+
+{
+  "soHoaDon": "HD202501A101_SV3",
+  "maHopDong": 3,
+  "maSinhVien": 3,
+  "thang": 1,
+  "nam": 2025,
+  "tienPhong": 500000,
+  "tienDien": 105000,
+  "tienNuoc": 135000,
+  "phiDichVu": 30000,
+  "chiaTheoPhong": true
+}
+
+###
+
+### SV4
+POST {{baseUrl}}/api/HoaDon
+Content-Type: application/json
+Authorization: {{token}}
+
+{
+  "soHoaDon": "HD202501A101_SV4",
+  "maHopDong": 4,
+  "maSinhVien": 4,
+  "thang": 1,
+  "nam": 2025,
+  "tienPhong": 500000,
+  "tienDien": 105000,
+  "tienNuoc": 135000,
+  "phiDichVu": 30000,
+  "chiaTheoPhong": true
+}
+
+### ✅ Tất cả 4 hóa đơn đều có:
+### TienDien = 26,250 VNĐ
+### TienNuoc = 33,750 VNĐ
+### TongTien = 590,000 VNĐ
+
+
+### =============================================
+### 5. KIỂM TRA DANH SÁCH HÓA ĐƠN
+### =============================================
+
+GET {{baseUrl}}/api/HoaDon?thang=1&nam=2025
+Authorization: {{token}}
+
+
+### =============================================
+### 6. EDGE CASE: PHÒNG KHÔNG CÓ NGƯỜI Ở
+### (Phòng có SoNguoiHienTai = 0)
+### =============================================
+
+POST {{baseUrl}}/api/HoaDon
+Content-Type: application/json
+Authorization: {{token}}
+
+{
+  "soHoaDon": "HD202501999",
+  "maHopDong": 99,
+  "maSinhVien": 99,
+  "thang": 1,
+  "nam": 2025,
+  "tienPhong": 500000,
+  "tienDien": 100000,
+  "tienNuoc": 150000,
+  "phiDichVu": 30000,
+  "chiaTheoPhong": true
+}
+
+### Kết quả mong đợi:
+### HTTP 400 Bad Request
+### {
+###   "success": false,
+###   "message": "Phòng không có người ở, không thể tạo hóa đơn"
+### }
+
+
+### =============================================
+### 7. TEST CHIA SỐ LẺ (3 NGƯỜI)
+### 100,000 ÷ 3 = 33,333.33 → làm tròn 33,333
+### =============================================
+
+POST {{baseUrl}}/api/HoaDon
+Content-Type: application/json
+Authorization: {{token}}
+
+{
+  "soHoaDon": "HD202501_TEST_LE",
+  "maHopDong": 10,
+  "maSinhVien": 10,
+  "thang": 1,
+  "nam": 2025,
+  "tienPhong": 500000,
+  "tienDien": 100000,     // 100000 ÷ 3 = 33333.33
+  "tienNuoc": 150000,     // 150000 ÷ 3 = 50000
+  "phiDichVu": 30000,
+  "chiaTheoPhong": true
+}
+
+### Kết quả mong đợi (phòng có 3 người):
+### TienDien = 33,333 VNĐ (làm tròn)
+### TienNuoc = 50,000 VNĐ

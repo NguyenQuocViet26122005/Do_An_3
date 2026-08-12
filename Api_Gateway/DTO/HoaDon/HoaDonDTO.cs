@@ -9,7 +9,9 @@ namespace Api_Gateway.DTO.HoaDon
         public int MaSinhVien { get; set; }
         public string? TenSinhVien { get; set; }
         public string? MaSV { get; set; }
+        public int? MaPhong { get; set; }
         public string? TenPhong { get; set; }
+        public string? TenToaNha { get; set; }
         public int Thang { get; set; }
         public int Nam { get; set; }
         public decimal TienPhong { get; set; }
@@ -23,5 +25,14 @@ namespace Api_Gateway.DTO.HoaDon
         public DateTime? NgayThanhToan { get; set; }
         public int MaCanBoTao { get; set; }
         public string? TenCanBoTao { get; set; }
+        
+        // Thêm chỉ số điện nước để sinh viên thấy được
+        public decimal? ChiSoDienCu { get; set; }
+        public decimal? ChiSoDienMoi { get; set; }
+        public decimal? ChiSoNuocCu { get; set; }
+        public decimal? ChiSoNuocMoi { get; set; }
+        public DateOnly? HanThanhToan { get; set; }
+        public string? PhuongThucThanhToan { get; set; }
+        public string? MaGiaoDich { get; set; }
     }
 }

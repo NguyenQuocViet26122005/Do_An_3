@@ -1,0 +1,44 @@
+### =============================================
+### TEST API TẠO HÓA ĐƠN THEO PHÒNG
+### =============================================
+
+@baseUrl = https://localhost:7123
+@token = YOUR_TOKEN_HERE
+
+### 1. ĐĂNG NHẬP CÁN BỘ
+POST {{baseUrl}}/api/Auth/login
+Content-Type: application/json
+
+{
+  "tenDangNhap": "canbo01",
+  "matKhau": "123456"
+}
+
+### 2. TẠO HÓA ĐƠN CHO PHÒNG (1 REQUEST = TẤT CẢ SINH VIÊN)
+### Ví dụ: Phòng A101 có 4 sinh viên
+POST {{baseUrl}}/api/HoaDon/theo-phong
+Content-Type: application/json
+Authorization: {{token}}
+
+{
+  "maPhong": 1,
+  "thang": 12,
+  "nam": 2025,
+  "chiSoDienCu": 120,
+  "chiSoDienMoi": 150,
+  "giaDien": 3500,
+  "chiSoNuocCu": 30,
+  "chiSoNuocMoi": 39,
+  "giaNuoc": 15000,
+  "phiDichVuMoiNguoi": 30000
+}
+
+### Kết quả mong đợi:
+### - Tạo 4 hóa đơn cho 4 sinh viên
+### - Tiền điện mỗi người: (150-120) * 3500 / 4 = 26,250 VNĐ
+### - Tiền nước mỗi người: (39-30) * 15000 / 4 = 33,750 VNĐ
+### - Tổng mỗi người: 500,000 + 26,250 + 33,750 + 30,000 = 590,000 VNĐ
+
+### 3. XEM TẤT CẢ HÓA ĐƠN THÁNG 12/2025
+GET {{baseUrl}}/api/HoaDon?thang=12&nam=2025
+Authorization: {{token}}
