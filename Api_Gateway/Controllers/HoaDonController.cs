@@ -79,9 +79,42 @@ namespace Api_Gateway.Controllers
         }
 
         /// <summary>
+        /// Lấy danh sách hóa đơn đã group theo phòng
+        /// </summary>
+        [HttpGet("theo-phong")]
+        [Authorize(Roles = "Admin,CanBo")]
+        public async Task<IActionResult> GetHoaDonTheoPhong([FromQuery] int? thang = null, [FromQuery] int? nam = null, [FromQuery] string? trangThai = null)
+        {
+            var result = await _hoaDonBLL.GetHoaDonTheoPhong(thang, nam, trangThai);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Xác nhận thanh toán toàn bộ phòng
+        /// </summary>
+        [HttpPost("theo-phong/thanhtoan")]
+        [Authorize(Roles = "CanBo")]
+        public async Task<IActionResult> ThanhToanToanBoPhong([FromBody] ThanhToanPhongRequest request)
+        {
+            var result = await _hoaDonBLL.ThanhToanToanBoPhong(
+                request.MaPhong,
+                request.Thang,
+                request.Nam,
+                request.PhuongThucThanhToan
+            );
+
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
+
+        /// <summary>
         /// Tạo hóa đơn cho tất cả sinh viên trong phòng (tự động chia đều điện nước)
         /// </summary>
-        [HttpPost("theo-phong")]
+        [HttpPost("theo-phong/create")]
         [Authorize(Roles = "CanBo")]
         public async Task<IActionResult> CreateTheoPhong([FromBody] CreateHoaDonTheoPhongRequest request)
         {
@@ -118,6 +151,14 @@ namespace Api_Gateway.Controllers
     {
         public string PhuongThucThanhToan { get; set; } = string.Empty;
         public string? MaGiaoDich { get; set; }
+    }
+
+    public class ThanhToanPhongRequest
+    {
+        public int MaPhong { get; set; }
+        public int Thang { get; set; }
+        public int Nam { get; set; }
+        public string PhuongThucThanhToan { get; set; } = "Tiền mặt";
     }
 
     public class CreateHoaDonTheoPhongRequest

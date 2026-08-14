@@ -266,12 +266,36 @@ namespace Api_Gateway.BLL
                     return ApiResponse<HoaDonDTO>.ErrorResponse("Hóa đơn đã được thanh toán");
                 }
 
+                // 1. Cập nhật trạng thái hóa đơn
                 hoaDon.TrangThai = "DaThanhToan";
                 hoaDon.NgayThanhToan = DateTime.Now;
                 hoaDon.PhuongThucThanhToan = phuongThucThanhToan;
                 hoaDon.MaGiaoDich = maGiaoDich;
 
                 _unitOfWork.HoaDons.Update(hoaDon);
+
+                // 2. TỰ ĐỘNG ĐÁNH DẤU VI PHẠM LÀ "ĐÃ XỬ LÝ" KHI THANH TOÁN HÓA ĐƠN
+                // Logic: Nếu hóa đơn có tiền phạt > 0, tìm các vi phạm "ChuaXuLy" trong tháng và đánh dấu "DaXuLy"
+                if (hoaDon.PhiPhat > 0 && hoaDon.MaSinhVien > 0)
+                {
+                    var ngayDauThang = new DateOnly(hoaDon.Nam, hoaDon.Thang, 1);
+                    var ngayCuoiThang = ngayDauThang.AddMonths(1).AddDays(-1);
+
+                    var viPhams = await _unitOfWork.ViPhams.Query()
+                        .Where(v => v.MaSinhVien == hoaDon.MaSinhVien
+                            && v.TrangThai == "ChuaXuLy"
+                            && v.NgayViPham != null
+                            && DateOnly.FromDateTime(v.NgayViPham.Value) >= ngayDauThang
+                            && DateOnly.FromDateTime(v.NgayViPham.Value) <= ngayCuoiThang)
+                        .ToListAsync();
+
+                    foreach (var viPham in viPhams)
+                    {
+                        viPham.TrangThai = "DaXuLy";
+                        _unitOfWork.ViPhams.Update(viPham);
+                    }
+                }
+
                 await _unitOfWork.SaveChangesAsync();
 
                 var result = new HoaDonDTO
@@ -286,6 +310,193 @@ namespace Api_Gateway.BLL
             catch (Exception ex)
             {
                 return ApiResponse<HoaDonDTO>.ErrorResponse($"Lỗi: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Lấy danh sách hóa đơn đã group theo phòng
+        /// Trạng thái "DaThanhToan" chỉ khi TẤT CẢ sinh viên trong phòng đã thanh toán
+        /// </summary>
+        public async Task<ApiResponse<List<HoaDonTheoPhongDTO>>> GetHoaDonTheoPhong(int? thang = null, int? nam = null, string? trangThai = null)
+        {
+            try
+            {
+                var query = _unitOfWork.HoaDons.Query()
+                    .Include(h => h.MaSinhVienNavigation)
+                        .ThenInclude(sv => sv!.MaNguoiDungNavigation)
+                    .Include(h => h.MaHopDongNavigation)
+                        .ThenInclude(hd => hd!.MaPhongNavigation)
+                            .ThenInclude(p => p!.MaToaNhaNavigation)
+                    .AsQueryable();
+
+                // Lọc theo tháng nếu có
+                if (thang.HasValue)
+                {
+                    query = query.Where(h => h.Thang == thang.Value);
+                }
+
+                // Lọc theo năm nếu có
+                if (nam.HasValue)
+                {
+                    query = query.Where(h => h.Nam == nam.Value);
+                }
+
+                var hoaDons = await query.OrderByDescending(h => h.Nam)
+                    .ThenByDescending(h => h.Thang)
+                    .ToListAsync();
+
+                // Group theo (MaPhong, Thang, Nam)
+                var grouped = hoaDons
+                    .GroupBy(h => new
+                    {
+                        h.MaHopDongNavigation!.MaPhong,
+                        h.Thang,
+                        h.Nam
+                    })
+                    .Select(g =>
+                    {
+                        var firstHoaDon = g.First();
+                        var soLuongSinhVien = g.Count();
+                        var soLuongDaThanhToan = g.Count(h => h.TrangThai == "DaThanhToan");
+                        var tongTienTatCa = g.Sum(h => h.TongTien);
+                        var tongTienDaThu = g.Where(h => h.TrangThai == "DaThanhToan").Sum(h => h.TongTien);
+                        var tongTienConLai = tongTienTatCa - tongTienDaThu;
+
+                        // Trạng thái chung: chỉ "DaThanhToan" khi TẤT CẢ đã thanh toán
+                        var trangThaiChung = soLuongDaThanhToan == soLuongSinhVien ? "DaThanhToan" : "ChuaThanhToan";
+
+                        var danhSachHoaDon = g.Select(h => new HoaDonDTO
+                        {
+                            MaHoaDon = h.MaHoaDon,
+                            SoHoaDon = h.SoHoaDon,
+                            MaHopDong = h.MaHopDong,
+                            MaSinhVien = h.MaSinhVien,
+                            TenSinhVien = h.MaSinhVienNavigation?.MaNguoiDungNavigation?.HoTen,
+                            MaSV = h.MaSinhVienNavigation?.MaSv,
+                            MaPhong = h.MaHopDongNavigation?.MaPhong,
+                            TenPhong = h.MaHopDongNavigation?.MaPhongNavigation?.SoPhong,
+                            TenToaNha = h.MaHopDongNavigation?.MaPhongNavigation?.MaToaNhaNavigation?.TenToaNha,
+                            Thang = h.Thang,
+                            Nam = h.Nam,
+                            TienPhong = h.TienPhong ?? 0,
+                            TienDien = h.TienDien ?? 0,
+                            TienNuoc = h.TienNuoc ?? 0,
+                            PhiDichVu = h.PhiDichVu ?? 0,
+                            PhiPhat = h.PhiPhat ?? 0,
+                            TongTien = h.TongTien,
+                            TrangThai = h.TrangThai,
+                            NgayPhatHanh = h.NgayPhatHanh?.ToDateTime(TimeOnly.MinValue) ?? DateTime.MinValue,
+                            HanThanhToan = h.HanThanhToan,
+                            NgayThanhToan = h.NgayThanhToan,
+                            ChiSoDienCu = h.ChiSoDienCu,
+                            ChiSoDienMoi = h.ChiSoDienMoi,
+                            ChiSoNuocCu = h.ChiSoNuocCu,
+                            ChiSoNuocMoi = h.ChiSoNuocMoi,
+                            PhuongThucThanhToan = h.PhuongThucThanhToan,
+                            MaGiaoDich = h.MaGiaoDich
+                        }).OrderBy(h => h.TenSinhVien).ToList();
+
+                        return new HoaDonTheoPhongDTO
+                        {
+                            MaPhong = g.Key.MaPhong,
+                            TenPhong = firstHoaDon.MaHopDongNavigation?.MaPhongNavigation?.SoPhong,
+                            TenToaNha = firstHoaDon.MaHopDongNavigation?.MaPhongNavigation?.MaToaNhaNavigation?.TenToaNha,
+                            Thang = g.Key.Thang,
+                            Nam = g.Key.Nam,
+                            SoLuongSinhVien = soLuongSinhVien,
+                            SoLuongDaThanhToan = soLuongDaThanhToan,
+                            TongTienTatCa = tongTienTatCa,
+                            TongTienDaThu = tongTienDaThu,
+                            TongTienConLai = tongTienConLai,
+                            TrangThai = trangThaiChung,
+                            DanhSachHoaDon = danhSachHoaDon,
+                            NgayPhatHanh = firstHoaDon.NgayPhatHanh?.ToDateTime(TimeOnly.MinValue),
+                            HanThanhToan = firstHoaDon.HanThanhToan
+                        };
+                    })
+                    .ToList();
+
+                // Lọc theo trạng thái nếu có (sau khi đã group)
+                if (!string.IsNullOrEmpty(trangThai))
+                {
+                    grouped = grouped.Where(g => g.TrangThai == trangThai).ToList();
+                }
+
+                return ApiResponse<List<HoaDonTheoPhongDTO>>.SuccessResponse(grouped);
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<List<HoaDonTheoPhongDTO>>.ErrorResponse($"Lỗi: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Xác nhận thanh toán toàn bộ phòng (tất cả hóa đơn trong phòng)
+        /// </summary>
+        public async Task<ApiResponse<string>> ThanhToanToanBoPhong(int maPhong, int thang, int nam, string phuongThucThanhToan)
+        {
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                // Lấy tất cả hóa đơn chưa thanh toán trong phòng
+                var hoaDons = await _unitOfWork.HoaDons.Query()
+                    .Include(h => h.MaHopDongNavigation)
+                    .Where(h => h.MaHopDongNavigation!.MaPhong == maPhong 
+                        && h.Thang == thang 
+                        && h.Nam == nam
+                        && h.TrangThai == "ChuaThanhToan")
+                    .ToListAsync();
+
+                if (!hoaDons.Any())
+                {
+                    await _unitOfWork.RollbackAsync();
+                    return ApiResponse<string>.ErrorResponse("Không có hóa đơn nào cần thanh toán");
+                }
+
+                var ngayThanhToan = DateTime.Now;
+                var ngayDauThang = new DateOnly(nam, thang, 1);
+                var ngayCuoiThang = ngayDauThang.AddMonths(1).AddDays(-1);
+
+                foreach (var hoaDon in hoaDons)
+                {
+                    // 1. Cập nhật trạng thái hóa đơn
+                    hoaDon.TrangThai = "DaThanhToan";
+                    hoaDon.NgayThanhToan = ngayThanhToan;
+                    hoaDon.PhuongThucThanhToan = phuongThucThanhToan;
+                    hoaDon.MaGiaoDich = $"PHONG_{maPhong}_{thang}_{nam}_{ngayThanhToan:yyyyMMddHHmmss}";
+                    _unitOfWork.HoaDons.Update(hoaDon);
+
+                    // 2. TỰ ĐỘNG ĐÁNH DẤU VI PHẠM LÀ "ĐÃ XỬ LÝ" KHI THANH TOÁN
+                    if (hoaDon.PhiPhat > 0 && hoaDon.MaSinhVien > 0)
+                    {
+                        var viPhams = await _unitOfWork.ViPhams.Query()
+                            .Where(v => v.MaSinhVien == hoaDon.MaSinhVien
+                                && v.TrangThai == "ChuaXuLy"
+                                && v.NgayViPham != null
+                                && DateOnly.FromDateTime(v.NgayViPham.Value) >= ngayDauThang
+                                && DateOnly.FromDateTime(v.NgayViPham.Value) <= ngayCuoiThang)
+                            .ToListAsync();
+
+                        foreach (var viPham in viPhams)
+                        {
+                            viPham.TrangThai = "DaXuLy";
+                            _unitOfWork.ViPhams.Update(viPham);
+                        }
+                    }
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+
+                return ApiResponse<string>.SuccessResponse(
+                    $"Đã xác nhận thanh toán {hoaDons.Count} hóa đơn",
+                    $"Thanh toán thành công toàn bộ phòng (tháng {thang}/{nam})"
+                );
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackAsync();
+                return ApiResponse<string>.ErrorResponse($"Lỗi: {ex.Message}");
             }
         }
 
@@ -362,8 +573,24 @@ namespace Api_Gateway.BLL
                         continue; // Skip nếu đã có
                     }
 
+                    // 🔥 TỰ ĐỘNG CỘNG TIỀN PHẠT VI PHẠM TRONG THÁNG
+                    // Logic: Chỉ cộng vi phạm CHƯA XỬ LÝ (ChuaXuLy) trong tháng đang tạo hóa đơn
+                    decimal tongTienPhat = 0;
+                    
+                    // Tạo các DateOnly để so sánh với NgayViPham (kiểu DateTime?)
+                    var ngayDauThangDateOnly = new DateOnly(nam, thang, 1);
+                    var ngayCuoiThangDateOnly = ngayDauThangDateOnly.AddMonths(1).AddDays(-1);
+                    
+                    tongTienPhat = await _unitOfWork.ViPhams.Query()
+                        .Where(v => v.MaSinhVien == hopDong.MaSinhVien
+                            && v.TrangThai == "ChuaXuLy"  // Chỉ tính vi phạm CHƯA xử lý
+                            && v.NgayViPham != null
+                            && DateOnly.FromDateTime(v.NgayViPham.Value) >= ngayDauThangDateOnly
+                            && DateOnly.FromDateTime(v.NgayViPham.Value) <= ngayCuoiThangDateOnly)
+                        .SumAsync(v => v.MucPhat ?? 0);
+
                     var soHoaDon = $"HD{nam}{thang:D2}{phong?.SoPhong}{hopDong.MaSinhVien}";
-                    var tongTien = hopDong.GiaThue + tienDienMoiNguoi + tienNuocMoiNguoi + phiDichVuMoiNguoi;
+                    var tongTien = hopDong.GiaThue + tienDienMoiNguoi + tienNuocMoiNguoi + phiDichVuMoiNguoi + tongTienPhat;
 
                     var hoaDon = new HoaDon
                     {
@@ -378,7 +605,7 @@ namespace Api_Gateway.BLL
                         TienDien = tienDienMoiNguoi,
                         TienNuoc = tienNuocMoiNguoi,
                         PhiDichVu = phiDichVuMoiNguoi,
-                        PhiPhat = 0,
+                        PhiPhat = tongTienPhat,  // 🔥 Tiền phạt (chỉ tính lần đầu tạo hóa đơn tháng)
                         TongTien = tongTien,
                         ChiSoDienCu = chiSoDienCu,
                         ChiSoDienMoi = chiSoDienMoi,
@@ -419,6 +646,7 @@ namespace Api_Gateway.BLL
                             TienDien = hoaDonVuaTao.TienDien ?? 0,
                             TienNuoc = hoaDonVuaTao.TienNuoc ?? 0,
                             PhiDichVu = hoaDonVuaTao.PhiDichVu ?? 0,
+                            PhiPhat = hoaDonVuaTao.PhiPhat ?? 0,  // Bao gồm tiền phạt vi phạm
                             TongTien = hoaDonVuaTao.TongTien,
                             TrangThai = "ChuaThanhToan"
                         });

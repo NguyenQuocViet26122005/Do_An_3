@@ -19,6 +19,7 @@ const SinhVienViPham: React.FC = () => {
         setLoading(true);
         const response = await viPhamService.getAll(maSinhVien);
         if (response.success) {
+          // Hiển thị TẤT CẢ vi phạm cho sinh viên (cả ChuaXuLy và DaXuLy)
           setViolations(response.data);
         }
       } catch (error) {
@@ -55,8 +56,9 @@ const SinhVienViPham: React.FC = () => {
       dataIndex: 'trangThai',
       key: 'trangThai',
       render: (val: string) => {
-        const status = val === 'ChuaXuLy' ? 'Chờ duyệt' : val === 'DaXuLy' ? 'Đã xử lý' : val;
-        return <Tag color={status === 'Đã xử lý' ? 'green' : 'orange'}>{status}</Tag>;
+        const status = val === 'ChuaXuLy' ? 'Chưa xử lý' : val === 'DaXuLy' ? 'Đã xử lý' : val;
+        const color = val === 'DaXuLy' ? 'green' : 'orange';
+        return <Tag color={color}>{status}</Tag>;
       },
     },
     {
@@ -113,8 +115,8 @@ const SinhVienViPham: React.FC = () => {
             <Descriptions.Item label="Mô tả" span={2}>{selectedViolation.moTa}</Descriptions.Item>
             <Descriptions.Item label="Ngày ghi nhận">{selectedViolation.ngayGhi}</Descriptions.Item>
             <Descriptions.Item label="Trạng thái">
-              <Tag color={(selectedViolation.trangThai === 'ChuaXuLy' ? 'Chờ duyệt' : selectedViolation.trangThai === 'DaXuLy' ? 'Đã xử lý' : selectedViolation.trangThai) === 'Đã xử lý' ? 'green' : 'orange'}>
-                {selectedViolation.trangThai === 'ChuaXuLy' ? 'Chờ duyệt' : selectedViolation.trangThai === 'DaXuLy' ? 'Đã xử lý' : selectedViolation.trangThai}
+              <Tag color={selectedViolation.trangThai === 'DaXuLy' ? 'green' : 'orange'}>
+                {selectedViolation.trangThai === 'ChuaXuLy' ? 'Chưa xử lý' : selectedViolation.trangThai === 'DaXuLy' ? 'Đã xử lý' : selectedViolation.trangThai}
               </Tag>
             </Descriptions.Item>
           </Descriptions>
